@@ -7,7 +7,7 @@
 \usepackage{tikz}
 \usepackage{adjustbox}
 \usepackage{caption}  
-\usetikzlibrary{positioning,angles,quotes,calc,shapes}
+\usetikzlibrary{positioning,angles,quotes,calc,shapes.geometric}
 \begin{document}
 
 
@@ -47,7 +47,7 @@ In this last section we will develop an analytical solution to validate the resu
 
 \subsection{System based on access control Algorithm 1}
 \begin{figure}
-\caption{Cloudlet system component modeled using a CTMC} \label{fig:CloudletMarkovChain}
+\caption{Cloudlet based on access control algorithm 1 modelled using a CTMC} \label{fig:CloudletMarkovChain}
 \begin{adjustbox}{center=\textwidth}
 \begin{tikzpicture}[->,node distance=3.5cm,>=latex,font=\small, minimum width=1.7cm]
 
@@ -80,6 +80,12 @@ In this last section we will develop an analytical solution to validate the resu
     \node[circle,draw=white,below of=11,minimum width = 3cm]          (A4)     {\LARGE ...};
     \node[circle,draw=white,above of=2/N-2,minimum width = 3cm]       (A5)     {\LARGE ...};
  
+ 	\draw[dashed,thick, ->] (N0) -- +(0,-2) node[yshift=-5]  {$\lambda1+\lambda_2$};
+ 	\draw[dashed,thick, ->] (N-1/1) -- +(0,-2) node[yshift=-5]  {$\lambda1+\lambda_2$};
+ 	\draw[dashed,thick, ->] (N-2/2) -- +(0,-2) node[yshift=-5]  {$\lambda1+\lambda_2$};
+ 	\draw[dashed,thick, ->] (2/N-2) -- +(0,-2) node[yshift=-5]  {$\lambda1+\lambda_2$};
+ 	\draw[dashed,thick, ->] (1/N-1) -- +(0,-2) node[yshift=-5]  {$\lambda1+\lambda_2$};
+ 	\draw[dashed,thick, ->] (0N) -- +(0,-2) node[yshift=-5]  {$\lambda1+\lambda_2$};
  
  	\path 
  	(00) 	edge[bend left,below]		node 					    {$\lambda_1$}		(10)
@@ -158,7 +164,7 @@ In this last section we will develop an analytical solution to validate the resu
     		
     (A5)    edge[bend left,above]		node [xshift=10,yshift=-5]  {$\lambda_2$}		(2/N-2)
     		edge[bend left,below]		node 					    {$\lambda_1$}		(N-2/2);
-   
+
 \end{tikzpicture}
 \end{adjustbox}
 \end{figure}
@@ -171,7 +177,7 @@ Formally, we can determine this probability by modelling the cloudlet system as 
 
 Obviously we can compute \textbf{limiting probabilities}, namely the probability according to which the chain is in a state $j$ independently of the starting state, for each states of the Cloudlet CTMC by solving the \textbf{balance equations}, in which we can equate the rate at which the system leaves state $j$ with the rate at which the system enters state $j$.\footnote{\textit{Cfr.} Mor Harchol-Balter - \textit{Performance Modeling and Design of Computer Systems} - Carnegie Mellon University, Pennsylvania, pag. 237}
 
-\paragraph{Balance equation computing} In order to compute $\pi_{(n1,n2)}$, we must resolve balance equations for given CTMC shown in Equation \ref{equation:AccessControlAlgorithm1-BalanceEquations}. Is important to remember that these equation, automatically generated through a very simple Java script fully described into \texttt{ALG-1-MATLAB-ScriptGenerator.java} file, have been resolved using a MATLAB\texttrademark  script, called \texttt{ALG-1-MATLAT-Script.m}.
+\subsubsection{Balance equation computing} In order to compute $\pi_{(n1,n2)}$, we must resolve balance equations for given CTMC shown in Equation \ref{equation:AccessControlAlgorithm1-BalanceEquations}. Is important to remember that these equation, automatically generated through a very simple Java script fully described into \texttt{ALG-1-MATLAB-ScriptGenerator.java} file, have been resolved using a MATLAB\texttrademark  script, called \texttt{ALG-1-MATLAT-Script.m}.
 
 \begin{adjustbox}{center=\textwidth}
 \label{equation:AccessControlAlgorithm1-BalanceEquations}
@@ -197,19 +203,98 @@ $\begin{cases}
 $ 
 \end{adjustbox}
 
-\paragraph{Probabilities computing} ù
+\newpage
+\subsubsection{Probabilities computing}
 
-Having found the stationary probabilities, we now find the \textbf{probability that an arriving job has to be forwarded to cloud}, \textbf{$\Pi_A$}. Observe that:
+Having found the stationary probabilities, we now find the \textbf{probability that an arriving job on controller has to be forwarded to cloud}, \textbf{$\Pi_A$}. Observe that:
 \begin{itemize}
 \item The class to which an arrival job belongs is not important for system based on access control Algorithm 1, that is we make no distinction between a class 1 or class 2 arrival job.
-\item $\Pi_A$ is the probability that an arrival job find that the number of jobs present in cloudlet has exceeded given threshold $N$; that is occurs that $n_1 + n_2 = N$.
+\item $\Pi_A$ is the probability that an arrival job find that the number of jobs present in cloudlet has exceeded given threshold $N$; that is an arriving job on controller will be forwarded to cloud when $n_1 + n_2 = N$.
 \end{itemize}
 
-\begin{equation}
+Formally:
+
+\begin{equation}\label{equation:ALG1-PiA}
 \begin{array} {lcl} 
 \Pi_A & = & P\lbrace{\text{An arrival sees $N$ jobs in cloudlet}}\rbrace \\
 & = & \text{Limiting probability that there are $N$ jobs in system} \\
 & = & \displaystyle \sum_{\substack{ n1+n2=N \\ n_1, n_2 \in \mathbb{N}_0}} \pi(n_1,n_2)
+\end{array}
+\end{equation}
+
+At this point we can easily compute the \textbf{probability that an arriving job on controller has to be accepted on cloudlet}, \textbf{$\Pi_B$}. Indeed:
+
+\begin{equation}\label{equation:ALG1-PiB}
+\begin{array} {lcl} 
+\Pi_B & = & 1 - P\lbrace{\text{An arrival sees $N$ jobs in cloudlet}}\rbrace \\
+& = & 1 - \Pi_A \\
+\end{array}
+\end{equation}
+
+Is $\lambda_i(c)$ the \textbf{total arrival rate into a component $i$ of class $c$ job}. Applying the result obtained in \ref{equation:ALG1-PiA}, we can say for cloud that: 
+
+\begin{equation}
+\begin{array} {lcl} 
+\lambda_{\text{cloud}}(1) & = & \lambda_1(1)\cdot P\lbrace\text{An arrival job on controller is sent to cloud}\rbrace \\
+& = & \lambda_1(1)\cdot P\lbrace{\text{An arrival job on controller sees exacly $N$ jobs in cloudlet}} \\
+& = & \lambda_1(1)\cdot \Pi_A \\
+\end{array}
+\end{equation}
+
+At this point, knowing the value of $\Pi_A$ e $\Pi_B$, equal to \textbf{0.4139} and \textbf{0.5861} respectively, we are finally able to calculate the values of following parameters:
+
+\begin{equation}
+\begin{array} {rcl}
+
+\lambda_{\text{cloud}}(1) & = & \lambda_1(1)\cdot \Pi_A = \textbf{1.655600 \text{ jobs/sec}} \\
+\lambda_{\text{cloud}}(2) & = & \lambda_2(2)\cdot \Pi_A = \textbf{2.586875 \text{ jobs/sec}} \\
+
+\lambda_{\text{cloudlet}}(1) & = & \lambda_1(1)\cdot \Pi_B = \textbf{2.344400 \text{ jobs/sec}} \\
+\lambda_{\text{cloudlet}}(2) & = & \lambda_2(2)\cdot \Pi_B = \textbf{3.663125 \text{ jobs/sec}} \\
+\end{array}
+\end{equation}
+
+\subsubsection{Average population}
+
+Is $E[N_i(c)]$ the \textbf{average number of class $c$ jobs into a component $i$}. Compute average population for cloudlet is very easy because it's enough sum for each state of CTMC the corresponding limiting probability multiplied by the number of job. Formally:
+
+
+\begin{equation}
+\begin{array} {rcl} 
+E[N_{\text{cloudlet}}(1)] & = & \displaystyle \sum_{ (n_1, n_2) \in M} n_1 \cdot \pi(n_1,n_2) \\
+\\
+& = & \textbf{5.2040 \text{jobs}} \\
+\\
+E[N_{\text{cloudlet}}(2)] & = & \displaystyle \sum_{ (n_1, n_2) \in M} n_2 \cdot \pi(n_1,n_2) \\
+\\
+& = & \textbf{13.5521 \text{jobs}} \\
+\\
+E[N_{\text{cloudlet}}] & = & E[N_{\text{cloudlet}}(1)] + E[N_{\text{cloudlet}}(2)] \\
+\\
+& = & \displaystyle \sum_{ (n_1, n_2) \in M} (n_1 + n_2) \cdot \pi(n_1,n_2) \\
+\\
+& = & \textbf{18.7561 \text{jobs}} 
+\end{array}
+\end{equation}
+
+We can compute cloud's average population using Little’s Law. In general we have:
+
+\begin{equation}
+\begin{array} {rcl} 
+E[N] & = & \lambda \cdot E[T] \\
+\\
+& = & \lambda \cdot (E[T_Q] + E[S]) = \lambda \cdot (E[T_Q] + \dfrac{1}{\mu}) \\
+\end{array}
+\end{equation}
+
+Since we have modelled system's cloud component as a $M/M/\infty$ queueing system, there is no job's waiting time because this kind of system is made up of an infinite number of server. So we can say that:
+
+\begin{equation}
+\begin{array} {rcl} 
+E[N_{\text{cloud}}(1)] & = & \dfrac{\lambda_{\text{cloud}}(1)}{\mu_{\text{cloud}}(1)} = \textbf{6.6224 \text{jobs}}  \\
+\\
+E[N_{\text{cloud}}(2)] & = & \dfrac{\lambda_{\text{cloud}}(2)}{\mu_{\text{cloud}}(2)} = \textbf{11.75852273 \text{jobs}} 
+\\
 \end{array}
 \end{equation}
 
@@ -222,20 +307,10 @@ Having found the stationary probabilities, we now find the \textbf{probability t
 
 
 
-\begin{table}[h!]
-    \centering
-    \label{tab:MalwareFileList}
-    \begin{tabular}{r|l}
-     \toprule
 
-      $r_i(c)$ & Outside arrival rate into server $i$ of class $c$ packets \\
-      \hline
-      $P_{ij}^{(c)}$ & Probability that when a packet of class $c$ finishes at server $i$, it next moves to server $j$ \\
-      \hline
-      $\lambda_i(c)$ & Total arrival rate into server i of class c packet \\ 
-      \bottomrule
-    \end{tabular}
-\end{table}
+
+
+
 
 \begin{equation}
 \lambda_{\text{cloudlet}}(1) = \lambda_{\text{controller}}(1)\cdot P^{(1)}_{\text{controller,cloudlet}}
@@ -245,13 +320,7 @@ Having found the stationary probabilities, we now find the \textbf{probability t
 \lambda_{\text{cloudlet}}(2) = \lambda_{\text{controller}}(2)\cdot P^{(2)}_{\text{controller,cloudlet}}
 \end{equation}
 
-\begin{equation}
-\lambda_{\text{cloud}}(1) = \lambda_{\text{controller}}(1)\cdot P^{(1)}_{\text{controller,cloud}}
-\end{equation}
 
-\begin{equation}
-\lambda_{\text{cloud}}(2) = \lambda_{\text{controller}}(2)\cdot P^{(2)}_{\text{controller,cloud}}
-\end{equation}
 
 
 
@@ -300,115 +369,123 @@ E[N_{\text{cloudlet}}(1)] = \dfrac{\rho_{\text{cloudlet}}(1)}{1 - \rho_{\text{cl
 \begin{figure}
 \caption{Cloudlet system component modeled using a CTMC} \label{fig:ALG2-CloudletMarkovChain}
 \begin{adjustbox}{center=\textwidth}
-\begin{tikzpicture}[->,node distance=3.5cm,>=latex,font=\small, minimum width=1.7cm]
+\begin{tikzpicture}[->,node distance=3.2cm,>=latex,font=\small, minimum width=1.7cm]
 
     \tikzstyle{round}=[thick,draw=black,circle]
 
     \node[round] 			    (00) {$(0,0)$};
     \node[round,right of=00]    (10) {$(1,0)$};
     \node[round,below of=00]    (01) {$(0,1)$};
-    \node[round,below of=10]    (11) {$(1,1)$};
-    \node[round,below of=01]    (02) {$(0,2)$};
-    \node[round,right of=10]    (20) {$(2,0)$};
+    
+	\node[circle,draw=white,right of=10, minimum width = 3cm]    (B0) {\LARGE ...};
+    \node[circle,draw=white,below of=01, minimum width = 3cm]    (B1) {\LARGE ...};    
+    
+   	\node[round,right of=B0]    (S-1/0)  	{$(S-1,0)$};
+   	\node[round,right of=S-1/0] (S0)	 	{$(S,0)$};
+    \node[round,below of=S-1/0] (S-1/1)     {$(S-1,1)$};
+    \node[round,left  of=S-1/1] (S-2/1)	{$(S-2,1)$};
    
-    \node[circle,draw=white,right of=20, minimum width = 3cm]    (A1) {\LARGE ...};
-    \node[circle,draw=white,below of=02, minimum width = 3cm]    (A2) {\LARGE ...};
-     
-   	\node[round,right of=A1]    (N-1/0)  	{$(N-1,0)$};
-   	\node[round,right of=N-1/0] (N0)	 	{$(N,0)$};
-    \node[round,below of=N-1/0] (N-1/1)     {$(N-1,1)$};
-    \node[round,left  of=N-1/1] (N-2/1)	{$(N-2,1)$};
-    \node[round,below of=N-2/1] (N-2/2)	{$(N-2,2)$};
-   
-    \node[round,below of=A2]    (0/N-1)  	{$(0,N-1)$};
-   	\node[round,below of=0/N-1] (0N)	 	{$(0,N)$};
-    \node[round,right of=0/N-1] (1/N-1)     {$(1,N-1)$};
-    \node[round,above of=1/N-1] (1/N-2)     {$(1,N-2)$};
-    \node[round,right of=1/N-2] (2/N-2)	    {$(2,N-2)$};
+    \node[round,below of=B1]    (0/S-1)  	{$(0,S-1)$};
+   	\node[round,below of=0/S-1] (0S)	 	{$(0,S)$};
+    \node[round,right of=0/S-1] (1/S-1)     {$(1,S-1)$};
+    \node[round,above of=1/S-1] (1/S-2)     {$(1,S-2)$};
     
     
-    \node[circle,draw=white,left of=N-2/1,minimum width = 3cm]        (A3)     {\LARGE ...};
-    \node[circle,draw=white,below of=11,minimum width = 3cm]          (A4)     {\LARGE ...};
-    \node[circle,draw=white,above of=2/N-2,minimum width = 3cm]       (A5)     {\LARGE ...};
- 
- 
+    \node[circle,below of=10, minimum width = 3cm]    (B2) {\LARGE ...};
+    \node[circle,draw=white,right of=1/S-2, minimum width = 3cm]    (B3) {\LARGE ...};
+   
+    \node[round,right of=S0] (S+1/0)	 	{$(S+1,0)$};  
+    \node[circle,draw=white,below of=S+1/0, minimum width = 3cm]    (B4) {\LARGE ...};
+    \node[round,below of=B4] (N-1/0)	 	{$(N-1,0)$};  
+    \node[round,below of=N-1/0] (N0)	 	{$(N,0)$};  
+   
+    \draw[dashed,thick, ->] (N0) -- +(2,0) node[xshift=-20,yshift=-5]  {$\lambda_2$};
+    \draw[dashed,thick, ->] (N0) -- +(-2,0) node[xshift=20,yshift=-5]  {$\lambda_1$};
+    
+    \draw[dashed,thick, ->] (N-1/0) -- +(2,0) node[xshift=-20,yshift=-5]  {$\lambda_2$};
+    \draw[dashed,thick, ->] (S+1/0) -- +(2,0) node[xshift=-20,yshift=-5]  {$\lambda_2$};
+    \draw[dashed,thick, ->] (S0) -- +(0,2) node[xshift=-5,yshift=-20]  {$\lambda_2$};
+    \draw[dashed,thick, ->] (1/S-1) -- +(2,-2) node[xshift=-20,yshift=15]  {$\lambda_2$};
+    \draw[dashed,thick, ->] (S-1/1) -- +(2,-2) node[xshift=-20,yshift=15]  {$\lambda_2$};
+    \draw[dashed,thick, ->] (0S) -- +(2,-2) node[xshift=-20,yshift=15]  {$\lambda_2$};
+   
  	\path 
+ 	
+ 	(S+1/0)edge[bend left,above]    node {$(S+1)\mu_1$} 		(S0)
+ 		   edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_1$} 		(B4)
+ 	
+ 	(B4)   edge[bend left,above]       node [xshift=-10,yshift=-5] {$(S+2)\mu_1$} 		(S+1/0)
+ 		   edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_1$} 		(N-1/0)
+ 		   
+ 		   
+ 	(N-1/0)	 edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_1$} 		(N0)
+ 			 edge[bend left,above]       node [xshift=-10,yshift=-5] {$(N-1)\mu_1$} 	(B4)
+ 		   
+    (N0) edge[bend left,above]       node [xshift=-10,yshift=-5] {$N\mu_1$} 		(N-1/0)
+ 	
  	(00) 	edge[bend left,below]		node 					    {$\lambda_1$}		(10)
  		 	edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(01)
  	
  	(10) 	edge[bend left,above]       node 						{$\mu_1$} 			(00)
- 		 	edge[bend left,below]		node 					    {$\lambda_1$}		(20)
- 		 	edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(11)
+ 		 	edge[bend left,below]		node 					    {$\lambda_1$}		(B0)
+ 		 	edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(B2)
  	
     (01) 	edge[bend left,above]       node [xshift=-10,yshift=-5] {$\mu_2$} 			(00)
-   		 	edge[bend left,below]		node 					    {$\lambda_1$}		(11)
-   	     	edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(02)
+   		 	edge[bend left,below]		node 					    {$\lambda_1$}		(B2)
+   	     	edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(B1)
    
-    (20) 	edge[bend left,above]       node 						{$2\mu_1$} 			(10)
-    		edge[bend left,below]		node 					    {$\lambda_1$}		(A1)
-    		edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(A3)
+    (B0) 	edge[bend left,above]       node 						{$2\mu_1$} 			(10)
+    		edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(S-2/1)
+    		edge[bend left,below]		node 					    {$\lambda_1$}		(S-1/0)
    		    
-    (02) 	edge[bend left,above]       node [xshift=-10,yshift=-5] {$2\mu_2$} 			(01)
-    		edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(A2)
-    		edge[bend left,below]		node 					    {$\lambda_1$}		(A4)
+    (B1) 	edge[bend left,above]       node [xshift=-10,yshift=-5] {$2\mu_2$} 			(01)
+   			edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(0/S-1)
+   			edge[bend left,below]		node 					    {$\lambda_1$}		(1/S-2)
+   			
    
-    (11) 	edge[bend left,above]       node [xshift=-10,yshift=-5] {$\mu_2$} 			(10)
+    (B2) 	edge[bend left,above]       node [xshift=-10,yshift=-5] {$\mu_2$} 			(10)
    		 	edge[bend left,above]       node 						{$\mu_1$} 			(01)
-   		 	edge[bend left,below]		node 					    {$\lambda_1$}		(A3)
-   		 	edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(A4)
+   		 	edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(1/S-2)
+   		 	edge[bend left,below]		node 					    {$\lambda_1$}		(S-2/1)
+   		 	
+    (B3)    edge[bend left,above]       node [xshift=-10,yshift=-5] {$2\mu_2$} 			(S-2/1)
+   		    edge[bend left,above]       node 						{$2\mu_1$} 			(1/S-2)   	
+   		    edge[bend right,below]		node 					    {$\lambda_1$}		(S-1/1)	 	
+   		 	
+    (S0) 	edge[bend left,above]       node 						{$S\mu_1$} 			(S-1/0)
+ 			 edge[bend left,below]		node 					    {$\lambda_1$}		(S+1/0)	
+ 			 
+   	(S-1/0) edge[bend left,below]		node 					    {$\lambda_1$}		(S0)
+   			edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(S-1/1)
+   			edge[bend left,above]       node 						{$(S-1)\mu_1$} 		(B0)
    
-   	(N0) 	edge[bend left,above]       node 						{$N\mu_1$} 			(N-1/0)
-   
-   	(N-1/0) edge[bend left,below]		node 					    {$\lambda_1$}		(N0)
-   			edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(N-1/1)
-   			edge[bend left,above]       node 						{$(N-1)\mu_1$} 			(A1)
-   
-    (N-1/1) edge[bend left,above]       node [xshift=-10,yshift=-5] {$\mu_2$} 			(N-1/0)
-    		edge[bend left,above]       node 						{$(N-1)\mu_1$} 		(N-2/1)
+    (S-1/1) edge[bend left,above]       node [xshift=-10,yshift=-5] {$\mu_2$} 			(S-1/0)
+    		edge[bend left,above]       node 						{$(S-1)\mu_1$} 		(S-2/1)
+    		edge[bend right,below]		node 					    {$\lambda_1$}		(S0)	 
     
-    (N-2/1) edge[bend left,below]		node 					    {$\lambda_1$}		(N-1/1)
-    		edge[bend left,above]       node [xshift=-10,yshift=-5] {$\mu_2$} 			(A1)
-    		edge[bend left,above]       node 						{$(N-2)\mu_1$} 		(A3)
-    		edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(N-2/2)
+    (S-2/1) edge[bend left,below]		node 					    {$\lambda_1$}		(S-1/1)
+    		edge[bend left,above]       node [xshift=-10,yshift=-5] {$\mu_2$} 			(B0)
+    		edge[bend left,above]       node 						{$(S-2)\mu_1$} 		(B2)
+    		edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(B3)
+		 
+    (0S) 	edge[bend left,above]       node [xshift=-10,yshift=-5]	{$S\mu_2$} 			(0/S-1)
+    		edge[bend right,below]		node 					    {$\lambda_1$}		(1/S-1)
+   
+   	(0/S-1) edge[bend left,below]		node 					    {$\lambda_1$}		(1/S-1)
+   			edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(0S)
+   			edge[bend left,above]       node [xshift=-10,yshift=-5]	{$(S-1)\mu_2$} 		(B1)
+   
+    (1/S-1) edge[bend left,above]       node 						{$\mu_1$}  			(0/S-1)
+    	    edge[bend left,above]       node [xshift=-10,yshift=-5]	{$(S-1)\mu_2$} 		(1/S-2)
+    	    edge[bend right,below]		node 					    {$\lambda_1$}		(B3)
+    
+    (1/S-2) edge[bend left,above]       node 						{$\mu_1$}  			(B1)
+    		edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(1/S-1)
+    		edge[bend left,above]       node [xshift=-10,yshift=-5]	{$(S-2)\mu_2$} 		(B2)
+    		edge[bend left,below]		node 					    {$\lambda_1$}		(B3)
+  
     		
-    (N-2/2) edge[bend left,above]       node [xshift=-10,yshift=-5] {$2\mu_2$} 			(N-2/1)
-    		edge[bend left,above]       node 						{$(N-2)\mu_1$} 		(A5)
-    
-    (0N) 	edge[bend left,above]       node [xshift=-10,yshift=-5]	{$N\mu_2$} 			(0/N-1)
-   
-   	(0/N-1) edge[bend left,below]		node 					    {$\lambda_1$}		(1/N-1)
-   			edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(0N)
-   			edge[bend left,above]       node [xshift=-10,yshift=-5]	{$(N-1)\mu_2$} 		(A2)
-   
-    (1/N-1) edge[bend left,above]       node 						{$\mu_1$}  			(0/N-1)
-    	    edge[bend left,above]       node [xshift=-10,yshift=-5]	{$(N-1)\mu_2$} 		(1/N-2)
-    
-    (1/N-2) edge[bend left,above]       node 						{$\mu_1$}  			(A2)
-    		edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(1/N-1)
-    		edge[bend left,above]       node [xshift=-10,yshift=-5]	{$(N-2)\mu_2$} 		(A4)
-    		edge[bend left,below]		node 					    {$\lambda_1$}		(2/N-2)
-    		
-    (2/N-2) edge[bend left,above]       node 						{$2\mu_1$}  		(1/N-2)
-    		edge[bend left,above]       node [xshift=-10,yshift=-5]	{$(N-2)\mu_2$} 		(A5)
-    
-    (A1)    edge[bend left,above]       node 						{$3\mu_1$} 			(20)
-    	    edge[bend left,below]		node 					    {$\lambda_1$}		(N-1/0)
-    	    edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(N-2/1)
-    	    
-    (A2)	edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(0/N-1)
-    		edge[bend left,above]       node [xshift=-10,yshift=-5]	{$3\mu_2$} 			(02)
-    		edge[bend left,below]		node 					    {$\lambda_1$}		(1/N-2)
-    		
-    (A3)    edge[bend left,below]		node 					    {$\lambda_1$}		(N-2/1)
-    		edge[bend left,above]       node [xshift=-10,yshift=-5]	{$\mu_2$} 			(20)
-    		edge[bend left,above]       node 						{$2\mu_1$} 			(11)
-    
-    (A4)    edge[bend left,above]       node [xshift=-10,yshift=-5]	{$2\mu_2$} 			(11)
-    		edge[bend left,above]       node 						{$\mu_1$} 			(02)
-    		edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(1/N-2)
-    		
-    (A5)    edge[bend left,above]		node [xshift=10,yshift=-5]  {$\lambda_2$}		(2/N-2)
-    		edge[bend left,below]		node 					    {$\lambda_1$}		(N-2/2);
+   ;
    
 \end{tikzpicture}
 \end{adjustbox}
