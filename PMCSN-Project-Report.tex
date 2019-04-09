@@ -1,208 +1,419 @@
-%
-% The first command in your LaTeX source must be the \documentclass command.
-\documentclass[sigchi]{acmart}
-
-%
-% defining the \BibTeX command - from Oren Patashnik's original BibTeX documentation.
-\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08emT\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
-    
-% Rights management information. 
-% This information is sent to you when you complete the rights form.
-% These commands have SAMPLE values in them; it is your responsibility as an author to replace
-% the commands and values with those provided to you when you complete the rights form.
-%
-% These commands are for a PROCEEDINGS abstract or paper.
-\copyrightyear{2018}
-\acmYear{2018}
-\setcopyright{acmlicensed}
-\acmConference[Woodstock '18]{Woodstock '18: ACM Symposium on Neural Gaze Detection}{June 03--05, 2018}{Woodstock, NY}
-\acmBooktitle{Woodstock '18: ACM Symposium on Neural Gaze Detection, June 03--05, 2018, Woodstock, NY}
-\acmPrice{15.00}
-\acmDOI{10.1145/1122445.1122456}
-\acmISBN{978-1-4503-9999-9/18/06}
-
-%
-% These commands are for a JOURNAL article.
-%\setcopyright{acmcopyright}
-%\acmJournal{TOG}
-%\acmYear{2018}\acmVolume{37}\acmNumber{4}\acmArticle{111}\acmMonth{8}
-%\acmDOI{10.1145/1122445.1122456}
-
-%
-% Submission ID. 
-% Use this when submitting an article to a sponsored event. You'll receive a unique submission ID from the organizers
-% of the event, and this ID should be used as the parameter to this command.
-%\acmSubmissionID{123-A56-BU3}
-
-%
-% The majority of ACM publications use numbered citations and references. If you are preparing content for an event
-% sponsored by ACM SIGGRAPH, you must use the "author year" style of citations and references. Uncommenting
-% the next command will enable that style.
-%\citestyle{acmauthoryear}
-
-%
-% end of the preamble, start of the body of the document source.
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usepackage{adjustbox}
+\usepackage{caption}  
+\usetikzlibrary{positioning,angles,quotes,calc,shapes}
 \begin{document}
 
-%
-% The "title" command has an optional parameter, allowing the author to define a "short title" to be used in page headers.
-\title{The Name of the Title is Hope}
 
-%
-% The "author" command and its associated commands are used to define the authors and their affiliations.
-% Of note is the shared affiliation of the first two authors, and the "authornote" and "authornotemark" commands
-% used to denote shared contribution to the research.
-\author{Ben Trovato}
-\authornote{Both authors contributed equally to this research.}
-\email{trovato@corporation.com}
-\orcid{1234-5678-9012}
-\author{G.K.M. Tobin}
-\authornotemark[1]
-\email{webmaster@marysville-ohio.com}
-\affiliation{%
-  \institution{Institute for Clarity in Documentation}
-  \streetaddress{P.O. Box 1212}
-  \city{Dublin}
-  \state{Ohio}
-  \postcode{43017-6221}
-}
 
-\author{Lars Th{\o}rv{\"a}ld}
-\affiliation{%
-  \institution{The Th{\o}rv{\"a}ld Group}
-  \streetaddress{1 Th{\o}rv{\"a}ld Circle}
-  \city{Hekla}
-  \country{Iceland}}
-\email{larst@affiliation.org}
 
-\author{Valerie B\'eranger}
-\affiliation{%
-  \institution{Inria Paris-Rocquencourt}
-  \city{Rocquencourt}
-  \country{France}
-}
 
-\author{Aparna Patel}
-\affiliation{%
- \institution{Rajiv Gandhi University}
- \streetaddress{Rono-Hills}
- \city{Doimukh}
- \state{Arunachal Pradesh}
- \country{India}}
+
+
+
+
+
+\section{Notation and Modeling for Classed Jackson Networks}
+
+
+
+\begin{table}
+\caption{Tempi esecuzione sperimentali (espessi in $\mu s$) ottenuti da vari test}\label{table:diana}
+\begin{center}
+\begin{tabular}{cc}
+
+\toprule
+
+$\lambda_{controller}(1)$ & Total mean arrival rate into \textit{controller} of class $1$ tasks \\
+$\lambda_{controller}(2)$ & Total mean arrival rate into \textit{controller} of class $2$ tasks \\
+$\mu_{cloudlet}(1)$ & Mean service rate at \textit{cloudlet} of class $1$ tasks \\
+$\mu_{cloudlet}(2)$ & Mean service rate at \textit{cloudlet} of class $2$ tasks \\
+$\mu_{cloud}(1)$ & Mean service rate at \textit{cloud} of class $1$ tasks \\
+$\mu_{cloud}(2)$ & Mean service rate at \textit{cloud} of class $2$ tasks \\
+\end{tabular}
+\end{center}
+\end{table}
+
+\newpage
+\section{Analytical solution}
+
+In this last section we will develop an analytical solution to validate the results obtained previously through our simulations.
+
+\subsection{System based on access control Algorithm 1}
+\begin{figure}
+\caption{Cloudlet system component modeled using a CTMC} \label{fig:CloudletMarkovChain}
+\begin{adjustbox}{center=\textwidth}
+\begin{tikzpicture}[->,node distance=3.5cm,>=latex,font=\small, minimum width=1.7cm]
+
+    \tikzstyle{round}=[thick,draw=black,circle]
+
+    \node[round] 			    (00) {$(0,0)$};
+    \node[round,right of=00]    (10) {$(1,0)$};
+    \node[round,below of=00]    (01) {$(0,1)$};
+    \node[round,below of=10]    (11) {$(1,1)$};
+    \node[round,below of=01]    (02) {$(0,2)$};
+    \node[round,right of=10]    (20) {$(2,0)$};
+   
+    \node[circle,draw=white,right of=20, minimum width = 3cm]    (A1) {\LARGE ...};
+    \node[circle,draw=white,below of=02, minimum width = 3cm]    (A2) {\LARGE ...};
+     
+   	\node[round,right of=A1]    (N-1/0)  	{$(N-1,0)$};
+   	\node[round,right of=N-1/0] (N0)	 	{$(N,0)$};
+    \node[round,below of=N-1/0] (N-1/1)     {$(N-1,1)$};
+    \node[round,left  of=N-1/1] (N-2/1)	{$(N-2,1)$};
+    \node[round,below of=N-2/1] (N-2/2)	{$(N-2,2)$};
+   
+    \node[round,below of=A2]    (0/N-1)  	{$(0,N-1)$};
+   	\node[round,below of=0/N-1] (0N)	 	{$(0,N)$};
+    \node[round,right of=0/N-1] (1/N-1)     {$(1,N-1)$};
+    \node[round,above of=1/N-1] (1/N-2)     {$(1,N-2)$};
+    \node[round,right of=1/N-2] (2/N-2)	    {$(2,N-2)$};
+    
+    
+    \node[circle,draw=white,left of=N-2/1,minimum width = 3cm]        (A3)     {\LARGE ...};
+    \node[circle,draw=white,below of=11,minimum width = 3cm]          (A4)     {\LARGE ...};
+    \node[circle,draw=white,above of=2/N-2,minimum width = 3cm]       (A5)     {\LARGE ...};
  
-\author{Huifen Chan}
-\affiliation{%
-  \institution{Tsinghua University}
-  \streetaddress{30 Shuangqing Rd}
-  \city{Haidian Qu}
-  \state{Beijing Shi}
-  \country{China}}
+ 
+ 	\path 
+ 	(00) 	edge[bend left,below]		node 					    {$\lambda_1$}		(10)
+ 		 	edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(01)
+ 	
+ 	(10) 	edge[bend left,above]       node 						{$\mu_1$} 			(00)
+ 		 	edge[bend left,below]		node 					    {$\lambda_1$}		(20)
+ 		 	edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(11)
+ 	
+    (01) 	edge[bend left,above]       node [xshift=-10,yshift=-5] {$\mu_2$} 			(00)
+   		 	edge[bend left,below]		node 					    {$\lambda_1$}		(11)
+   	     	edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(02)
+   
+    (20) 	edge[bend left,above]       node 						{$2\mu_1$} 			(10)
+    		edge[bend left,below]		node 					    {$\lambda_1$}		(A1)
+    		edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(A3)
+   		    
+    (02) 	edge[bend left,above]       node [xshift=-10,yshift=-5] {$2\mu_2$} 			(01)
+    		edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(A2)
+    		edge[bend left,below]		node 					    {$\lambda_1$}		(A4)
+   
+    (11) 	edge[bend left,above]       node [xshift=-10,yshift=-5] {$\mu_2$} 			(10)
+   		 	edge[bend left,above]       node 						{$\mu_1$} 			(01)
+   		 	edge[bend left,below]		node 					    {$\lambda_1$}		(A3)
+   		 	edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(A4)
+   
+   	(N0) 	edge[bend left,above]       node 						{$N\mu_1$} 			(N-1/0)
+   
+   	(N-1/0) edge[bend left,below]		node 					    {$\lambda_1$}		(N0)
+   			edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(N-1/1)
+   			edge[bend left,above]       node 						{$(N-1)\mu_1$} 			(A1)
+   
+    (N-1/1) edge[bend left,above]       node [xshift=-10,yshift=-5] {$\mu_2$} 			(N-1/0)
+    		edge[bend left,above]       node 						{$(N-1)\mu_1$} 		(N-2/1)
+    
+    (N-2/1) edge[bend left,below]		node 					    {$\lambda_1$}		(N-1/1)
+    		edge[bend left,above]       node [xshift=-10,yshift=-5] {$\mu_2$} 			(A1)
+    		edge[bend left,above]       node 						{$(N-2)\mu_1$} 		(A3)
+    		edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(N-2/2)
+    		
+    (N-2/2) edge[bend left,above]       node [xshift=-10,yshift=-5] {$2\mu_2$} 			(N-2/1)
+    		edge[bend left,above]       node 						{$(N-2)\mu_1$} 		(A5)
+    
+    (0N) 	edge[bend left,above]       node [xshift=-10,yshift=-5]	{$N\mu_2$} 			(0/N-1)
+   
+   	(0/N-1) edge[bend left,below]		node 					    {$\lambda_1$}		(1/N-1)
+   			edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(0N)
+   			edge[bend left,above]       node [xshift=-10,yshift=-5]	{$(N-1)\mu_2$} 		(A2)
+   
+    (1/N-1) edge[bend left,above]       node 						{$\mu_1$}  			(0/N-1)
+    	    edge[bend left,above]       node [xshift=-10,yshift=-5]	{$(N-1)\mu_2$} 		(1/N-2)
+    
+    (1/N-2) edge[bend left,above]       node 						{$\mu_1$}  			(A2)
+    		edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(1/N-1)
+    		edge[bend left,above]       node [xshift=-10,yshift=-5]	{$(N-2)\mu_2$} 		(A4)
+    		edge[bend left,below]		node 					    {$\lambda_1$}		(2/N-2)
+    		
+    (2/N-2) edge[bend left,above]       node 						{$2\mu_1$}  		(1/N-2)
+    		edge[bend left,above]       node [xshift=-10,yshift=-5]	{$(N-2)\mu_2$} 		(A5)
+    
+    (A1)    edge[bend left,above]       node 						{$3\mu_1$} 			(20)
+    	    edge[bend left,below]		node 					    {$\lambda_1$}		(N-1/0)
+    	    edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(N-2/1)
+    	    
+    (A2)	edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(0/N-1)
+    		edge[bend left,above]       node [xshift=-10,yshift=-5]	{$3\mu_2$} 			(02)
+    		edge[bend left,below]		node 					    {$\lambda_1$}		(1/N-2)
+    		
+    (A3)    edge[bend left,below]		node 					    {$\lambda_1$}		(N-2/1)
+    		edge[bend left,above]       node [xshift=-10,yshift=-5]	{$\mu_2$} 			(20)
+    		edge[bend left,above]       node 						{$2\mu_1$} 			(11)
+    
+    (A4)    edge[bend left,above]       node [xshift=-10,yshift=-5]	{$2\mu_2$} 			(11)
+    		edge[bend left,above]       node 						{$\mu_1$} 			(02)
+    		edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(1/N-2)
+    		
+    (A5)    edge[bend left,above]		node [xshift=10,yshift=-5]  {$\lambda_2$}		(2/N-2)
+    		edge[bend left,below]		node 					    {$\lambda_1$}		(N-2/2);
+   
+\end{tikzpicture}
+\end{adjustbox}
+\end{figure}
 
-\author{Charles Palmer}
-\affiliation{%
-  \institution{Palmer Research Laboratories}
-  \streetaddress{8600 Datapoint Drive}
-  \city{San Antonio}
-  \state{Texas}
-  \postcode{78229}}
-\email{cpalmer@prl.com}
+In order to compute all parameters and metrics of interest associated with above-mentioned system \textbf{based on access control Algorithm 1}, is crucial to determine the \textbf{fraction of jobs that are forwarded to the cloud}. 
 
-\author{John Smith}
-\affiliation{\institution{The Th{\o}rv{\"a}ld Group}}
-\email{jsmith@affiliation.org}
+According to our model, the cloudlet has limited resources therefore he can accept jobs until their number does not exceed a given threshold $N$; the key point is to compute the probability according to which the sum of job of each class in cloudlet system is equal to that threshold. 
 
-\author{Julius P. Kumquat}
-\affiliation{\institution{The Kumquat Consortium}}
-\email{jpkumquat@consortium.net}
+Formally, we can determine this probability by modelling the cloudlet system as \textbf{continuous-time Markov chain} (\textbf{CTMC}), of which a graphical representation is shown in Figure \ref{fig:CloudletMarkovChain}, where the state, denoted with $(n_1,n_2)$, corresponds to the number of class 1 job $n_1$ and class 2 job $n_2$ present in system at a certain moment.
 
-%
-% By default, the full list of authors will be used in the page headers. Often, this list is too long, and will overlap
-% other information printed in the page headers. This command allows the author to define a more concise list
-% of authors' names for this purpose.
-\renewcommand{\shortauthors}{Trovato and Tobin, et al.}
+Obviously we can compute \textbf{limiting probabilities}, namely the probability according to which the chain is in a state $j$ independently of the starting state, for each states of the Cloudlet CTMC by solving the \textbf{balance equations}, in which we can equate the rate at which the system leaves state $j$ with the rate at which the system enters state $j$.\footnote{\textit{Cfr.} Mor Harchol-Balter - \textit{Performance Modeling and Design of Computer Systems} - Carnegie Mellon University, Pennsylvania, pag. 237}
 
-%
-% The abstract is a short summary of the work to be presented in the article.
-\begin{abstract}
-A clear and well-documented \LaTeX\ document is presented as an article formatted for publication by ACM in 
-a conference proceedings or journal publication. Based on the ``acmart'' document class, this article presents
-and explains many of the common variations, as well as many of the formatting elements
-an author may use in the preparation of the documentation of their work.
-\end{abstract}
+\paragraph{Balance equation computing} In order to compute $\pi_{(n1,n2)}$, we must resolve balance equations for given CTMC shown in Equation \ref{equation:AccessControlAlgorithm1-BalanceEquations}. Is important to remember that these equation, automatically generated through a very simple Java script fully described into \texttt{ALG-1-MATLAB-ScriptGenerator.java} file, have been resolved using a MATLAB\texttrademark  script, called \texttt{ALG-1-MATLAT-Script.m}.
 
-%
-% The code below is generated by the tool at http://dl.acm.org/ccs.cfm.
-% Please copy and paste the code instead of the example below.
-%
-\begin{CCSXML}
-<ccs2012>
- <concept>
-  <concept_id>10010520.10010553.10010562</concept_id>
-  <concept_desc>Computer systems organization~Embedded systems</concept_desc>
-  <concept_significance>500</concept_significance>
- </concept>
- <concept>
-  <concept_id>10010520.10010575.10010755</concept_id>
-  <concept_desc>Computer systems organization~Redundancy</concept_desc>
-  <concept_significance>300</concept_significance>
- </concept>
- <concept>
-  <concept_id>10010520.10010553.10010554</concept_id>
-  <concept_desc>Computer systems organization~Robotics</concept_desc>
-  <concept_significance>100</concept_significance>
- </concept>
- <concept>
-  <concept_id>10003033.10003083.10003095</concept_id>
-  <concept_desc>Networks~Network reliability</concept_desc>
-  <concept_significance>100</concept_significance>
- </concept>
-</ccs2012>
-\end{CCSXML}
+\begin{adjustbox}{center=\textwidth}
+\label{equation:AccessControlAlgorithm1-BalanceEquations}
 
-\ccsdesc[500]{Computer systems organization~Embedded systems}
-\ccsdesc[300]{Computer systems organization~Redundancy}
-\ccsdesc{Computer systems organization~Robotics}
-\ccsdesc[100]{Networks~Network reliability}
+$\begin{cases} 
+(\lambda_1 + \lambda_2)\pi_{(0,0)} = \mu_1\pi_{(1,0)} + \mu_2\pi_{(0,1)} \\
 
-%
-% Keywords. The author(s) should pick words that accurately describe the work being
-% presented. Separate the keywords with commas.
-\keywords{datasets, neural networks, gaze detection, text tagging}
+(\lambda_1 + \lambda_2 + i\mu_1)\pi_{(i,0)} = \lambda_1\pi_{(i-1,0)} + \mu_1(i+1)\pi_{(i+1,0)} + \mu_2\pi_{(i,1)} & \forall i \in \mathbb{N} \mid 1 \leq i \leq N-1 \\
 
-%
-% This command processes the author and affiliation and title information and builds
-% the first part of the formatted document.
-\maketitle
+(\lambda_1 + \lambda_2 + i\mu_2)\pi_{(0,i)} = \lambda_2\pi_{(0,i-1)} + \mu_1\pi_{(1,i)} + \mu_2(i+1)\pi_{(0,i+1)} & \forall i \in \mathbb{N} \mid 1 \leq i \leq N-1 \\
 
-\section{Introduction}
-ACM's consolidated article template, introduced in 2017, provides a consistent \LaTeX\ style for use across ACM publications, and incorporates accessibility and metadata-extraction functionality necessary for future Digital Library endeavors. Numerous ACM and SIG-specific \LaTeX\ templates have been examined, and their unique features incorporated into this single new template.
+\mu_1N\pi_{(N,0)} = \lambda_1\pi_{(N-1,0)} \\
 
-If you are new to publishing with ACM, this document is a valuable guide to the process of preparing your work for publication. If you have published with ACM before, this document provides insight and instruction into more recent changes to the article template.
+\mu_2N\pi_{(0,N)} = \lambda_2\pi_{(0,N-1)} \\
 
-The ``\verb|acmart|'' document class can be used to prepare articles for any ACM publication --- conference or journal, and for any stage of publication, from review to final ``camera-ready'' copy, to the author's own version, with {\it very} few changes to the source. 
+(i\mu_1 + j\mu_2)\pi_{(i,j)} = \lambda_1\pi_{(i-1,j)} + \lambda_2\pi_{(i,j-1)} & \forall i,j \in \mathbb{N} \mid \begin{array} {l} 1 \leq i \leq N-1 \\ 1 \leq j \leq N-1 \end{array} \mid i + j = N \\
 
-\section{Template Overview}
-As noted in the introduction, the ``\verb|acmart|'' document class can be used to prepare many different kinds of documentation --- a double-blind initial submission of a full-length technical paper, a two-page SIGGRAPH Emerging Technologies abstract, a ``camera-ready'' journal article, a SIGCHI Extended Abstract, and more --- all by selecting the appropriate {\it template style} and {\it template parameters}.
+(\lambda_1 + \lambda_2 + i\mu_1 + j\mu_2)\pi_{(i,j)} = \lambda_1\pi_{(i-1,j)} + \lambda_2\pi_{(i,j-1)} + \mu_1(i+1)\pi_{(i+1,j)} + \mu_2(j+1)\pi_{(i,j+1)} & \forall i,j \in \mathbb{N} \mid \begin{array} {l} 1 \leq i \leq N-1 \\ 1 \leq j \leq N-1 \end{array} \mid i + j < N \\
 
-This document will explain the major features of the document class. For further information, the {\it \LaTeX\ User's Guide} is available from \url{https://www.acm.org/publications/proceedings-template}.
+\sum \pi_{(i,j)} = 1 & \forall i,j \in \mathbb{N}_0 \mid 
 
-\subsection{Template Styles}
+\end{cases}
+$ 
+\end{adjustbox}
 
-The primary parameter given to the ``\verb|acmart|'' document class is the {\it template style} which corresponds to the kind of publication or SIG publishing the work. This parameter is enclosed in square brackets and is a part of the {\verb|documentclass|} command:
-\begin{verbatim}
-  \documentclass[STYLE]{acmart}
-\end{verbatim}
+\paragraph{Probabilities computing} ù
 
-Journals use one of three template styles. All but three ACM journals use the {\verb|acmsmall|} template style:
+Having found the stationary probabilities, we now find the \textbf{probability that an arriving job has to be forwarded to cloud}, \textbf{$\Pi_A$}. Observe that:
 \begin{itemize}
-\item {\verb|acmsmall|}: The default journal template style.
-\item {\verb|acmlarge|}: Used by JOCCH and TAP.
-\item {\verb|acmtog|}: Used by TOG.
+\item The class to which an arrival job belongs is not important for system based on access control Algorithm 1, that is we make no distinction between a class 1 or class 2 arrival job.
+\item $\Pi_A$ is the probability that an arrival job find that the number of jobs present in cloudlet has exceeded given threshold $N$; that is occurs that $n_1 + n_2 = N$.
 \end{itemize}
 
-\section{Modello concettuale}
+\begin{equation}
+\begin{array} {lcl} 
+\Pi_A & = & P\lbrace{\text{An arrival sees $N$ jobs in cloudlet}}\rbrace \\
+& = & \text{Limiting probability that there are $N$ jobs in system} \\
+& = & \displaystyle \sum_{\substack{ n1+n2=N \\ n_1, n_2 \in \mathbb{N}_0}} \pi(n_1,n_2)
+\end{array}
+\end{equation}
 
-fdsfdsfdsfds\footnote{dfsfdsafdasfas}
+
+
+
+
+
+
+
+
+
+\begin{table}[h!]
+    \centering
+    \label{tab:MalwareFileList}
+    \begin{tabular}{r|l}
+     \toprule
+
+      $r_i(c)$ & Outside arrival rate into server $i$ of class $c$ packets \\
+      \hline
+      $P_{ij}^{(c)}$ & Probability that when a packet of class $c$ finishes at server $i$, it next moves to server $j$ \\
+      \hline
+      $\lambda_i(c)$ & Total arrival rate into server i of class c packet \\ 
+      \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{equation}
+\lambda_{\text{cloudlet}}(1) = \lambda_{\text{controller}}(1)\cdot P^{(1)}_{\text{controller,cloudlet}}
+\end{equation}
+
+\begin{equation}
+\lambda_{\text{cloudlet}}(2) = \lambda_{\text{controller}}(2)\cdot P^{(2)}_{\text{controller,cloudlet}}
+\end{equation}
+
+\begin{equation}
+\lambda_{\text{cloud}}(1) = \lambda_{\text{controller}}(1)\cdot P^{(1)}_{\text{controller,cloud}}
+\end{equation}
+
+\begin{equation}
+\lambda_{\text{cloud}}(2) = \lambda_{\text{controller}}(2)\cdot P^{(2)}_{\text{controller,cloud}}
+\end{equation}
+
+
+
+\begin{equation}
+P^{(1)}_{\text{controller,cloudlet}} = P^{(2)}_{\text{controller,cloudlet}} = 1 - \Pi
+\end{equation}
+
+For cloudlet:
+
+\begin{equation}
+\lambda_{\text{cloudlet}} = \lambda_{\text{cloudlet}}(1) + \lambda_{\text{cloudlet}}(2)
+\end{equation}
+
+\begin{equation}
+\lambda_{\text{cloud}} = \lambda_{\text{cloud}}(1) + \lambda_{\text{cloud}}(2)
+\end{equation}
+
+contribution to the load due to jobs of priority 1:
+
+
+\begin{equation}
+\rho_{\text{cloudlet}}(1) = \dfrac{\lambda_{\text{cloudlet}}(1)}{\mu_{\text{cloudlet}}(1)} 
+\end{equation}
+
+\begin{equation}
+\rho_{\text{cloudlet}}(2) = \dfrac{\lambda_{\text{cloudlet}}(2)}{\mu_{\text{cloudlet}}(2)} 
+\end{equation}
+
+\begin{equation}
+\rho_{\text{cloud}}(1) = \dfrac{\lambda_{\text{cloud}}(1)}{\mu_{\text{cloud}}(1)} 
+\end{equation}
+
+\begin{equation}
+\rho_{\text{cloud}}(2) = \dfrac{\lambda_{\text{cloud}}(2)}{\mu_{\text{cloud}}(2)} 
+\end{equation}
+
+.......
+
+
+\begin{equation}
+E[N_{\text{cloudlet}}(1)] = \dfrac{\rho_{\text{cloudlet}}(1)}{1 - \rho_{\text{cloudlet}}(1)}
+\end{equation}
+
+\subsection{System based on access control Algorithm 2}
+
+\begin{figure}
+\caption{Cloudlet system component modeled using a CTMC} \label{fig:ALG2-CloudletMarkovChain}
+\begin{adjustbox}{center=\textwidth}
+\begin{tikzpicture}[->,node distance=3.5cm,>=latex,font=\small, minimum width=1.7cm]
+
+    \tikzstyle{round}=[thick,draw=black,circle]
+
+    \node[round] 			    (00) {$(0,0)$};
+    \node[round,right of=00]    (10) {$(1,0)$};
+    \node[round,below of=00]    (01) {$(0,1)$};
+    \node[round,below of=10]    (11) {$(1,1)$};
+    \node[round,below of=01]    (02) {$(0,2)$};
+    \node[round,right of=10]    (20) {$(2,0)$};
+   
+    \node[circle,draw=white,right of=20, minimum width = 3cm]    (A1) {\LARGE ...};
+    \node[circle,draw=white,below of=02, minimum width = 3cm]    (A2) {\LARGE ...};
+     
+   	\node[round,right of=A1]    (N-1/0)  	{$(N-1,0)$};
+   	\node[round,right of=N-1/0] (N0)	 	{$(N,0)$};
+    \node[round,below of=N-1/0] (N-1/1)     {$(N-1,1)$};
+    \node[round,left  of=N-1/1] (N-2/1)	{$(N-2,1)$};
+    \node[round,below of=N-2/1] (N-2/2)	{$(N-2,2)$};
+   
+    \node[round,below of=A2]    (0/N-1)  	{$(0,N-1)$};
+   	\node[round,below of=0/N-1] (0N)	 	{$(0,N)$};
+    \node[round,right of=0/N-1] (1/N-1)     {$(1,N-1)$};
+    \node[round,above of=1/N-1] (1/N-2)     {$(1,N-2)$};
+    \node[round,right of=1/N-2] (2/N-2)	    {$(2,N-2)$};
+    
+    
+    \node[circle,draw=white,left of=N-2/1,minimum width = 3cm]        (A3)     {\LARGE ...};
+    \node[circle,draw=white,below of=11,minimum width = 3cm]          (A4)     {\LARGE ...};
+    \node[circle,draw=white,above of=2/N-2,minimum width = 3cm]       (A5)     {\LARGE ...};
+ 
+ 
+ 	\path 
+ 	(00) 	edge[bend left,below]		node 					    {$\lambda_1$}		(10)
+ 		 	edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(01)
+ 	
+ 	(10) 	edge[bend left,above]       node 						{$\mu_1$} 			(00)
+ 		 	edge[bend left,below]		node 					    {$\lambda_1$}		(20)
+ 		 	edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(11)
+ 	
+    (01) 	edge[bend left,above]       node [xshift=-10,yshift=-5] {$\mu_2$} 			(00)
+   		 	edge[bend left,below]		node 					    {$\lambda_1$}		(11)
+   	     	edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(02)
+   
+    (20) 	edge[bend left,above]       node 						{$2\mu_1$} 			(10)
+    		edge[bend left,below]		node 					    {$\lambda_1$}		(A1)
+    		edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(A3)
+   		    
+    (02) 	edge[bend left,above]       node [xshift=-10,yshift=-5] {$2\mu_2$} 			(01)
+    		edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(A2)
+    		edge[bend left,below]		node 					    {$\lambda_1$}		(A4)
+   
+    (11) 	edge[bend left,above]       node [xshift=-10,yshift=-5] {$\mu_2$} 			(10)
+   		 	edge[bend left,above]       node 						{$\mu_1$} 			(01)
+   		 	edge[bend left,below]		node 					    {$\lambda_1$}		(A3)
+   		 	edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(A4)
+   
+   	(N0) 	edge[bend left,above]       node 						{$N\mu_1$} 			(N-1/0)
+   
+   	(N-1/0) edge[bend left,below]		node 					    {$\lambda_1$}		(N0)
+   			edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(N-1/1)
+   			edge[bend left,above]       node 						{$(N-1)\mu_1$} 			(A1)
+   
+    (N-1/1) edge[bend left,above]       node [xshift=-10,yshift=-5] {$\mu_2$} 			(N-1/0)
+    		edge[bend left,above]       node 						{$(N-1)\mu_1$} 		(N-2/1)
+    
+    (N-2/1) edge[bend left,below]		node 					    {$\lambda_1$}		(N-1/1)
+    		edge[bend left,above]       node [xshift=-10,yshift=-5] {$\mu_2$} 			(A1)
+    		edge[bend left,above]       node 						{$(N-2)\mu_1$} 		(A3)
+    		edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(N-2/2)
+    		
+    (N-2/2) edge[bend left,above]       node [xshift=-10,yshift=-5] {$2\mu_2$} 			(N-2/1)
+    		edge[bend left,above]       node 						{$(N-2)\mu_1$} 		(A5)
+    
+    (0N) 	edge[bend left,above]       node [xshift=-10,yshift=-5]	{$N\mu_2$} 			(0/N-1)
+   
+   	(0/N-1) edge[bend left,below]		node 					    {$\lambda_1$}		(1/N-1)
+   			edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(0N)
+   			edge[bend left,above]       node [xshift=-10,yshift=-5]	{$(N-1)\mu_2$} 		(A2)
+   
+    (1/N-1) edge[bend left,above]       node 						{$\mu_1$}  			(0/N-1)
+    	    edge[bend left,above]       node [xshift=-10,yshift=-5]	{$(N-1)\mu_2$} 		(1/N-2)
+    
+    (1/N-2) edge[bend left,above]       node 						{$\mu_1$}  			(A2)
+    		edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(1/N-1)
+    		edge[bend left,above]       node [xshift=-10,yshift=-5]	{$(N-2)\mu_2$} 		(A4)
+    		edge[bend left,below]		node 					    {$\lambda_1$}		(2/N-2)
+    		
+    (2/N-2) edge[bend left,above]       node 						{$2\mu_1$}  		(1/N-2)
+    		edge[bend left,above]       node [xshift=-10,yshift=-5]	{$(N-2)\mu_2$} 		(A5)
+    
+    (A1)    edge[bend left,above]       node 						{$3\mu_1$} 			(20)
+    	    edge[bend left,below]		node 					    {$\lambda_1$}		(N-1/0)
+    	    edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(N-2/1)
+    	    
+    (A2)	edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(0/N-1)
+    		edge[bend left,above]       node [xshift=-10,yshift=-5]	{$3\mu_2$} 			(02)
+    		edge[bend left,below]		node 					    {$\lambda_1$}		(1/N-2)
+    		
+    (A3)    edge[bend left,below]		node 					    {$\lambda_1$}		(N-2/1)
+    		edge[bend left,above]       node [xshift=-10,yshift=-5]	{$\mu_2$} 			(20)
+    		edge[bend left,above]       node 						{$2\mu_1$} 			(11)
+    
+    (A4)    edge[bend left,above]       node [xshift=-10,yshift=-5]	{$2\mu_2$} 			(11)
+    		edge[bend left,above]       node 						{$\mu_1$} 			(02)
+    		edge[bend left,above]       node [xshift=10,yshift=-5]  {$\lambda_2$} 		(1/N-2)
+    		
+    (A5)    edge[bend left,above]		node [xshift=10,yshift=-5]  {$\lambda_2$}		(2/N-2)
+    		edge[bend left,below]		node 					    {$\lambda_1$}		(N-2/2);
+   
+\end{tikzpicture}
+\end{adjustbox}
+\end{figure}
+
 
 
 \end{document}
