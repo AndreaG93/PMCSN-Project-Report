@@ -298,71 +298,92 @@ E[N_{\text{cloud}}(2)] & = & \dfrac{\lambda_{\text{cloud}}(2)}{\mu_{\text{cloud}
 \end{array}
 \end{equation}
 
+\subsubsection{Response Time}
 
+There are two ways to compute mean response time of both class of job that they experienced both on cloud and cloudlet:
+\begin{itemize}
+\item Since we know average population and average arrival rate for both class of job, we can easily compute it using Little’s Law.
+\item Since our system haven't a queue, there is no waiting time experienced by jobs therefore $E[T]$ is simply equal to average service time $E[S]$.
+\end{itemize}
 
-
-
-
-
-
-
-
-
-
-
-
+So, is $E[T_i(c)]$ the \textbf{mean response time experienced by a class $c$ jobs into a component $i$}, is true that:
 
 \begin{equation}
-\lambda_{\text{cloudlet}}(1) = \lambda_{\text{controller}}(1)\cdot P^{(1)}_{\text{controller,cloudlet}}
+\begin{array} {rcl} 
+E[T_{\text{cloudlet}}(1)] & = & \dfrac{E[N_{\text{cloudlet}}(1)]}{\lambda_{\text{cloudlet}}(1)} = \textbf{2.219757721 \text{s}} \\
+\\
+& = & E[S_{\text{cloudlet}}(1)] \\
+\\
+& = & \dfrac{1}{\mu_{\text{cloudlet}}(1)} \\
+\\
+E[T_{\text{cloudlet}}(2)] & = & \dfrac{E[N_{\text{cloudlet}}(2)]}{\lambda_{\text{cloudlet}}(2)} = \textbf{3.699600751 \text{s}} \\
+\\
+& = & E[S_{\text{cloudlet}}(2)] \\
+\\
+& = & \dfrac{1}{\mu_{\text{cloudlet}}(2)} \\
+\\
+E[T_{\text{cloud}}(1)] & = & \dfrac{E[N_{\text{cloud}}(1)]}{\lambda_{\text{cloud}}(1)} = \textbf{4 \text{s}} \\ 
+\\
+& = & E[S_{\text{cloud}}(1)] \\
+\\
+& = & \dfrac{1}{\mu_{\text{cloud}}(1)} \\
+\\
+E[T_{\text{cloud}}(2)] & = & \dfrac{E[N_{\text{cloud}}(2)]}{\lambda_{\text{cloud}}(2)} = \textbf{4.545454547 \text{s}} \\
+\\
+& = & E[S_{\text{cloud}}(2)] \\
+\\
+& = & \dfrac{1}{\mu_{\text{cloud}}(2)} \\
+\\
+\end{array}
+\end{equation}
+
+Instead if we want to calculate global mean response time experienced by a job of class 1 $E[T](1)$:
+
+\begin{equation}
+\begin{array} {lcl} 
+E[T](1) & = & E[T_{\text{cloudlet}}(1)]\cdot P\lbrace\text{An arrival class 1 job is accepted on controller}\rbrace \\
+\\
+& & +\; E[T_{\text{cloud}}(1)]\cdot P\lbrace\text{An arrival class 1 job is accepted on cloud}\rbrace \\
+\\
+& = & E[T_{\text{cloudlet}}(1)]\cdot \Pi_{\text{JobSendToCloudlet}} + E[T_{\text{cloud}}(1)]\cdot \Pi_{\text{JobSendToCloud}} \\
+
+\end{array}
+\end{equation}
+
+Similarly:
+
+\begin{equation}
+E[T](2) = E[T_{\text{cloudlet}}(2)]\cdot \Pi_{\text{JobSendToCloudlet}} + E[T_{\text{cloud}}(2)]\cdot \Pi_{\text{JobSendToCloud}} \\
+\end{equation}
+
+Finally we can compute global response time using following expression:
+
+\begin{equation}
+E[T] = E[T](1) \cdot \dfrac{\lambda(1)}{\lambda(1) + \lambda(2)} + E[T](2) \cdot \dfrac{\lambda(2)}{\lambda(1) + \lambda(2)}\\
+\end{equation}
+
+We can also compute global response time for cloudlet or cloud only:
+
+\begin{equation}
+E[T_{\text{cloudlet}}] = E[T_{\text{cloudlet}}(1)] \cdot \dfrac{\lambda_{\text{cloudlet}}(1)}{\lambda_{\text{cloudlet}}(1) + \lambda_{\text{cloudlet}}(2)} + E[T_{\text{cloudlet}}(2)] \cdot \dfrac{\lambda_{\text{cloudlet}}(2)}{\lambda_{\text{cloudlet}}(1) + \lambda_{\text{cloudlet}}(2)} \\
 \end{equation}
 
 \begin{equation}
-\lambda_{\text{cloudlet}}(2) = \lambda_{\text{controller}}(2)\cdot P^{(2)}_{\text{controller,cloudlet}}
+E[T_{\text{cloud}}] = E[T_{\text{cloud}}(1)] \cdot \dfrac{\lambda_{\text{cloud}}(1)}{\lambda_{\text{cloud}}(1) + \lambda_{\text{cloud}}(2)} + E[T_{\text{cloud}}(2)] \cdot \dfrac{\lambda_{\text{cloud}}(2)}{\lambda_{\text{cloud}}(1) + \lambda_{\text{cloud}}(2)} \\
 \end{equation}
 
 
 
+\subsubsection{Average }
 
 
-\begin{equation}
-P^{(1)}_{\text{controller,cloudlet}} = P^{(2)}_{\text{controller,cloudlet}} = 1 - \Pi
-\end{equation}
-
-For cloudlet:
-
-\begin{equation}
-\lambda_{\text{cloudlet}} = \lambda_{\text{cloudlet}}(1) + \lambda_{\text{cloudlet}}(2)
-\end{equation}
-
-\begin{equation}
-\lambda_{\text{cloud}} = \lambda_{\text{cloud}}(1) + \lambda_{\text{cloud}}(2)
-\end{equation}
-
-contribution to the load due to jobs of priority 1:
 
 
-\begin{equation}
-\rho_{\text{cloudlet}}(1) = \dfrac{\lambda_{\text{cloudlet}}(1)}{\mu_{\text{cloudlet}}(1)} 
-\end{equation}
-
-\begin{equation}
-\rho_{\text{cloudlet}}(2) = \dfrac{\lambda_{\text{cloudlet}}(2)}{\mu_{\text{cloudlet}}(2)} 
-\end{equation}
-
-\begin{equation}
-\rho_{\text{cloud}}(1) = \dfrac{\lambda_{\text{cloud}}(1)}{\mu_{\text{cloud}}(1)} 
-\end{equation}
-
-\begin{equation}
-\rho_{\text{cloud}}(2) = \dfrac{\lambda_{\text{cloud}}(2)}{\mu_{\text{cloud}}(2)} 
-\end{equation}
-
-.......
 
 
-\begin{equation}
-E[N_{\text{cloudlet}}(1)] = \dfrac{\rho_{\text{cloudlet}}(1)}{1 - \rho_{\text{cloudlet}}(1)}
-\end{equation}
+
+
+
 
 \subsection{System based on access control Algorithm 2}
 
@@ -486,11 +507,37 @@ E[N_{\text{cloudlet}}(1)] = \dfrac{\rho_{\text{cloudlet}}(1)}{1 - \rho_{\text{cl
   
     		
    ;
-   
+  
 \end{tikzpicture}
 \end{adjustbox}
 \end{figure}
 
+\begin{adjustbox}{center=\textwidth}
+\label{equation:AccessControlAlgorithm1-BalanceEquations}
 
+$\begin{cases} 
+(\lambda_1 + \lambda_2)\pi_{(0,0)} = \mu_1\pi_{(1,0)} + \mu_2\pi_{(0,1)} \\
+
+(\lambda_1 + \lambda_2 + i\mu_1)\pi_{(i,0)} = \lambda_1\pi_{(i-1,0)} + \mu_1(i+1)\pi_{(i+1,0)} + \mu_2\pi_{(i,1)} & \forall i \in \mathbb{N} \mid 1 \leq i \leq S-1 \\
+
+(\lambda_1 + \lambda_2 + i\mu_2)\pi_{(0,i)} = \lambda_2\pi_{(0,i-1)} + \mu_1\pi_{(1,i)} + \mu_2(i+1)\pi_{(0,i+1)} & \forall i \in \mathbb{N} \mid 1 \leq i \leq S-1 \\
+
+(S\mu_1+\lambda_1)\pi_{(S,0)} = \lambda_1\pi_{(S-1,0)} + \lambda_1\pi_{(S-1,1)} + (S+1)\mu_1 \pi_{(S+1,0)}\\
+
+(\lambda_1 + S\mu_2) \pi_{(0,S)} = \lambda_2\pi_{(0,S-1)} \\
+
+(i\mu_1 + j\mu_2 + \lambda_1)\pi_{(i,j)} = \lambda_1\pi_{(i-1,j)} + \lambda_2\pi_{(i,j-1)} & \forall i,j \in \mathbb{N} \mid \begin{array} {l} 1 \leq i \leq S-1 \\ 1 \leq j \leq S-1 \end{array} \mid i + j = S \\
+
+(\lambda_1 + \lambda_2 + i\mu_1 + j\mu_2)\pi_{(i,j)} = \lambda_1\pi_{(i-1,j)} + \lambda_2\pi_{(i,j-1)} + \mu_1(i+1)\pi_{(i+1,j)} + \mu_2(j+1)\pi_{(i,j+1)} & \forall i,j \in \mathbb{N} \mid \begin{array} {l} 1 \leq i \leq N-1 \\ 1 \leq j \leq N-1 \end{array} \mid i + j < S \\
+
+(i\mu_1 + \lambda_1)\pi_{(i,0)} = \mu_1(i+1)\pi_{(i+1,0)} + \lambda_1\pi_{(i-1,0)} & \forall i \in \mathbb{N} \mid S+1 \leq i \leq N-1 \\
+
+N\mu_1\pi_{(N,0)} = \lambda_1\pi_{(N-1,0)} \\
+
+\sum \pi_{(i,j)} = 1 & \forall i,j \in \mathbb{N}_0
+
+\end{cases}
+$ 
+\end{adjustbox}
 
 \end{document}
