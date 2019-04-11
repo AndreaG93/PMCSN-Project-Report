@@ -7,6 +7,7 @@
 \usepackage{tikz}
 \usepackage{adjustbox}
 \usepackage{caption}  
+\usepackage{multirow}
 \usetikzlibrary{positioning,angles,quotes,calc,shapes.geometric}
 \begin{document}
 
@@ -43,11 +44,11 @@ $\mu_{cloud}(2)$ & Mean service rate at \textit{cloud} of class $2$ tasks \\
 \newpage
 \section{Analytical solution}
 
-In this last section we will develop an analytical solution to validate the results obtained previously through our simulations.
+In this last section we will develop an analytical solution to validate the results obtained previously through our simulations. 
 
 \subsection{System based on access control Algorithm 1}
 \begin{figure}
-\caption{Cloudlet based on access control algorithm 1 modelled using a CTMC} \label{fig:CloudletMarkovChain}
+\caption{Access control algorithm 1 based cloudlet's CTMC.} \label{fig:ALG1-CloudletMarkovChain}
 \begin{adjustbox}{center=\textwidth}
 \begin{tikzpicture}[->,node distance=3.5cm,>=latex,font=\small, minimum width=1.7cm]
 
@@ -169,183 +170,228 @@ In this last section we will develop an analytical solution to validate the resu
 \end{adjustbox}
 \end{figure}
 
-In order to compute all parameters and metrics of interest associated with above-mentioned system \textbf{based on access control Algorithm 1}, is crucial to determine the \textbf{fraction of jobs that are forwarded to the cloud}. 
+Let's start with presentation of analytical solution of system based on access control algorithm 1.
 
-According to our model, the cloudlet has limited resources therefore he can accept jobs until their number does not exceed a given threshold $N$; the key point is to compute the probability according to which the sum of job of each class in cloudlet system is equal to that threshold. 
+In order to compute all parameters and metrics of interest associated with above-mentioned system, due to cloudlet's limited resources according to which it can accept jobs until their number does not exceed a given threshold $N$, is crucial compute first the \textbf{fraction of jobs that are forwarded to cloudlet and to cloud}; to do it, we must compute at first probability according to which the sum of job of each class in cloudlet system is equal to that threshold. 
 
-Formally, we can determine this probability by modelling the cloudlet system as \textbf{continuous-time Markov chain} (\textbf{CTMC}), of which a graphical representation is shown in Figure \ref{fig:CloudletMarkovChain}, where the state, denoted with $(n_1,n_2)$, corresponds to the number of class 1 job $n_1$ and class 2 job $n_2$ present in system at a certain moment.
+To determine this probability, we had modelled cloudlet with a \textbf{continuous-time Markov chain} (\textbf{CTMC}), of which you can see a graphical representationin Figure \ref{fig:ALG1-CloudletMarkovChain}, where each chain's state, denoted with $(n_1,n_2)$, is represented by the number of class 1 job, $n_1$, and class 2 job, $n_2$, present in system at a certain moment.
 
-Obviously we can compute \textbf{limiting probabilities}, namely the probability according to which the chain is in a state $j$ independently of the starting state, for each states of the Cloudlet CTMC by solving the \textbf{balance equations}, in which we can equate the rate at which the system leaves state $j$ with the rate at which the system enters state $j$.\footnote{\textit{Cfr.} Mor Harchol-Balter - \textit{Performance Modeling and Design of Computer Systems} - Carnegie Mellon University, Pennsylvania, pag. 237}
 
-\subsubsection{Balance equation computing} In order to compute $\pi_{(n1,n2)}$, we must resolve balance equations for given CTMC shown in Equation \ref{equation:AccessControlAlgorithm1-BalanceEquations}. Is important to remember that these equation, automatically generated through a very simple Java script fully described into \texttt{ALG-1-MATLAB-ScriptGenerator.java} file, have been resolved using a MATLAB\texttrademark  script, called \texttt{ALG-1-MATLAT-Script.m}.
 
-\begin{adjustbox}{center=\textwidth}
-\label{equation:AccessControlAlgorithm1-BalanceEquations}
+\subsubsection{Balance equation computing} 
 
-$\begin{cases} 
-(\lambda_1 + \lambda_2)\pi_{(0,0)} = \mu_1\pi_{(1,0)} + \mu_2\pi_{(0,1)} \\
+Obviously we can compute \textbf{limiting probabilities} $\pi_{(n_1,n_2)}$, namely the probability according to which the chain is in a certain state, say $j$, independently of the starting state, say $i$, via \textbf{balance} (or \textbf{stationary}) \textbf{equations}, in which we can equate the rate at which the system leaves state $j$ with the rate at which the system enters state $j$ \footnote{\textit{Cfr.} Mor Harchol-Balter - \textit{Performance Modeling and Design of Computer Systems} - Carnegie Mellon University, Pennsylvania, pag. 237}, \textbf{remembering that limiting probabilities sum to 1} (i.e., $\sum_{j=0}^\infty \pi_j = 1$).
+These balance equations, shown in table \ref{table:ALG1-CloudletBalanceEquationList}, are been resolved using a very simple MATLAB script called \texttt{MATLAB\_ALG1\_CTMC\_ResolverScript.m} in which each equation, previously generated through a Java script\footnote{Cfr. \texttt{CTMCResolverScriptGenerator.java} and \texttt{ResolverUsingRoutingAlgorithm1.java} files.}, is been resolved using a MATLAB function called \texttt{solve(eqn,var)}.\footnote{\textit{Cfr.} \texttt{https://www.mathworks.com/help/symbolic/solve.html}}. 
 
-(\lambda_1 + \lambda_2 + i\mu_1)\pi_{(i,0)} = \lambda_1\pi_{(i-1,0)} + \mu_1(i+1)\pi_{(i+1,0)} + \mu_2\pi_{(i,1)} & \forall i \in \mathbb{N} \mid 1 \leq i \leq N-1 \\
+\begin{table}[h!]
+    \caption{Balance equations.}
+    \centering
+    \small
+    \begin{adjustbox}{center=\textwidth}
+    \label{table:ALG1-CloudletBalanceEquationList}
+     \begin{tabular}{rcll}
 
-(\lambda_1 + \lambda_2 + i\mu_2)\pi_{(0,i)} = \lambda_2\pi_{(0,i-1)} + \mu_1\pi_{(1,i)} + \mu_2(i+1)\pi_{(0,i+1)} & \forall i \in \mathbb{N} \mid 1 \leq i \leq N-1 \\
+      \toprule
 
-\mu_1N\pi_{(N,0)} = \lambda_1\pi_{(N-1,0)} \\
+      $(\lambda_1 + \lambda_2)\pi_{(0,0)}$ & $=$ & $\mu_1\pi_{(1,0)} + \mu_2\pi_{(0,1)}$ \\\\
+       
+      $(\lambda_1 + \lambda_2 + n_1\mu_1)\pi_{(n_1,0)} $ & $=$ & $ \lambda_1\pi_{(n_1-1,0)} + \mu_1(n_1+1)\pi_{(n_1+1,0)} + \mu_2\pi_{(n_1,1)}$ & $\forall n_1 \in \mathbb{N} \cap [1, N-1]$ \\\\
+      
+      $(\lambda_1 + \lambda_2 + n_2\mu_2)\pi_{(0,n_2)} $ & $=$ & $ \lambda_2\pi_{(0,n_2-1)} + \mu_1\pi_{(1,n_2)} + \mu_2(n_2+1)\pi_{(0,n_2+1)}$ & $ \forall n_2 \in \mathbb{N} \cap [1, N-1]$ \\\\
+      
+      $\mu_1N\pi_{(N,0)}$ & $=$ & $\lambda_1\pi_{(N-1,0)}$ \\\\
+      
+      $\mu_2N\pi_{(0,N)}$ & $=$ & $\lambda_2\pi_{(0,N-1)}$ \\\\
+      
+      $(n_1\mu_1 + n_2\mu_2)\pi_{(n_1,n_2)} $ & $=$ & $ \lambda_1\pi_{(n_1-1,n_2)} + \lambda_2\pi_{(n_1,n_2-1)}$ & $\forall n_1,n_2 \in \mathbb{N} \cap [1, N-1] \mid n_1 + n_2 = N $ \\\\
+      
+      $(\lambda_1 + \lambda_2 + n_1\mu_1 + n_2\mu_2)\pi_{(n_1,n_2)} $ & $=$ & $ \lambda_1\pi_{(n_1-1,n_2)} + \lambda_2\pi_{(n_1,n_2-1)} + \mu_1(n_1+1)\pi_{(n_1+1,n_2)} $ & $\forall n_1,n_2 \in \mathbb{N} \cap [1, N-1] \mid n_1 + n_2 < N$\\
+      && $+\; \mu_2(n_2+1)\pi_{(n_1,n_2+1)}$ & \\
+      
+      \bottomrule
 
-\mu_2N\pi_{(0,N)} = \lambda_2\pi_{(0,N-1)} \\
+    \end{tabular}
+    \end{adjustbox}
+\end{table}
 
-(i\mu_1 + j\mu_2)\pi_{(i,j)} = \lambda_1\pi_{(i-1,j)} + \lambda_2\pi_{(i,j-1)} & \forall i,j \in \mathbb{N} \mid \begin{array} {l} 1 \leq i \leq N-1 \\ 1 \leq j \leq N-1 \end{array} \mid i + j = N \\
 
-(\lambda_1 + \lambda_2 + i\mu_1 + j\mu_2)\pi_{(i,j)} = \lambda_1\pi_{(i-1,j)} + \lambda_2\pi_{(i,j-1)} + \mu_1(i+1)\pi_{(i+1,j)} + \mu_2(j+1)\pi_{(i,j+1)} & \forall i,j \in \mathbb{N} \mid \begin{array} {l} 1 \leq i \leq N-1 \\ 1 \leq j \leq N-1 \end{array} \mid i + j < N \\
-
-\sum \pi_{(i,j)} = 1 & \forall i,j \in \mathbb{N}_0 \mid 
-
-\end{cases}
-$ 
-\end{adjustbox}
 
 \newpage
 \subsubsection{Probabilities computing}
 
-Having found the stationary probabilities, we now find the \textbf{probability that an arriving job on controller has to be forwarded to cloud}, \textbf{$\Pi_A$}. Observe that:
-\begin{itemize}
-\item The class to which an arrival job belongs is not important for system based on access control Algorithm 1, that is we make no distinction between a class 1 or class 2 arrival job.
-\item $\Pi_A$ is the probability that an arrival job find that the number of jobs present in cloudlet has exceeded given threshold $N$; that is an arriving job on controller will be forwarded to cloud when $n_1 + n_2 = N$.
-\end{itemize}
-
-Formally:
-
-\begin{equation}\label{equation:ALG1-PiA}
-\begin{array} {lcl} 
-\Pi_A & = & P\lbrace{\text{An arrival sees $N$ jobs in cloudlet}}\rbrace \\
-& = & \text{Limiting probability that there are $N$ jobs in system} \\
-& = & \displaystyle \sum_{\substack{ n1+n2=N \\ n_1, n_2 \in \mathbb{N}_0}} \pi(n_1,n_2)
-\end{array}
-\end{equation}
-
-At this point we can easily compute the \textbf{probability that an arriving job on controller has to be accepted on cloudlet}, \textbf{$\Pi_B$}. Indeed:
-
-\begin{equation}\label{equation:ALG1-PiB}
-\begin{array} {lcl} 
-\Pi_B & = & 1 - P\lbrace{\text{An arrival sees $N$ jobs in cloudlet}}\rbrace \\
-& = & 1 - \Pi_A \\
-\end{array}
-\end{equation}
-
-Is $\lambda_i(c)$ the \textbf{total arrival rate into a component $i$ of class $c$ job}. Applying the result obtained in \ref{equation:ALG1-PiA}, we can say for cloud that: 
+Having found the stationary probabilities, we can now find \textbf{$\Pi_{\text{SendToCloud}}$}, that is the \textbf{probability that an arriving job on controller has to be forwarded to cloud}. Observe that the class to which an arrival job belongs to is not important because, according to access control Algorithm 1, \textbf{jobs of both classes have same probability to be sent to cloud}. To be more precise, \textbf{$\Pi_{\text{SendToCloud}}$} is the probability that an arrival job find that the number of jobs present in cloudlet has exceeded threshold $N$, which occurs when $n_1 + n_2 = N$. Formally:
 
 \begin{equation}
 \begin{array} {lcl} 
-\lambda_{\text{cloud}}(1) & = & \lambda_1(1)\cdot P\lbrace\text{An arrival job on controller is sent to cloud}\rbrace \\
-& = & \lambda_1(1)\cdot P\lbrace{\text{An arrival job on controller sees exacly $N$ jobs in cloudlet}} \\
-& = & \lambda_1(1)\cdot \Pi_A \\
+\Pi_{\text{SendToCloud}} & = & P\lbrace{\text{An arrival job on controller sees $N$ jobs in cloudlet}}\rbrace \\\\
+
+& = & \text{Limiting probability that there are $N$ jobs in system} \\\\
+
+& = & \displaystyle \sum_{\substack{n_1, n_2 \in \mathbb{N} \cap [0, N] \\ n1+n2=N}} \pi_{(n_1,n_2)} \\
 \end{array}
 \end{equation}
 
-At this point, knowing the value of $\Pi_A$ e $\Pi_B$, equal to \textbf{0.4139} and \textbf{0.5861} respectively, we are finally able to calculate the values of following parameters:
+At this point we can easily compute \textbf{$\Pi_{\text{SendToCloudlet}}$}, which instead represents the \textbf{probability according to which an arriving job on controller has to be accepted on cloudlet} and it is same for both job classes too.
+
+\begin{equation}
+\begin{array} {lcl} 
+\Pi_{\text{SendToCloudlet}} & = & P\lbrace{\text{An arrival job on controller sees less than $N$ jobs in cloudlet}}\rbrace \\\\
+& = & 1 - P\lbrace{\text{An arrival job on controller sees $N$ jobs in cloudlet}}\rbrace \\\\
+
+& = & 1 - \Pi_{\text{SendToCloud}} \\\\
+\end{array}
+\end{equation}
+
+\subsubsection{Average arrival rates}
+
+Is $\lambda_i(c)$ the \textbf{total arrival rate into a system's component $i$ of class $c$ job}. Applying previous results, using an appropriate equation\footnote{\textit{Cfr.} \textit{Ivi}, pag. 315, equation (18.1)}, we can now compute per-class average arrival rates as follow:
 
 \begin{equation}
 \begin{array} {rcl}
 
-\lambda_{\text{cloud}}(1) & = & \lambda_1(1)\cdot \Pi_A = \textbf{1.655600 \text{ jobs/sec}} \\
-\lambda_{\text{cloud}}(2) & = & \lambda_2(2)\cdot \Pi_A = \textbf{2.586875 \text{ jobs/sec}} \\
-
-\lambda_{\text{cloudlet}}(1) & = & \lambda_1(1)\cdot \Pi_B = \textbf{2.344400 \text{ jobs/sec}} \\
-\lambda_{\text{cloudlet}}(2) & = & \lambda_2(2)\cdot \Pi_B = \textbf{3.663125 \text{ jobs/sec}} \\
+\lambda_{\text{cloud}}(1) & = & \lambda_1\cdot \Pi_{\text{SendToCloud}} \\
+\lambda_{\text{cloud}}(2) & = & \lambda_2\cdot \Pi_{\text{SendToCloud}} \\
+\lambda_{\text{cloudlet}}(1) & = & \lambda_1\cdot \Pi_{\text{SendToCloudlet}} \\
+\lambda_{\text{cloudlet}}(2) & = & \lambda_2\cdot \Pi_{\text{SendToCloudlet}} \\\\
 \end{array}
 \end{equation}
+
+Then we get $\lambda_i$, that is \textbf{total arrival rate to system's component $i$}, by summing the per-class rates as follows:
+
+\begin{equation}
+\begin{array} {rcl}
+
+\lambda_{\text{cloud}} & = & \lambda_{\text{cloud}}(1) + \lambda_{\text{cloud}}(2) \\
+\lambda_{\text{cloudlet}} & = & \lambda_{\text{cloudlet}}(1) + \lambda_{\text{cloudlet}}(2) \\
+\end{array}
+\end{equation}
+
 
 \subsubsection{Average population}
 
-Is $E[N_i(c)]$ the \textbf{average number of class $c$ jobs into a component $i$}. Compute average population for cloudlet is very easy because it's enough sum for each state of CTMC the corresponding limiting probability multiplied by the number of job. Formally:
+Is $E[N_i](c)$ the \textbf{average number of class $c$ jobs into a component $i$}. 
 
-
-\begin{equation}
-\begin{array} {rcl} 
-E[N_{\text{cloudlet}}(1)] & = & \displaystyle \sum_{ (n_1, n_2) \in M} n_1 \cdot \pi(n_1,n_2) \\
-\\
-& = & \textbf{5.2040 \text{jobs}} \\
-\\
-E[N_{\text{cloudlet}}(2)] & = & \displaystyle \sum_{ (n_1, n_2) \in M} n_2 \cdot \pi(n_1,n_2) \\
-\\
-& = & \textbf{13.5521 \text{jobs}} \\
-\\
-E[N_{\text{cloudlet}}] & = & E[N_{\text{cloudlet}}(1)] + E[N_{\text{cloudlet}}(2)] \\
-\\
-& = & \displaystyle \sum_{ (n_1, n_2) \in M} (n_1 + n_2) \cdot \pi(n_1,n_2) \\
-\\
-& = & \textbf{18.7561 \text{jobs}} 
-\end{array}
-\end{equation}
-
-We can compute cloud's average population using Little’s Law. In general we have:
+We can use previously computed stationary probabilities to get average population for cloudlet; it's enough to sum each state's limiting probability multiplied by corresponding number of job as follows:
 
 \begin{equation}
 \begin{array} {rcl} 
-E[N] & = & \lambda \cdot E[T] \\
-\\
-& = & \lambda \cdot (E[T_Q] + E[S]) = \lambda \cdot (E[T_Q] + \dfrac{1}{\mu}) \\
+E[N_{\text{cloudlet}}](1) & = & \displaystyle \sum_{ (n_1, n_2) \in M} n_1 \cdot \pi(n_1,n_2) \\\\
+
+E[N_{\text{cloudlet}}](2) & = & \displaystyle \sum_{ (n_1, n_2) \in M} n_2 \cdot \pi(n_1,n_2) \\\\
+
+E[N_{\text{cloudlet}}] & = & E[N_{\text{cloudlet}}](1) + E[N_{\text{cloudlet}}](2) \\\\
+
+& = & \displaystyle \sum_{ (n_1, n_2) \in M} (n_1 + n_2) \cdot \pi(n_1,n_2) \\\\
+
 \end{array}
 \end{equation}
 
-Since we have modelled system's cloud component as a $M/M/\infty$ queueing system, there is no job's waiting time because this kind of system is made up of an infinite number of server. So we can say that:
+Since we have modelled cloud component as a $M/M/\infty$ system, in which there is no job's waiting time due to presence of an infinite number of servers, we can simply to apply \textbf{Little’s Law}\footnote{\textit{Cfr.} \textit{Ivi}, pag. 95, theorem (6.1)} in order to get cloud's average population as shown in Equation \ref{equation:ALG-1}.
+
+\begin{equation}
+\label{equation:ALG-1}
+\begin{array} {rcl} 
+E[N_{\text{cloud}}](1) & = & \lambda_{\text{cloud}}(1) \cdot E[T_{\text{cloud}}](1)  \\\\
+
+& = & \lambda_{\text{cloud}}(1) \cdot (E[T_{Q_{\text{cloud}}}](1) + E[S_{\text{cloud}}](1))  \\\\
+
+& = & \lambda_{\text{cloud}}(1) \cdot (\frac{1}{\mu_{\text{cloud}}(1)}) \\\\
+
+& = & \dfrac{\lambda_{\text{cloud}}(1)}{\mu_{\text{cloud}}(1)} \\
+
+\end{array}
+\end{equation}
+
+Similarly:
+ 
+\begin{equation}
+\begin{array} {rcl} 
+E[N_{\text{cloud}}](2) & = & \dfrac{\lambda_{\text{cloud}}(2)}{\mu_{\text{cloud}}(2)}
+\end{array}
+\end{equation}
 
 \begin{equation}
 \begin{array} {rcl} 
-E[N_{\text{cloud}}(1)] & = & \dfrac{\lambda_{\text{cloud}}(1)}{\mu_{\text{cloud}}(1)} = \textbf{6.6224 \text{jobs}}  \\
-\\
-E[N_{\text{cloud}}(2)] & = & \dfrac{\lambda_{\text{cloud}}(2)}{\mu_{\text{cloud}}(2)} = \textbf{11.75852273 \text{jobs}} 
-\\
+E[N_{\text{cloud}}] & = & E[N_{\text{cloud}}](1) + E[N_{\text{cloud}}](2)
 \end{array}
 \end{equation}
 
-\subsubsection{Response Time}
+Finally we can get global average job populations as follows:
 
-There are two ways to compute mean response time of both class of job that they experienced both on cloud and cloudlet:
+\begin{equation}
+\begin{array} {rcl} 
+
+E[N](1) & = & E[N_{\text{cloudlet}}](1) + E[N_{\text{cloud}}](1) \\\\
+
+E[N](2) & = & E[N_{\text{cloudlet}}](2) + E[N_{\text{cloud}}](2) \\\\
+
+E[N] & = & E[N](1) + E[N](2) 
+
+\end{array}
+\end{equation}
+
+
+\subsubsection{Average response time}
+
+Is $E[T_i](c)$ the \textbf{mean response time experienced by a class $c$ jobs into a component $i$}. 
+
+In order to properly compute said metric for each system's component observe that:
 \begin{itemize}
-\item Since we know average population and average arrival rate for both class of job, we can easily compute it using Little’s Law.
-\item Since our system haven't a queue, there is no waiting time experienced by jobs therefore $E[T]$ is simply equal to average service time $E[S]$.
+\item Knowing per-class average job population and per-class mean arrival rates, we can easily compute $E[T_i](c)$ using Little’s Law.
+\item Since our system haven't queues, because of there is no waiting time experienced by jobs, is true that $E[T_i](c)$ is also equal to $E[S_i](c)$, that is \textbf{mean service time experienced by a class $c$ jobs into a component $i$}, which is equal to $1/\mu_i(c)$, where $\mu_i(c)$ \textbf{means average service rate at which a class $c$ jobs into a component $i$ is served}.
 \end{itemize}
 
-So, is $E[T_i(c)]$ the \textbf{mean response time experienced by a class $c$ jobs into a component $i$}, is true that:
+Therefore we can get these metric as follows.
 
 \begin{equation}
 \begin{array} {rcl} 
-E[T_{\text{cloudlet}}(1)] & = & \dfrac{E[N_{\text{cloudlet}}(1)]}{\lambda_{\text{cloudlet}}(1)} = \textbf{2.219757721 \text{s}} \\
-\\
-& = & E[S_{\text{cloudlet}}(1)] \\
-\\
-& = & \dfrac{1}{\mu_{\text{cloudlet}}(1)} \\
-\\
-E[T_{\text{cloudlet}}(2)] & = & \dfrac{E[N_{\text{cloudlet}}(2)]}{\lambda_{\text{cloudlet}}(2)} = \textbf{3.699600751 \text{s}} \\
-\\
-& = & E[S_{\text{cloudlet}}(2)] \\
-\\
-& = & \dfrac{1}{\mu_{\text{cloudlet}}(2)} \\
-\\
-E[T_{\text{cloud}}(1)] & = & \dfrac{E[N_{\text{cloud}}(1)]}{\lambda_{\text{cloud}}(1)} = \textbf{4 \text{s}} \\ 
-\\
-& = & E[S_{\text{cloud}}(1)] \\
-\\
-& = & \dfrac{1}{\mu_{\text{cloud}}(1)} \\
-\\
-E[T_{\text{cloud}}(2)] & = & \dfrac{E[N_{\text{cloud}}(2)]}{\lambda_{\text{cloud}}(2)} = \textbf{4.545454547 \text{s}} \\
-\\
-& = & E[S_{\text{cloud}}(2)] \\
-\\
-& = & \dfrac{1}{\mu_{\text{cloud}}(2)} \\
-\\
+E[T_{\text{cloudlet}}](1) & = & \dfrac{E[N_{\text{cloudlet}}](1)}{\lambda_{\text{cloudlet}}(1)} \\\\
+
+& = & E[S_{\text{cloudlet}}](1) \\\\
+
+& = & \dfrac{1}{\mu_{\text{cloudlet}}(1)} \\\\
 \end{array}
 \end{equation}
 
-Instead if we want to calculate global mean response time experienced by a job of class 1 $E[T](1)$:
+\begin{equation}
+\begin{array} {rcl} 
+E[T_{\text{cloudlet}}](2) & = & \dfrac{E[N_{\text{cloudlet}}](2)}{\lambda_{\text{cloudlet}}(1)} \\\\
+
+& = & E[S_{\text{cloudlet}}](2) \\\\
+
+& = & \dfrac{1}{\mu_{\text{cloudlet}}(2)} \\\\
+\end{array}
+\end{equation}
+
+\begin{equation}
+\begin{array} {rcl} 
+E[T_{\text{cloud}}](1) & = & \dfrac{E[N_{\text{cloud}}](1)}{\lambda_{\text{cloud}}(1)} \\\\
+
+& = & E[S_{\text{cloud}}](1) \\\\
+
+& = & \dfrac{1}{\mu_{\text{cloud}}(1)} \\\\
+\end{array}
+\end{equation}
+
+\begin{equation}
+\begin{array} {rcl} 
+E[T_{\text{cloud}}](2) & = & \dfrac{E[N_{\text{cloud}}](2)}{\lambda_{\text{cloud}}(2)} \\\\
+
+& = & E[S_{\text{cloud}}](2) \\\\
+
+& = & \dfrac{1}{\mu_{\text{cloud}}(2)} \\\\
+\end{array}
+\end{equation}
+
+At this point we can get global per-class mean response times as follows:
 
 \begin{equation}
 \begin{array} {lcl} 
-E[T](1) & = & E[T_{\text{cloudlet}}(1)]\cdot P\lbrace\text{An arrival class 1 job is accepted on controller}\rbrace \\
+E[T](1) & = & E[T_{\text{cloudlet}}](1)\cdot P\lbrace\text{An arrival class 1 job is sent to cloudlet}\rbrace \\
 \\
-& & +\; E[T_{\text{cloud}}(1)]\cdot P\lbrace\text{An arrival class 1 job is accepted on cloud}\rbrace \\
+& & +\; E[T_{\text{cloud}}](1)\cdot P\lbrace\text{An arrival class 1 job is sent to cloud}\rbrace \\
 \\
-& = & E[T_{\text{cloudlet}}(1)]\cdot \Pi_{\text{JobSendToCloudlet}} + E[T_{\text{cloud}}(1)]\cdot \Pi_{\text{JobSendToCloud}} \\
+& = & E[T_{\text{cloudlet}}](1)\cdot \Pi_{\text{SendToCloudlet}} + E[T_{\text{cloud}}](1)\cdot \Pi_{\text{SendToCloud}} \\
 
 \end{array}
 \end{equation}
@@ -353,38 +399,82 @@ E[T](1) & = & E[T_{\text{cloudlet}}(1)]\cdot P\lbrace\text{An arrival class 1 jo
 Similarly:
 
 \begin{equation}
-E[T](2) = E[T_{\text{cloudlet}}(2)]\cdot \Pi_{\text{JobSendToCloudlet}} + E[T_{\text{cloud}}(2)]\cdot \Pi_{\text{JobSendToCloud}} \\
+\begin{array} {lcl} 
+E[T](2) & = & E[T_{\text{cloudlet}}](2)\cdot P\lbrace\text{An arrival class 2 job is sent to cloudlet}\rbrace \\
+\\
+& & +\; E[T_{\text{cloud}}](2)\cdot P\lbrace\text{An arrival class 2 job is sent to cloud}\rbrace \\
+\\
+& = & E[T_{\text{cloudlet}}](2)\cdot \Pi_{\text{SendToCloudlet}} + E[T_{\text{cloud}}](2)\cdot \Pi_{\text{SendToCloud}} \\
+
+\end{array}
 \end{equation}
 
-Finally we can compute global response time using following expression:
+Finally, using obtained results, we can get global mean response times as shown below:
 
 \begin{equation}
-E[T] = E[T](1) \cdot \dfrac{\lambda(1)}{\lambda(1) + \lambda(2)} + E[T](2) \cdot \dfrac{\lambda(2)}{\lambda(1) + \lambda(2)}\\
+E[T] = E[T](1) \cdot \dfrac{\lambda_1}{\lambda_1 + \lambda_2} + E[T](2) \cdot \dfrac{\lambda_2}{\lambda_1 + \lambda_2}
 \end{equation}
 
-We can also compute global response time for cloudlet or cloud only:
+\subsubsection{Throughput}
+
+To determine system's throughput let's prove if our system is stable.
+As we know, every queueing system in which its mean arrival rate is less than its mean service rate is known as a stable system; formally, are $\lambda$ and $\mu$ our system's mean arrival rate and mean service rate respectively, if $\lambda \leq \mu$, given system is stable.
+Cloudlet subsystem is clearly \textit{not} stable due to its limited resources compared to its workload; we have already seen that exists a not null probability according to which an arriving job on controller sees $N$ jobs in cloudlet which implying its forward to cloud subsystem. Since it haven't a queue, cloudlet stability condition is achieved when $\Pi_{\text{SendToCloud}}$ is null but, based on current system parameters, is not the case.
+Regarding cloud subsystem, no matter how high we make $\lambda_{\text{cloud}}$ because it is made up of an infinite number of server for which completion rate is still bounded by the arrival rate.
+Accordingly to previous considerations we can conclude that \textbf{our system is stable} due to stability or its cloud subsystem therefore we can get system throughput as follows:
 
 \begin{equation}
-E[T_{\text{cloudlet}}] = E[T_{\text{cloudlet}}(1)] \cdot \dfrac{\lambda_{\text{cloudlet}}(1)}{\lambda_{\text{cloudlet}}(1) + \lambda_{\text{cloudlet}}(2)} + E[T_{\text{cloudlet}}(2)] \cdot \dfrac{\lambda_{\text{cloudlet}}(2)}{\lambda_{\text{cloudlet}}(1) + \lambda_{\text{cloudlet}}(2)} \\
+X = \lambda = \lambda_1 + \lambda_2 \\
+\end{equation}
+
+To get per-subsystems throughput we proceed as shown below:
+
+\begin{equation}
+X_{\text{cloud}} = \lambda_{\text{cloud}} \\
 \end{equation}
 
 \begin{equation}
-E[T_{\text{cloud}}] = E[T_{\text{cloud}}(1)] \cdot \dfrac{\lambda_{\text{cloud}}(1)}{\lambda_{\text{cloud}}(1) + \lambda_{\text{cloud}}(2)} + E[T_{\text{cloud}}(2)] \cdot \dfrac{\lambda_{\text{cloud}}(2)}{\lambda_{\text{cloud}}(1) + \lambda_{\text{cloud}}(2)} \\
+X_{\text{cloudlet}} = X - X_{\text{cloud}} \\
 \end{equation}
 
+\subsubsection{Summary of analytical results}
+
+\begin{table}[h!]
+    \centering
+    \small
+    \begin{adjustbox}{center=\textwidth}
+     \begin{tabular}{c|c|c|c|c|c|c|c|c|c}
+
+      \toprule
+      
+      & \multicolumn{3}{c|}{ Class 1 Jobs} & \multicolumn{3}{c|}{Class 2 Jobs} & \multirow{2}{*}{Cloudlet} & \multirow{2}{*}{Cloud} & \multirow{2}{*}{Global} \\ \cline{2-7}
+      
+      & Cloudlet & Cloud & System & Cloudlet & Cloud & System & \\
+      \midrule
+      $\Pi_{\text{SendToCloudlet}}$ & & & & & & & & & 0.5861  \\
+      \hline
+      $\Pi_{\text{SendToCloud}}$ & & & & & & & & & 0.4139  \\
+      \hline
+	  $X$, $\lambda$ (jobs/$s$) & 2.3444 & 1.6556 & 4 & 3.663125 & 2.586875 & 6.25 & 6.007525 & 4.242475 & 10.25 \\     
+      \hline
+      $E[N]$ (jobs) & 5.2040 & 6.6224 & 11.8264 & 13.5521 & 11.75852273 & 25.31062273 & 18.7561 & 18.38092273 & 37.13702273 \\
+      \hline
+      $E[S], E[T]$ ($s$)& $20/9$ & 4 & 2.835407407 & $100/27$ & $50/11$ & 4.225763636 & 3460/1107 & 1954/451 & 3.683185595 \\
+      \hline
+	  $\rho$ & 0.2604888889 & & & 0.6783564815 & &  & 0.9388453704 & &  \\
+     
+       
+ 
+     
+      \bottomrule
+
+    \end{tabular}
+    \end{adjustbox}
+\end{table}
 
 
-\subsubsection{Average }
 
-
-
-
-
-
-
-
-
-
+\newpage
 \subsection{System based on access control Algorithm 2}
 
 \begin{figure}
@@ -528,7 +618,7 @@ $\begin{cases}
 
 (i\mu_1 + j\mu_2 + \lambda_1)\pi_{(i,j)} = \lambda_1\pi_{(i-1,j)} + \lambda_2\pi_{(i,j-1)} & \forall i,j \in \mathbb{N} \mid \begin{array} {l} 1 \leq i \leq S-1 \\ 1 \leq j \leq S-1 \end{array} \mid i + j = S \\
 
-(\lambda_1 + \lambda_2 + i\mu_1 + j\mu_2)\pi_{(i,j)} = \lambda_1\pi_{(i-1,j)} + \lambda_2\pi_{(i,j-1)} + \mu_1(i+1)\pi_{(i+1,j)} + \mu_2(j+1)\pi_{(i,j+1)} & \forall i,j \in \mathbb{N} \mid \begin{array} {l} 1 \leq i \leq N-1 \\ 1 \leq j \leq N-1 \end{array} \mid i + j < S \\
+(\lambda_1 + \lambda_2 + i\mu_1 + j\mu_2)\pi_{(i,j)} = \lambda_1\pi_{(i-1,j)} + \lambda_2\pi_{(i,j-1)} + \mu_1(i+1)\pi_{(i+1,j)} + \mu_2(j+1)\pi_{(i,j+1)} & \forall i,j \in \mathbb{N} \mid \begin{array} {l} 1 \leq i \leq S-1 \\ 1 \leq j \leq S-1 \end{array} \mid i + j < S \\
 
 (i\mu_1 + \lambda_1)\pi_{(i,0)} = \mu_1(i+1)\pi_{(i+1,0)} + \lambda_1\pi_{(i-1,0)} & \forall i \in \mathbb{N} \mid S+1 \leq i \leq N-1 \\
 
@@ -539,5 +629,62 @@ N\mu_1\pi_{(N,0)} = \lambda_1\pi_{(N-1,0)} \\
 \end{cases}
 $ 
 \end{adjustbox}
+
+\subsubsection{Probabilities computing}
+
+although... To properly analyse this system, we need do compute some useful probabilities.
+
+Similarly to the previous case we need to now following probabilities:
+
+
+
+\begin{table}[h!]
+    \caption{Lista dei file del malware FASTCash}
+    \centering
+    \small
+    \label{tab:MalwareFileList}
+     \begin{tabular}{rp{8cm}}
+
+      \toprule
+
+      $\Pi_{\text{SendToCloudlet}}(k)$ & Probability that an arriving job of class $k$ on controller has to be forwarded to cloudlet \\
+\\
+      $\Pi_{\text{SendToCloud}}(k)$ & Probability that an arriving job of class $k$ on controller has to be forwarded to cloud \\
+\\
+      $\Pi_{\text{Class2JobInterruption}}(k)$ & Probability that a job of class 2 running on cloudlet has to be interrupted and forwarded to cloud due of  arriving class 1 job on cloudlet. \\
+
+      \bottomrule
+
+    \end{tabular}
+\end{table}
+
+Differently from the previous case, owing to the use of a different access control algorithm, jobs of different classes have different probability according to which an arriving job on controller has to be send to cloud. From CTMC analysis, we can easily understand that:
+
+
+\begin{equation}
+\begin{array} {lcl} 
+\Pi_{\text{SendToCloud}}(1) & = & P\lbrace{\text{An arrival class 1 job on controller sees $N$ class 1 jobs in cloudlet}}\rbrace \\ 
+\\
+& = & P\lbrace{n_1 = N}\rbrace \\ 
+\\
+& = & \pi(N,0)
+\end{array}
+\end{equation}
+
+
+
+\begin{center}
+\begin{equation}
+\begin{array} {lcl} 
+\Pi_{\text{SendToCloud}}(2) & = & P\lbrace{\text{An arrival class 2 job on controller sees that number of jobs in cloudlet exceed or is equal to a given threshold S}}\rbrace \\ 
+\\
+& = & P\lbrace{n_1 + n_2 \geq N}\rbrace \\ 
+\\
+& = & \displaystyle \sum_{\substack{n_1,n_2 = 0 \\ n_1 + n_2 = S}}^{S} \pi(n_1,n_2) + \sum_{n_1 = S+1}^{N}\pi(n_1,0) \\
+\\
+& = & \displaystyle \sum_{\substack{0 \leq n_1 \leq N \\ 0 \leq n_2 \leq S \\ n_1 + n_2 \geq S}} \pi(n_1,n_2)
+\end{array}
+\end{equation}
+\end{center}
 
 \end{document}
