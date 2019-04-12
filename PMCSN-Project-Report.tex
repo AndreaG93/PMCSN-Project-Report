@@ -127,24 +127,115 @@ Note that Algorithm \ref{alg:accessControlAlgorithm2} use a further threshold va
 \newpage
 \section{Specification  Model}
 
+In this section we will provide a \textit{specification model} of our system in which, as we know, system's states exist as a collection of mathematical variables together with equations and logic describing how the state variables are interrelated and an algorithm for computing their interaction and evolution in time\footnote{See. 186}.
+
+\subsection{State variables}
+
+In previous section we have said that system state is represented by the number, type, response of job running on each system's node. Now we will formalize 
+
+\begin{table}[h!]
+    \caption{System state variables.}
+    \centering
+    \small
+    \label{table:StateVariables}
+     \begin{tabular}{rcl}
+
+      \toprule
+      
+      $n_{\text{global}}^{(1)}(t)$ & $ = $ & Class 1 job number currently running on overall system at time $t$ \\\\
+	  $n_{\text{global}}^{(2)}(t)$ & $ = $ & Class 2 job number currently running on overall system at time $t$ \\\\
+      
+      $n_{\text{cloudlet}}^{(1)}(t)$ & $ = $ & Class 1 job number currently running on cloudlet at time $t$ \\\\
+	  $n_{\text{cloudlet}}^{(2)}(t)$ & $ = $ & Class 2 job number currently running on cloudlet at time $t$ \\\\
+         
+      $n_{\text{cloud}}^{(1)}(t)$ & $ = $ & Class 1 job number currently running on cloud at time $t$ \\\\
+	  $n_{\text{cloud}}^{(2)}(t)$ & $ = $ & Class 2 job number currently running on cloud at time $t$ \\\\
+	  
+	  $d_{\text{global}}^{(1)}(t)$ & $ = $ & Number of departed class 1 job on overall system at time $t$ \\\\
+	  $d_{\text{global}}^{(2)}(t)$ & $ = $ & Number of departed class 1 job on overall system at time $t$ \\\\
+      
+      $d_{\text{cloudlet}}^{(1)}(t)$ & $ = $ & Number of departed class 1 job on cloudlet at time $t$ \\\\
+	  $d_{\text{cloudlet}}^{(2)}(t)$ & $ = $ & Number of departed class 1 job on cloudlet at time $t$ \\\\
+	  
+	  $d_{\text{cloud}}^{(1)}(t)$ & $ = $ & Number of departed class 1 job on cloud at time $t$ \\\\
+	  $d_{\text{cloud}}^{(2)}(t)$ & $ = $ & Number of departed class 1 job on cloud at time $t$ \\\\
+    
+      \bottomrule
 
 
-\begin{table}
-\caption{Tempi esecuzione sperimentali (espessi in $\mu s$) ottenuti da vari test}\label{table:diana}
-\begin{center}
-\begin{tabular}{cc}
-
-\toprule
-
-$\lambda_{controller}(1)$ & Total mean arrival rate into \textit{controller} of class $1$ tasks \\
-$\lambda_{controller}(2)$ & Total mean arrival rate into \textit{controller} of class $2$ tasks \\
-$\mu_{cloudlet}(1)$ & Mean service rate at \textit{cloudlet} of class $1$ tasks \\
-$\mu_{cloudlet}(2)$ & Mean service rate at \textit{cloudlet} of class $2$ tasks \\
-$\mu_{cloud}(1)$ & Mean service rate at \textit{cloud} of class $1$ tasks \\
-$\mu_{cloud}(2)$ & Mean service rate at \textit{cloud} of class $2$ tasks \\
-\end{tabular}
-\end{center}
+    \end{tabular}
 \end{table}
+\newpage
+\subsection{Time averaged statistics}
+
+Using state variables previously described, we can compute all system's statistics which we need in very simple ways.
+
+From now we will denote with $\tau \in (t_0, t)$ an instant of our system simulation where $t_0$ and $t$ are respectively its \textit{start moment} and \textit{final moment}. We will also use $c \in \lbrace 1,2 \rbrace = C$  to denote the class to which a job belongs while $x \in \lbrace cloudlet,cloud \rbrace = X$ will be used to refer to a specific system's node.
+
+$E[N_j](c)$, \textbf{average number of class $c$ jobs into $j$}, can be computed as follows: 
+
+\begin{equation}
+\begin{array} {lcr} 
+\displaystyle E[N_x](c) = \dfrac{1}{t-t_0}\int_{t_0}^t n_x^{(c)}(\tau)d\tau & \qquad & \forall c \in C, \forall x \in X
+\end{array}
+\end{equation}
+
+To obtain $E[N_x]$, time average number of jobs into $x$, and $E[N]$, time average number of jobs into overall system, we can proceed as shown below:
+
+\begin{equation}
+\begin{array} {lcr} 
+E[N_x] = \sum_{c \in C} E[N_x](c) & \qquad & \forall x \in X
+\end{array}
+\end{equation}
+
+\begin{equation}
+E[N] = \sum_{x \in X} E[N_x]
+\end{equation}
+
+
+Let's look now to \textbf{average response time experienced by class $c$ jobs into a system node $j$} $E[T_j](c)$.
+In order to compute this statistic, we had to observe that our system hasn't queues therefore $E[T_j](c)$ is simply equal to $E[S_j](c)$, that is \textbf{average service time experienced by class $c$ jobs into a system node $j$}. We just have to show how to compute $E[S_j](c)$:
+
+\begin{equation}
+E[S_j](c) = \sum_{i=1}^N s_{i}
+\end{equation}
+
+
+
+
+To compute mean response time experienced by jobs, we had to observe that our system there are no queues, therefore 
+
+
+\subsection{Events}
+
+By definition, an event is an occurrence that may change the state of the system, therefore system's state variables can can only change at an event time\footnote{See. 187}.
+
+In our system, we can distinguish following types of events:
+
+\begin{description}
+
+\item[Class 1 Job arrival on controller node]
+
+\item[Class 2 Job arrival on controller node]
+
+\item[Class 1 Job arrival on cloudlet node]
+
+\item[Class 2 Job arrival on cloudlet node]
+
+\item[Class 1 Job arrival on cloud node]
+
+\item[Class 2 Job arrival on cloud node]
+
+
+\end{description}
+
+
+
+
+
+
+
+
 
 \newpage
 \section{Computational Model}
