@@ -8,10 +8,105 @@
 \usepackage{adjustbox}
 \usepackage{caption}  
 \usepackage{multirow}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
 \usetikzlibrary{positioning,angles,quotes,calc,shapes.geometric}
 \begin{document}
 
 
+\section{Conceptual Model}
+
+Let's start with the \textit{second} step of a typical discrete-event simulation: the \textbf{conceptual model} building. 
+
+First of all our system represents a network of nodes to which some application, running in set of external mobile devices, send their tasks, called \textbf{jobs}, because of performance or energy saving reasons. 
+
+Not all job sent to system are the same, in fact we make distinction between two types of task, denoted as \textbf{class 1 job} and \textbf{class two job}; differences betweens them are described in following sections. 
+
+To minimize mean response time experienced by mobile device users, the system is been built as a "\textit{two-layer}" network in such a way that an arriving job is sent, if possible, firstly to the nearest node.
+
+To be more precise, our system is made up of a set of nodes described below:
+
+\begin{description}
+\item[Cloudlet] It represents an \textit{edge cloud server} which, in addition to being located at "\textit{one-hop}" distance from mobile devices users, and therefore nearest to them, is able to guarantee absence of interferences among tasks allocated to it as long as their number does not exceed a given threshold $N$. From our conceptual model point of view, cloudlet represents a \textbf{fixed-capacity multi-server service node with any queue}.
+
+Its capacity, that is the maximum possible number of jobs in it, is fixed to $N$
+
+\item[Cloud] It represents a \textit{remote cloud server} which, although it \textbf{suffers for greater network delay}, due of its high distance from mobile devices, has virtually \textbf{unlimited resources} so that he can to process any number of tasks allocated to it. Consequently we had modelled this subsystem as an \textbf{unlimited-capacity multi-server service node with any queue}.
+
+Being made up of an unlimited number of servers, its capacity is also unlimited.
+
+\item[Controller] It represent the entry point of our system because all task are sent to it from outside in order to decide about whether an arrived job should be sent to the cloudlet or the cloud according to a given access control algorithm.
+
+It is located on cloudlet and has the capability to precess each arriving job \textbf{instantaneously}. So that it is modelled simply as \textbf{single-server service node with no queue}. 
+
+\end{description}
+
+\begin{algorithm}
+
+\caption{}\label{alg:accessControlAlgorithm1}
+
+\begin{algorithmic}[1]
+
+\Function{accessControlFunction}{$\textit{arrivalJob}$}
+
+\If {$(n_1 + n_2=N)$}
+	\State Send $\textit{arrivalJob}$ on the cloud.
+\Else 	
+ 	\State Send $\textit{arrivalJob}$ on the cloudlet.
+\EndIf
+
+\EndFunction
+
+\end{algorithmic}
+\end{algorithm}
+
+At this point, in order to properly define our conceptual model, we need to specify \textit{state variables} of our system. 
+Due to access control algorithms characteristics, described below, we have decided to represent the state of our system as an ordered pair $(n_1, n_2)$ where $n_1$ represents the number of class one job while $n_2$ the number of class two job both contained in cloudlet. Consequently we have decided to just ignore type and number of jobs contained in cloud node because not relevant in any access control algorithms and negligible for goal of our study. 
+
+A this point we can observe access control algorithms used by controller to make decisions which are fully described by their pseudo-code shown in Algorithm \ref{alg:accessControlAlgorithm1} and Algorithm \ref{alg:accessControlAlgorithm2}. 
+
+Observe that to make its decision controller node can use only one access control algorithm at a time. 
+
+Note that Algorithm \ref{alg:accessControlAlgorithm2} use a further threshold variable to make its decision denoted by $S$ which is less or equal than $N$. Remember that when a class 2 job is interrupted and sent on the cloud, a \textbf{ setup time} has to be considered to restart the task on the cloud. 
+
+\begin{algorithm}
+\caption{}\label{alg:accessControlAlgorithm2}
+\begin{algorithmic}[1]
+
+\Function{accessControlFunction}{$\textit{arrivalJob}$}
+
+\If {$(\textit{arrivalJob.isClassOne})$}
+
+
+\If {$n_1 = N$}
+	\State Send $\textit{arrivalJob}$ on the cloud.
+
+\ElsIf{$n_1 + n_2 \leq S $}
+	\State Send $\textit{arrivalJob}$ on the cloudlet.
+\ElsIf{$ n_2 \geq 0 $}
+	\State Interrupt a class 2 job currently running on cloudlet.
+	\State Send interrupted job to cloud.
+	\State Send $\textit{arrivalJob}$ on the cloudlet.
+\Else 	
+ 	\State Send $\textit{arrivalJob}$ on the cloudlet.
+\EndIf
+
+
+
+\Else 
+
+\If {$(n_1 + n_2 \geq S)$}
+	\State Send $\textit{arrivalJob}$ on the cloud.
+\Else 	
+ 	\State Send $\textit{arrivalJob}$ on the cloudlet.
+\EndIf
+
+\EndIf
+
+\EndFunction
+
+\end{algorithmic}
+\end{algorithm}
 
 
 
@@ -20,7 +115,17 @@
 
 
 
-\section{Notation and Modeling for Classed Jackson Networks}
+
+
+
+
+
+
+
+
+
+\newpage
+\section{Specification  Model}
 
 
 
@@ -40,6 +145,16 @@ $\mu_{cloud}(2)$ & Mean service rate at \textit{cloud} of class $2$ tasks \\
 \end{tabular}
 \end{center}
 \end{table}
+
+\newpage
+\section{Computational Model}
+
+
+
+
+
+
+
 
 \newpage
 \section{Analytical solution}
