@@ -10,8 +10,38 @@
 \usepackage{multirow}
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{pgfopts}
+\usepackage{xstring}
+
+
 \usetikzlibrary{positioning,angles,quotes,calc,shapes.geometric}
+\usetikzlibrary{chains,shapes.multipart}
+\usetikzlibrary{shapes,calc,fit}
+\usetikzlibrary{automata,positioning}
+
+
+\lstset{
+language=Java,
+basicstyle=\small\ttfamily,			
+keywordstyle=\color{blue},
+commentstyle=\color{gray},			
+stringstyle=\color{black},			
+numbers=left,						
+numberstyle=\tiny,					
+stepnumber=1,						
+breaklines=true						
+}
+
+
 \begin{document}
+
+
+
+\section{Goal}
+
+
 
 
 \section{Conceptual Model}
@@ -23,6 +53,99 @@ First of all our system represents a network of nodes to which some application,
 Not all job sent to system are the same, in fact we make distinction between two types of task, denoted as \textbf{class 1 job} and \textbf{class two job}; differences betweens them are described in following sections. 
 
 To minimize mean response time experienced by mobile device users, the system is been built as a "\textit{two-layer}" network in such a way that an arriving job is sent, if possible, firstly to the nearest node.
+
+\begin{adjustbox}{center=\textwidth}
+\begin{tikzpicture}
+
+
+% Cloud
+
+\node[circle, draw, minimum width = 0.8cm]        					   (CloudNode0) at (0,2) {};
+\node[circle, draw, minimum width = 0.8cm, below of=CloudNode0]        (CloudNode1) {};
+\node[circle, draw, minimum width = 0.8cm, below of=CloudNode1]        (CloudNode2) {};
+\node[circle, draw, minimum width = 0.8cm, below of=CloudNode2]        (CloudNode3) {};
+\node[circle, draw=white, minimum width = 0.8cm, below of=CloudNode3]  (CloudNode4) {\rotatebox{90}{\textbf{....}}};
+
+\node[above of=CloudNode4, yshift=-2.5cm, xshift=0.2cm] (labellllllll) {Cloud};
+
+\node[right of=CloudNode0, xshift=-2.5cm] (ExtCloudNode0) {};
+\node[right of=CloudNode1, xshift=-2.5cm] (ExtCloudNode1) {};
+\node[right of=CloudNode2, xshift=-2.5cm] (ExtCloudNode2) {};
+\node[right of=CloudNode3, xshift=-2.5cm] (ExtCloudNode3) {};
+
+
+\coordinate (cloudStartNode) at (1.5,0);
+
+% Controller
+
+\node[circle, draw, minimum width = 2.2cm]  (ControllerExternal) at (4,0) {};
+\node[circle, draw, minimum width = 2cm]    (Controller2)        at (4,0) {Controller};
+
+\coordinate (cloudletStartNode) at (6.5,0);
+
+\coordinate (Start) at (4,3.5);
+
+% Cloudlet
+
+\node[circle, draw, minimum width = 0.8cm, left of=ControllerExternal, xshift=5cm, yshift=2cm]       (CloudletNode0) {$1$};
+\node[circle, draw, minimum width = 0.8cm, below of=CloudletNode0]           (CloudletNode1) {$2$};
+\node[circle, draw, minimum width = 0.8cm, below of=CloudletNode1]           (CloudletNode2) {$3$};
+\node[circle, draw=white, minimum width = 0.8cm, below of=CloudletNode2]     (CloudletNode3) {\rotatebox{90}{\textbf{....}}};
+\node[circle, draw, minimum width = 0.8cm, below of=CloudletNode3] (CloudletNode4) {$N$};
+
+\node[rectangle, draw, dashed, minimum width =6.5cm, minimum height=5.2cm] (Cloudlet) at (5.5,0) {};
+\node[circle,below of=Cloudlet, yshift=-2cm, xshift=-1.5cm] (label1) {"One-hop" distance};
+
+\node[left of=CloudletNode0, xshift=2.5cm] (ExtCloudletNode0) {};
+\node[left of=CloudletNode1, xshift=2.5cm] (ExtCloudletNode1) {};
+\node[left of=CloudletNode2, xshift=2.5cm] (ExtCloudletNode2) {};
+\node[left of=CloudletNode4, xshift=2.5cm] (ExtCloudletNode3) {};
+
+\node[rectangle, draw, dashed, minimum width =2cm, minimum height=5.5cm, right of=CloudletNode2, xshift=-1cm] (CloudletFrame) {};
+\node[circle,above of=CloudletFrame, yshift=2.2cm] (label1) {Cloudlet Servers};
+
+% Cloudlet Rows...
+
+\draw[ultra thick,-] (ControllerExternal) -- (cloudletStartNode);
+\draw[ultra thick,->] (cloudletStartNode) -- (CloudletNode0);
+\draw[ultra thick,->] (cloudletStartNode) -- (CloudletNode1);
+\draw[ultra thick,->] (cloudletStartNode) -- (CloudletNode2);
+\draw[ultra thick,->] (cloudletStartNode) -- (CloudletNode4);
+
+% Cloud Rows...
+
+\draw[ultra thick,-] (ControllerExternal) -- (cloudStartNode);
+\draw[ultra thick,->] (cloudStartNode) -- (CloudNode0);
+\draw[ultra thick,->] (cloudStartNode) -- (CloudNode1);
+\draw[ultra thick,->] (cloudStartNode) -- (CloudNode2);
+\draw[ultra thick,->] (cloudStartNode) -- (CloudNode3);
+
+% Out from cloudlet nodes
+
+\draw[thick,->] (CloudletNode0) -- (ExtCloudletNode0);
+\draw[thick,->] (CloudletNode1) -- (ExtCloudletNode1);
+\draw[thick,->] (CloudletNode2) -- (ExtCloudletNode2);
+\draw[thick,->] (CloudletNode4) -- (ExtCloudletNode3);
+
+% Out from cloud nodes
+
+\draw[thick,->] (CloudNode0) -- (ExtCloudNode0);
+\draw[thick,->] (CloudNode1) -- (ExtCloudNode1);
+\draw[thick,->] (CloudNode2) -- (ExtCloudNode2);
+\draw[thick,->] (CloudNode3) -- (ExtCloudNode3);
+ 
+% START
+
+\draw[ultra thick,->] (Start) node[above] {Arrival Tasks} -- (ControllerExternal) ;
+
+\node [cloud, right of=CloudNode3, xshift=-18, yshift=35, draw,cloud puffs=15,cloud puff arc=120, aspect=3, minimum width =2.5cm, minimum height=7cm, inner ysep=1em] (cloudcc) {};
+
+\path (CloudletNode3) edge[->,dashed,ultra thick, bend left, out=0, in=170] node [left] [sloped, yshift=-5,xshift=60] {Interrupted jobs} (CloudNode4);
+
+\end{tikzpicture}
+\end{adjustbox}
+
+
 
 To be more precise, our system is made up of a set of nodes described below:
 
@@ -208,39 +331,229 @@ To compute mean response time experienced by jobs, we had to observe that our sy
 
 \subsection{Events}
 
-By definition, an event is an occurrence that may change the state of the system, therefore system's state variables can can only change at an event time\footnote{See. 187}.
-
-In our system, we can distinguish following types of events:
-
-\begin{description}
-
-\item[Class 1 Job arrival on controller node]
-
-\item[Class 2 Job arrival on controller node]
-
-\item[Class 1 Job arrival on cloudlet node]
-
-\item[Class 2 Job arrival on cloudlet node]
-
-\item[Class 1 Job arrival on cloud node]
-
-\item[Class 2 Job arrival on cloud node]
+Having to built next-event simulation model, let's look to all possible \textbf{events} which can occurs during our simulation. We recall that, by definition, \textbf{an event is an occurrence that may change the state of the system}, therefore our system's state variables can only when an event occurs\footnote{See. 187}. All event capable to alter system's state are reported below:
 
 
-\end{description}
+\begin{table}[h!]
+    \caption{System's events}
+    \centering
+    \small
+    \label{table:StateVariables}
+     \begin{tabular}{c|c|r|r}
+
+      \toprule
+      \multirow{2}{*}{\textbf{Event name}} & \multirow{2}{*}{\textbf{Event's place}} & \textbf{State variables} & \textbf{State variables} \\
+      & & \textbf{incremented by one} & \textbf{decremented by one} \\
+      \midrule
+      
+      \multirow{3}{*}{Class 1 Job arrival} & Cloudlet & $n_{\text{cloudlet}}^{(1)}(t)$ & \\ \cline{2-4}
+      & Cloud & $n_{\text{cloud}}^{(1)}(t)$ & \\ \cline{2-4}
+      & Controller & $n_{\text{system}}^{(1)}(t)$ & \\
+       
+      \hline
+       
+      \multirow{3}{*}{Class 2 Job arrival} & Cloudlet & $n_{\text{cloudlet}}^{(2)}(t)$ & \\ \cline{2-4}
+      & Cloud & $n_{\text{cloud}}^{(2)}(t)$ & \\ \cline{2-4}
+      & Controller & $n_{\text{system}}^{(2)}(t)$ & \\
+    
+	  \hline 
+      \vspace{0.1cm}
+      \multirow{2}{*}{Class 1 Job departure} & Cloudlet &
+      $d_{\text{cloudlet}}^{(1)}(t)$, $d_{\text{system}}^{(1)}(t)$ &
+      $n_{\text{cloudlet}}^{(1)}(t)$, $n_{\text{system}}^{(1)}(t)$ \vspace{0.1cm} \\ \cline{2-4}
+    
+      & Cloud & 
+      $d_{\text{cloud}}^{(1)}(t)$, $d_{\text{system}}^{(1)}(t)$ &
+      $n_{\text{cloud}}^{(1)}(t)$, $n_{\text{system}}^{(1)}(t)$ .\\
+        
+      \bottomrule
 
 
+    \end{tabular}
+\end{table}
 
 
+Finally, to complete to turn out our conceptual model into a proper specification model, we have to make additional assumptions reported below:
 
+\begin{itemize}
+\item Although initial state variables can have any non-negative integer value\footnote{See. pag 190}, we have choosen, as common, to set $n_x^{(j)}(0) = 0$ and $d_x^{(j)}(0) = 0$ setting, in this way, initial system status as \textbf{idle}. 
 
+\item As a consequence of the previous point, first event must be either a \textbf{Class 1 Job arrival} or a
+\textbf{Class 2 Job arrival} both on controller node.
 
+\item Terminal state is also idle. Rather than specifying the number of jobs processed, our stopping criteria has been specified in terms of a time $\tau$ beyond which no new jobs can arrive. This assumption effectively closes the door at time $\tau$ but allows the system to continue operation until all jobs have been completely served. 
+
+Therefore, the last event must be either a class 1 or class 2 job completion.
+\end{itemize}
 
 
 \newpage
 \section{Computational Model}
 
+Let's start now the description of \textit{computational model} in which system's states exist as a collection of data structure, classes and variables that collectively characterize the system and are systematically updated as simulated time evolves.
 
+In order to build discrete-event simulation models using \textit{next-event} approach we need to:
+
+\subsection{Events implementation}
+
+
+
+
+
+In order to properly describe our computational model, we take a look how all system's events, seen in previous section, are implemented and managed.
+First of all, a \textit{generic} event has been implemented and represented using an \textit{abstract} java class called \texttt{SimulationEvent} which has following features:
+
+\begin{itemize}
+\item Has only one \texttt{double} type field, used to hold instant of time according to which an event occurs.
+\item Exports the signature of two very important abstract method, used by our simulation algorithm which we will describe next, called \texttt{perform()}, used to update system's state variables when an event occurs, and \texttt{scheduleFollowingEvent()}, which is used, instead, to inserts into an \textit{event list} the event that follows the current one.
+\end{itemize}
+
+As we said previously, these methods are abstract therefore their exact behaviour depends strictly by which class implements it. Is very important to specify that aforesaid class does \textit{not} represent events of our specific system but generic ones only. In order to represent a system-specific event, we have used another abstract class, a subclass of previous one, called \texttt{SystemEvent} which main feature is knowledge about \textit{event place}, that is in which system's component a specific event occurs. Concrete event classes that fully implements previously said abstract methods are listed below:
+
+\begin{itemize}
+\item \texttt{Class1JobArrival}
+\item \texttt{Class2JobArrival}
+\item \texttt{Class1JobDeparture}
+\item \texttt{Class2JobDeparture}
+\end{itemize}
+
+These classes, having knowledge about which system's component is involved, can update state variable of that component and not of the others. For example a \textbf{Class2JobDeparture} event involving cloud node will update cloud state variables only. 
+
+From software engineering point view, these concrete classes are unknown to the others, that is any class knows about their implementation; in fact, using factory method pattern for concrete class building and previously mentioned interfaces we can take advantage of polymorphism pattern to provide high cohesion and low coupling between our project classes.
+
+\begin{lstlisting}[frame=lines, caption={Implementazione della funzione \texttt{start\_server}}, label={code:serverStart}]
+public abstract class SystemEvent extends SimulationEvent {
+
+    protected SystemComponent systemComponent;
+
+    public void setSystemComponent(SystemComponent systemComponent) {
+        this.systemComponent = systemComponent;
+    }
+
+    public SystemComponent getSystemComponent() {
+        return systemComponent;
+    }
+    ...
+\end{lstlisting}
+
+\subsection{Event list}
+
+As known, an \textit{event list}, also called \textit{calendar}, represents a data structure used to keep track of scheduled time of occurrence for the next possible event.
+For reasons of efficiency, our event list is been implemented as a \textit{min-heap binary tree}, that is a \textit{priority queue} in which all possible event are ordered by time in such a way that the most imminent event is found on the tree's root, providing $O(log_2(n))$ time for the en-queuing and dequeuing operation and constant time for root element retrieval.\footnote{Camil Demetrescu, Irene Finocchi, Giuseppe F. Italiano - \textit{Algorimti e strutture dati} - second edition, McGraw-Hill, pag. 200} 
+
+Luckily aforesaid data structure is already available in JDK through a very simple to use Java built-in class called \texttt{PriorityQueue$<$E$>$} which provides all method that we need although requires that all events object implement an interface called \texttt{Comparable} to work properly. Implementing that interface requires to define a method called \texttt{compareTo}, of which we have reported our implementation in listing \ref{code:compareTo}, in order to provide a total ordering among all possible event 
+Observer that \texttt{compareTo} method returns a negative integer, zero, or a positive integer if an  this object is less than, equal to, or greater than the specified object.\footnote{See \texttt{https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/lang/Comparable.html\#compareTo(T)}}
+
+
+\begin{lstlisting}[frame=lines, caption={Snippet of \texttt{SimulationEvent} class}, label={code:compareTo}]
+@Override
+public int compareTo(SimulationEvent o) {
+	return Double.compare(this.startTime, o.startTime);
+}
+\end{lstlisting}
+
+
+
+
+\subsection{Simulation clock}
+
+As we know a simulated clock is necessary to keep track of the current value of simulated time during simulation. In our implementation this task is assigned to a class called 
+\texttt{SimulationClock} which state is represented by a field holding current simulated time and another keeping instance of time according to which following event will occur.
+
+
+
+
+
+\begin{lstlisting}[frame=lines, caption={Implementazione della funzione \texttt{start\_server}}, label={code:serverStart}]
+public class SimulationClock {
+
+    private static SimulationClock instance = null;
+
+    private double currentEventTime;
+    private double nextEventTime;
+
+    private SimulationClock(){
+    }
+
+    public static SimulationClock getInstance() {
+        if (instance == null)
+            instance = new SimulationClock();
+        return instance;
+    }
+    
+    /* Getter and setter methods follow... */
+\end{lstlisting}
+
+The ways in which simulated clock is update is represented in listing; every 
+
+
+
+\subsection{Next-event simulation logic}
+
+
+
+\texttt{ComputationalModel} abstract class contains logic according to which a next next-event simulation is based on. That logic is written into \texttt{perform()} method, shown in listing \ref{code:perform}, which consists of the following steps:
+
+\begin{description}
+\item[Simulation initialization] Through a call to \texttt{initializeSimulation()} method, all system's state variables, including simulation clock, are initialized. During this phase time of occurrence of the first possible events is determined and scheduled, initializing thereby the event list.
+From implementation point view, observe that said method make a set of call to some abstract method which signature is present in the same class, therefore a concrete class implementing these method is required.
+
+\item[Process current event] Until event list is not empty (line 6), the most imminent possible event is extracted and removed from event list (line 8), the simulation clock is then advanced to this event's scheduled time of occurrence (line 12) and finally system state is updated (line 14). 
+
+\item[Schedule following event] Until a fixed simulation time $\tau$ in not exceeded, a new event is generated by current event and consequently placed into event list. Subsequently simulation clock instance field, used to holding time of occurrence of next possible event, is updated in order to compute some system metrics.
+
+\item[Statistic update] While simulation advance from one event time to the next, calling an abstract method called \texttt{updateStatistics()}, all system's statistic metrics are updated.
+
+\item[Simulation result generation] When simulation stops, produced data are 
+
+\end{description}
+
+
+\begin{lstlisting}[frame=lines, caption={Snippet of \texttt{perform} method}, label={code:perform}]
+...
+public void perform() {
+
+        initializeSimulation();
+
+        while (!this.simulationEventList.isEmpty()) {
+
+            SimulationEvent actualEvent = this.simulationEventList.poll();
+
+            if (actualEvent != null) {
+
+                SimulationClock.getInstance().setCurrentEventTime(actualEvent.getStartTime());
+
+                actualEvent.perform();
+                actualEvent.scheduleFollowingEvent();
+
+                SimulationEvent nextEvent = this.simulationEventList.peek();
+
+                if (nextEvent != null)
+                    SimulationClock.getInstance().setNextEventTime(nextEvent.getStartTime());
+            }
+            updateStatistics();
+        }
+
+        produceStatisticResultsThroughBatchMeansMethod();
+
+        printSimulationResults();
+    }
+...
+\end{lstlisting}
+
+
+\subsection{System implementation}
+
+Let's try now to understand how our system implementatiuon is implemented.
+
+Each node of our system is represented by an instance of SystemComponent class; 
+SystemComponent is an abstract class that 
+
+Our system's nodes are been implemented as a set of instance of some class that implements SystemComponent, which represent a generic system node. As shown from UML class diagram reported in /ref{fig:UMLSystemComponent}. 
+That class provide methos used to update stare variable of a specified component invoked by SystemEvent objects when.
+
+
+Each concrete class provide an implmentation 
 
 
 
@@ -657,13 +970,13 @@ X_{\text{cloudlet}} = X - X_{\text{cloud}} \\
       
       & Cloudlet & Cloud & System & Cloudlet & Cloud & System & \\
       \midrule
-      $\Pi_{\text{SendToCloudlet}}$ & & & & & & & & & 0.5861  \\
+      $\Pi_{\text{SendToCloudlet}}$ & & & & & & & & & 0.586074607217989  \\
       \hline
-      $\Pi_{\text{SendToCloud}}$ & & & & & & & & & 0.4139  \\
+      $\Pi_{\text{SendToCloud}}$ & & & & & & & & & 0.413925392782011  \\
       \hline
-	  $X$, $\lambda$ (jobs/$s$) & 2.3444 & 1.6556 & 4 & 3.663125 & 2.586875 & 6.25 & 6.007525 & 4.242475 & 10.25 \\     
+	  $X$, $\lambda$ (jobs/$s$) & 2.3444 & 1.655701571128044 & 4 & 3.663125 & 2.586875 & 6.25 & 6.007525 & 4.242475 & 10.25 \\     
       \hline
-      $E[N]$ (jobs) & 5.2040 & 6.6224 & 11.8264 & 13.5521 & 11.75852273 & 25.31062273 & 18.7561 & 18.38092273 & 37.13702273 \\
+      $E[N]$ (jobs) & 5.2040 & 6.622806284512176 & 11.8264 & 13.5521 & 11.75852273 & 25.31062273 & 18.7561 & 18.38092273 & 37.13702273 \\
       \hline
       $E[S], E[T]$ ($s$)& $20/9$ & 4 & 2.835407407 & $100/27$ & $50/11$ & 4.225763636 & 3460/1107 & 1954/451 & 3.683185595 \\
       \hline
