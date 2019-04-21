@@ -192,9 +192,9 @@ Observe that to make its decision controller node can use only one access contro
 
 Note that Algorithm \ref{alg:accessControlAlgorithm2} use a further threshold variable to make its decision denoted by $S$ which is less or equal than $N$. Remember that when a class 2 job is interrupted and sent on the cloud, a \textbf{ setup time} has to be considered to restart the task on the cloud. 
 
-\begin{algorithm}
+\begin{algorithm}[h]
 \caption{}\label{alg:accessControlAlgorithm2}
-\begin{algorithmic}[1]
+\begin{algorithmic}[h!]
 
 \Function{accessControlFunction}{$\textit{arrivalJob}$}
 
@@ -247,92 +247,136 @@ Note that Algorithm \ref{alg:accessControlAlgorithm2} use a further threshold va
 
 
 
+\clearpage
 \newpage
 \section{Specification  Model}
 
-In this section we will provide a \textit{specification model} of our system in which, as we know, system's states exist as a collection of mathematical variables together with equations and logic describing how the state variables are interrelated and an algorithm for computing their interaction and evolution in time\footnote{See. 186}.
+In this section we will provide a \textit{specification model} of our system in which we will turn all system's states into a collection of mathematical variables together with equations and logic describing how the state variables are interrelated including algorithms for computing their interaction and evolution in time.\footnote{Lawrence M. Leemis, Stephen K. Park, \textit{Discrete-Event Simulation: A First Course} (Pearson; 1 edition January 6, 2006), 186}
 
-\subsection{State variables}
+\subsection{System's variables}
 
-In previous section we have said that system state is represented by the number, type, response of job running on each system's node. Now we will formalize 
+In order to properly describe all system's state variables, we need to introduce some mathematical notations.
+
+$\tau \in (t_0, t)$ denotes a time's instant of our system simulation clock where $t_0$ and $t$ represent respectively \textit{start moment} and \textit{final moment} of our simulation; we will use also $c \in \lbrace 1,2 \rbrace = C$, representing the class to which a job belongs, and $x \in \lbrace cloudlet,cloud \rbrace = X$, used, instead, to refer to a specific system's node.
+
+At this point we can introduce all mathematical variables used in our model:
 
 \begin{table}[h!]
-    \caption{System state variables.}
     \centering
     \small
-    \label{table:StateVariables}
-     \begin{tabular}{rcl}
-
-      \toprule
-      
-      $n_{\text{global}}^{(1)}(t)$ & $ = $ & Class 1 job number currently running on overall system at time $t$ \\\\
-	  $n_{\text{global}}^{(2)}(t)$ & $ = $ & Class 2 job number currently running on overall system at time $t$ \\\\
-      
-      $n_{\text{cloudlet}}^{(1)}(t)$ & $ = $ & Class 1 job number currently running on cloudlet at time $t$ \\\\
-	  $n_{\text{cloudlet}}^{(2)}(t)$ & $ = $ & Class 2 job number currently running on cloudlet at time $t$ \\\\
-         
-      $n_{\text{cloud}}^{(1)}(t)$ & $ = $ & Class 1 job number currently running on cloud at time $t$ \\\\
-	  $n_{\text{cloud}}^{(2)}(t)$ & $ = $ & Class 2 job number currently running on cloud at time $t$ \\\\
-	  
-	  $d_{\text{global}}^{(1)}(t)$ & $ = $ & Number of departed class 1 job on overall system at time $t$ \\\\
-	  $d_{\text{global}}^{(2)}(t)$ & $ = $ & Number of departed class 1 job on overall system at time $t$ \\\\
-      
-      $d_{\text{cloudlet}}^{(1)}(t)$ & $ = $ & Number of departed class 1 job on cloudlet at time $t$ \\\\
-	  $d_{\text{cloudlet}}^{(2)}(t)$ & $ = $ & Number of departed class 1 job on cloudlet at time $t$ \\\\
-	  
-	  $d_{\text{cloud}}^{(1)}(t)$ & $ = $ & Number of departed class 1 job on cloud at time $t$ \\\\
-	  $d_{\text{cloud}}^{(2)}(t)$ & $ = $ & Number of departed class 1 job on cloud at time $t$ \\\\
-    
-      \bottomrule
-
-
+    \begin{tabular}{rcl}
+       
+      $n^{(c)}(\tau)$ & $ = $ & Total number of class $c$ jobs currently running on whole system at time $\tau$ \\
+      $d^{(c)}(\tau)$ & $ = $ & Total number of class $c$ departed jobs at time $\tau$ \\
+      $n_x^{(c)}(\tau)$ & $ = $ & Number of class $c$ jobs currently running on node $x$ at time $\tau$ \\
+      $d_x^{(c)}(\tau)$ & $ = $ & Number of class $c$ departed jobs from node $x$ at time $\tau$ \\
+      $s_{x,i}^{(c)}$ & $ = $ & Service time of class $c$ job $i$ served on $x$ node   \\
+      $i_{cloudlet}^{(2)}$ & $ = $ & Number of class 2 interrupted job which were running on cloudlet node\\
+          
     \end{tabular}
 \end{table}
-\newpage
-\subsection{Time averaged statistics}
 
-Using state variables previously described, we can compute all system's statistics which we need in very simple ways.
-
-From now we will denote with $\tau \in (t_0, t)$ an instant of our system simulation where $t_0$ and $t$ are respectively its \textit{start moment} and \textit{final moment}. We will also use $c \in \lbrace 1,2 \rbrace = C$  to denote the class to which a job belongs while $x \in \lbrace cloudlet,cloud \rbrace = X$ will be used to refer to a specific system's node.
-
-$E[N_j](c)$, \textbf{average number of class $c$ jobs into $j$}, can be computed as follows: 
+Is $n_x^{(c)}$ the number of class $c$ jobs running on node $x$. We define the \textbf{state} of our system as follow:
 
 \begin{equation}
-\begin{array} {lcr} 
-\displaystyle E[N_x](c) = \dfrac{1}{t-t_0}\int_{t_0}^t n_x^{(c)}(\tau)d\tau & \qquad & \forall c \in C, \forall x \in X
+\omega = (\omega_{cloudlet},\omega_{cloud})
+\end{equation}
+
+In this context, $\omega_{cloudlet}$ and $\omega_{cloud}$ are the states of cloudlet and cloud node respectively. Specifically:
+
+\begin{equation}
+\begin{array} {rcl} 
+\omega_{cloudlet} & = & (n_{cloudlet}^{(1)},n_{cloudlet}^{(2)}) \\
+\omega_{cloud} & = & (n_{cloud}^{(1)},n_{cloud}^{(2)}) \\
 \end{array}
 \end{equation}
 
-To obtain $E[N_x]$, time average number of jobs into $x$, and $E[N]$, time average number of jobs into overall system, we can proceed as shown below:
+Thus:
 
 \begin{equation}
-\begin{array} {lcr} 
-E[N_x] = \sum_{c \in C} E[N_x](c) & \qquad & \forall x \in X
+\begin{array} {rcl} 
+\omega = ((n_{cloudlet}^{(1)},n_{cloudlet}^{(2)}),(n_{cloud}^{(1)},n_{cloud}^{(2)})
+\end{array}
+\end{equation}
+
+At this point we can show some equations describing constrains or relations among these variables.
+
+Obliviously is true that:
+
+\begin{equation}
+\begin{array} {lr} 
+\displaystyle n^{(c)}(\tau) = \sum_{x \in X} n_x^{(c)}(\tau) & \forall \tau \in (t_0, t)
 \end{array}
 \end{equation}
 
 \begin{equation}
-E[N] = \sum_{x \in X} E[N_x]
+\begin{array} {lr} 
+\displaystyle d^{(c)}(\tau) = \sum_{x \in X} d_x^{(c)}(\tau) & \forall \tau \in (t_0, t)
+\end{array}
 \end{equation}
 
-
-Let's look now to \textbf{average response time experienced by class $c$ jobs into a system node $j$} $E[T_j](c)$.
-In order to compute this statistic, we had to observe that our system hasn't queues therefore $E[T_j](c)$ is simply equal to $E[S_j](c)$, that is \textbf{average service time experienced by class $c$ jobs into a system node $j$}. We just have to show how to compute $E[S_j](c)$:
+If our system is based on Algorithm \ref{alg:accessControlAlgorithm1}, is true that:
 
 \begin{equation}
-E[S_j](c) = \sum_{i=1}^N s_{i}
+\begin{array} {lr} 
+\displaystyle \sum_{c \in C} n_{cloudlet}^{(c)}(\tau) \leq N & \forall \tau \in (t_0, t)
+\end{array}
+\end{equation}
+
+When, instead, our system is using Algorithm \ref{alg:accessControlAlgorithm2}, is verified that:
+
+\begin{equation}
+\begin{array} {rccr} 
+\displaystyle \sum_{c \in C} n_{cloudlet}^{(c)}(\tau) \leq S & \Leftrightarrow & n_{cloudlet}^{(2)}(\tau) > 0 & \forall \tau \in (t_0, t) \\
+n_{cloudlet}^{(1)}(\tau) \leq N & \Leftrightarrow & n_{cloudlet}^{(2)}(\tau) = 0 & \forall \tau \in (t_0, t)
+\end{array}
+\end{equation}
+
+\subsection{Statistics computing}
+
+During this subsection we will describe how we can compute all system's statistics which we need using mathematical notation explained before.
+
+Is $E[N_x](c)$ the \textit{time-averaged number} of class $c$ jobs in $x$ system's node; we can compute it as follows:\footnote{\textit{Ibid.}, 19}
+
+\begin{equation}
+\begin{array} {rclr} 
+E[N_x](c) & = & \displaystyle  \dfrac{1}{t-t_0}\int_{t_0}^t n_x^{(c)}(\tau)d\tau & \forall c \in C, \forall x \in X
+\end{array}
+\end{equation}
+
+Using above equation is very simple to compute both $E[N_x]$ and $E[N]$, denoting respectively the time-averaged number of jobs running in a $x$ system's node and time-averaged number of all jobs running in whole system, proceeding as shown below:
+
+\begin{equation}
+\begin{array} {rclr} 
+E[N_x] & = & \displaystyle  \sum_{c \in C} E[N_x](c) & \forall x \in X \\
+E[N] & = & \displaystyle  \sum_{x \in X} E[N_x]
+\end{array}
+\end{equation}
+
+Are $E[S_x](c)$ and $E[T_x](c)$ respectively the \textit{time-averaged service time} and the \textit{time-averaged response time} experienced by class $c$ jobs in $x$ system node. Since our system hasn't queues, there is no waiting time or delay experienced by jobs in our system, therefore result that $E[S_x](c) = E[T_x](c)$.
+Said that, we just have to show how to compute $E[S_x](c)$:\footnote{\textit{Ibid.}, 17}
+
+\begin{equation}
+\begin{array} {rccccr} 
+E[T_x](c) & = & E[S_x](c) & = & \displaystyle \dfrac{1}{d_x^{(c)}(t)} \cdot \sum_{i = 0}^{d_x^{(c)}(t)} s_{x,i}^{(c)} & \forall c \in C, \forall x \in X \\
+\end{array}
+\end{equation}
+
+While, $E[S_x]$ and $E[T_x]$, respectively time-averaged service time and the time-averaged response time experienced by all jobs in a $x$ system node, are computable using:
+
+\begin{equation}
+\begin{array} {rccr} 
+E[T_x] = E[S_x] & = & \dfrac{d_x^{(1)}(t)}{d_x^{(1)}(t) + d_x^{(2)}(t)}E[S_x](1) + \dfrac{d_x^{(2)}(t)}{d_x^{(1)}(t) + d_x^{(2)}(t)}E[S_x](2) & \forall x \in X \\
+\end{array}
 \end{equation}
 
 
 
-
-To compute mean response time experienced by jobs, we had to observe that our system there are no queues, therefore 
 
 
 \subsection{Events}
 
 Having to built next-event simulation model, let's look to all possible \textbf{events} which can occurs during our simulation. We recall that, by definition, \textbf{an event is an occurrence that may change the state of the system}, therefore our system's state variables can only when an event occurs\footnote{See. 187}. All event capable to alter system's state are reported below:
-
 
 \begin{table}[h!]
     \caption{System's events}
@@ -390,38 +434,38 @@ Therefore, the last event must be either a class 1 or class 2 job completion.
 \newpage
 \section{Computational Model}
 
-Let's start now the description of \textit{computational model} in which system's states exist as a collection of data structure, classes and variables that collectively characterize the system and are systematically updated as simulated time evolves.
+Let's start now description about our system \textit{computational model} in which, as known, system's states exist as a collection of data structure, classes and variables that collectively characterize the system and are systematically updated as simulated time evolves.
 
-In order to build discrete-event simulation models using \textit{next-event} approach we need to:
+\begin{figure}[H]
+\includegraphics[width=\textwidth]{ClassDiagram}
+\centering
+\caption{Class diagram showing main classes and methods only.}
+
+\label{fig:EventClassDiagram}
+
+\end{figure}
+
 
 \subsection{Events implementation}
 
+In order to properly build discrete-event simulation models using \textit{next-event} approach we need to understand how all system's events, seen in previous section, are implemented and managed.
 
-
-
-
-In order to properly describe our computational model, we take a look how all system's events, seen in previous section, are implemented and managed.
-First of all, a \textit{generic} event has been implemented and represented using an \textit{abstract} java class called \texttt{SimulationEvent} which has following features:
+As shown in figure \ref{fig:EventClassDiagram}, a \textit{generic} system's event has been implemented and represented using an \textit{abstract} Java class called \texttt{SimulationEvent} which has two main features:
 
 \begin{itemize}
-\item Has only one \texttt{double} type field, used to hold instant of time according to which an event occurs.
-\item Exports the signature of two very important abstract method, used by our simulation algorithm which we will describe next, called \texttt{perform()}, used to update system's state variables when an event occurs, and \texttt{scheduleFollowingEvent()}, which is used, instead, to inserts into an \textit{event list} the event that follows the current one.
+\item Has only one \texttt{double} type field, called \texttt{StartTime}, used to hold instant of time according to which an event occurs.
+\item Defines interfaces of two very important methods, used by the next-event simulation algorithm implemented in \texttt{ComputationalModel} class, which we will fully describe in next section, called \texttt{perform()}, used to update system's state variables when an event occurs, and \texttt{schedule\-Following\-Event()}, which is used, instead, to inserts into an \textit{event list} events that follows the current one.
 \end{itemize}
 
-As we said previously, these methods are abstract therefore their exact behaviour depends strictly by which class implements it. Is very important to specify that aforesaid class does \textit{not} represent events of our specific system but generic ones only. In order to represent a system-specific event, we have used another abstract class, a subclass of previous one, called \texttt{SystemEvent} which main feature is knowledge about \textit{event place}, that is in which system's component a specific event occurs. Concrete event classes that fully implements previously said abstract methods are listed below:
+Obviously exact methods behaviour depends strictly by which class implements it, however is very important to point out that \texttt{SimulationEvent} class does \textit{not} represent system-specific events; in fact, to ensure low coupling and high cohesion among classes, \texttt{ComputationalModel} doesn't need, and doesn't have to, know any specific system event information. 
+ 
+System-specific event are instead represented by instances of \texttt{SystemEvent} class, partially shown in listing \ref{code:SystemEvent}. Any \texttt{SystemEvent} instance, knowing knowledge about which system's component is involved during an event occurrence, can, implementing \texttt{perform()} method, update state variable of that component taking into account its current state, without altering others parts of system. To be more precise, as you can see from the class diagram shown in figure \ref{fig:EventClassDiagram}, \texttt{perform()} method implementation is provided by \texttt{SystemEvent} subclasses which provide own very specific methods implementation in order to properly simulate effects of each specific system described before.
 
-\begin{itemize}
-\item \texttt{Class1JobArrival}
-\item \texttt{Class2JobArrival}
-\item \texttt{Class1JobDeparture}
-\item \texttt{Class2JobDeparture}
-\end{itemize}
+In this way, taking advantage of polymorphism pattern, every \texttt{SystemEvent} subtype instance can update properly each system's component, including whole system state, while \texttt{ComputationalModel} instance, which actively execute next-event simulation algorithm calling method implemented by them, ignores all specific information about our system.
 
-These classes, having knowledge about which system's component is involved, can update state variable of that component and not of the others. For example a \textbf{Class2JobDeparture} event involving cloud node will update cloud state variables only. 
+To reduce further coupling between classes during \texttt{SystemEvent} object instantiation, a sort of factory method pattern, based on Java reflection ability, is used.
 
-From software engineering point view, these concrete classes are unknown to the others, that is any class knows about their implementation; in fact, using factory method pattern for concrete class building and previously mentioned interfaces we can take advantage of polymorphism pattern to provide high cohesion and low coupling between our project classes.
-
-\begin{lstlisting}[frame=lines, caption={Implementazione della funzione \texttt{start\_server}}, label={code:serverStart}]
+\begin{lstlisting}[frame=lines, caption={\texttt{SimulationEvent} class implementation.}, label={code:SystemEvent}]
 public abstract class SystemEvent extends SimulationEvent {
 
     protected SystemComponent systemComponent;
@@ -439,32 +483,31 @@ public abstract class SystemEvent extends SimulationEvent {
 \subsection{Event list}
 
 As known, an \textit{event list}, also called \textit{calendar}, represents a data structure used to keep track of scheduled time of occurrence for the next possible event.
-For reasons of efficiency, our event list is been implemented as a \textit{min-heap binary tree}, that is a \textit{priority queue} in which all possible event are ordered by time in such a way that the most imminent event is found on the tree's root, providing $O(log_2(n))$ time for the en-queuing and dequeuing operation and constant time for root element retrieval.\footnote{Camil Demetrescu, Irene Finocchi, Giuseppe F. Italiano - \textit{Algorimti e strutture dati} - second edition, McGraw-Hill, pag. 200} 
 
-Luckily aforesaid data structure is already available in JDK through a very simple to use Java built-in class called \texttt{PriorityQueue$<$E$>$} which provides all method that we need although requires that all events object implement an interface called \texttt{Comparable} to work properly. Implementing that interface requires to define a method called \texttt{compareTo}, of which we have reported our implementation in listing \ref{code:compareTo}, in order to provide a total ordering among all possible event 
-Observer that \texttt{compareTo} method returns a negative integer, zero, or a positive integer if an  this object is less than, equal to, or greater than the specified object.\footnote{See \texttt{https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/lang/Comparable.html\#compareTo(T)}}
+For reasons of efficiency, our event list is been implemented as a \textit{min-heap binary tree}, that is a \textit{priority queue} in which all events are ordered by time, in such a way that the most imminent event is found on the tree's root, providing $O(log_2(n))$ time for the en-queuing and dequeuing operation and constant time for root element retrieval.\footnote{Camil Demetrescu, Irene Finocchi, Giuseppe F. Italiano - \textit{Algorimti e strutture dati} - second edition, McGraw-Hill, pag. 200} 
+
+Its implementation is already available in JDK through Java built-in class called \texttt{PriorityQueue$<$E$>$} which provides all method that we need.
+However, in order to work properly, is required that a total ordering among all possible event exist. To provide it, we need all events instances implement an interface called \texttt{Comparable} providing an implementation, shown in listing \ref{code:compareTo}, of a method called \texttt{compareTo}.
+
+Remember that \texttt{compareTo} method returns a negative integer, zero, or a positive integer if an  this object is less than, equal to, or greater than the specified object.\footnote{See \texttt{https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/lang/Comparable.html\#compareTo(T)}}
 
 
-\begin{lstlisting}[frame=lines, caption={Snippet of \texttt{SimulationEvent} class}, label={code:compareTo}]
+\begin{lstlisting}[frame=lines, caption={Snippet of \texttt{SimulationEvent} class implementation}, label={code:compareTo}]
 @Override
 public int compareTo(SimulationEvent o) {
 	return Double.compare(this.startTime, o.startTime);
 }
 \end{lstlisting}
 
-
-
-
 \subsection{Simulation clock}
 
-As we know a simulated clock is necessary to keep track of the current value of simulated time during simulation. In our implementation this task is assigned to a class called 
-\texttt{SimulationClock} which state is represented by a field holding current simulated time and another keeping instance of time according to which following event will occur.
+As we know a \textit{simulation clock} is necessary to keep track of the current value of simulated time during simulation. 
 
+In our system's implementation, our simulation clock is represented by a \texttt{SimulationClock} type instance, which partial implementation is reported in listing \ref{code:SimulationClock}. Simulation clock state is represented by two \texttt{double} type fields of which one, called \texttt{currentEventTime}, is used to holding current event simulated time value, while the second, called \texttt{nextEventTime}, is used to keep track of next event simulated time value.
 
+From software architecture point of view, as you can see by code snippet shown below, believing that multiple \texttt{SimulationClock} instance are not necessary, that class is been implemented using \textit{singleton} pattern. 
 
-
-
-\begin{lstlisting}[frame=lines, caption={Implementazione della funzione \texttt{start\_server}}, label={code:serverStart}]
+\begin{lstlisting}[frame=lines, caption={\texttt{SimulationClock} class implementation.}, label={code:SimulationClock}]
 public class SimulationClock {
 
     private static SimulationClock instance = null;
@@ -481,33 +524,28 @@ public class SimulationClock {
         return instance;
     }
     
-    /* Getter and setter methods follow... */
+    /* ... */
 \end{lstlisting}
-
-The ways in which simulated clock is update is represented in listing; every 
-
 
 
 \subsection{Next-event simulation logic}
 
-
-
-\texttt{ComputationalModel} abstract class contains logic according to which a next next-event simulation is based on. That logic is written into \texttt{perform()} method, shown in listing \ref{code:perform}, which consists of the following steps:
+To execute a next-event simulation, we simply need to call a method, called \texttt{perform()}, using an instance of \texttt{ComputationalModel} class.
+As shown in listing \ref{code:perform}, in that method has been implemented the algorithm \footnote{See Algorithm 5.1.1, pag. 189} used to perform our simulation, which consists of the following steps: 
 
 \begin{description}
-\item[Simulation initialization] Through a call to \texttt{initializeSimulation()} method, all system's state variables, including simulation clock, are initialized. During this phase time of occurrence of the first possible events is determined and scheduled, initializing thereby the event list.
-From implementation point view, observe that said method make a set of call to some abstract method which signature is present in the same class, therefore a concrete class implementing these method is required.
+\item[Simulation initialization] As the phase name suggested, this step is performed to initialize system's state variables, including simulation clock and event list, inserting into them first possible events.
 
-\item[Process current event] Until event list is not empty (line 6), the most imminent possible event is extracted and removed from event list (line 8), the simulation clock is then advanced to this event's scheduled time of occurrence (line 12) and finally system state is updated (line 14). 
+As you can see from code snippet, this task is performed calling \texttt{initialize\-Simulation()} method, which make a set of call to some abstract methods that have to be implemented by a concrete class which will describe next. 
+
+\item[Process current event] Until event list is not empty (line 6), the most imminent possible event is extracted and removed from event list (line 8); then simulation clock is advanced to this event's scheduled time of occurrence (line 12) and finally system state is updated (line 14). 
 
 \item[Schedule following event] Until a fixed simulation time $\tau$ in not exceeded, a new event is generated by current event and consequently placed into event list. Subsequently simulation clock instance field, used to holding time of occurrence of next possible event, is updated in order to compute some system metrics.
 
 \item[Statistic update] While simulation advance from one event time to the next, calling an abstract method called \texttt{updateStatistics()}, all system's statistic metrics are updated.
 
-\item[Simulation result generation] When simulation stops, produced data are 
-
+\item[Simulation result generation and print] During this final step all data previously computed are elaborated using batch means approach and output data saved on file system.
 \end{description}
-
 
 \begin{lstlisting}[frame=lines, caption={Snippet of \texttt{perform} method}, label={code:perform}]
 ...
@@ -542,18 +580,62 @@ public void perform() {
 \end{lstlisting}
 
 
-\subsection{System implementation}
+\subsection{System network implementation}
 
-Let's try now to understand how our system implementatiuon is implemented.
+While a very generic queues network is represented by an instance of \texttt{ComputationalModel} class, our specific system is been modelled using \texttt{System} type instances which have very important responsibilities including:
 
-Each node of our system is represented by an instance of SystemComponent class; 
-SystemComponent is an abstract class that 
+A System type instance has many role including:
 
-Our system's nodes are been implemented as a set of instance of some class that implements SystemComponent, which represent a generic system node. As shown from UML class diagram reported in /ref{fig:UMLSystemComponent}. 
-That class provide methos used to update stare variable of a specified component invoked by SystemEvent objects when.
+\begin{itemize}
+
+\item Allocates \texttt{SystemComponent} type instances used to represent each system's nodes.
+
+\item Initializes all instance fields representing a system variables of each system's node including simulated clock.
+
+\item Updates event list for future events scheduling on each system's component. 
+
+\end{itemize}
+
+As we now 
+
+\texttt{SystemComponent} class has key role during our simulation performing because:
+\begin{itemize}
+
+\item Has a set of fields used to keep track of component's variable states, like number of departed jobs or current jobs population, including those used to compute time-average statistics.
+
+\item Provides a very important set of functions for status updating after event occurrences; for example, when a class one job arrives on a certain system's component, \texttt{updateStatusAfterClass1JobArrival()} method can be invoked in order to update the number of class one jobs actually present on that component.
+
+\item Contains a set of method used to computed inter-arrival and service times, necessary for future event scheduling. Obviously each concrete \texttt{SystemComponent} instance has his own mean rates to compute those values.
+
+\item Includes another set used instead to schedule future events after event occurrence, like a departure after an arrival. 
+
+Is very important to precise that these methods are abstract and have to be implemented by each concrete implementations in order to reflect each component behaviour; In fact controller node doesn't need to schedule departure after an arrival because of his routing role.
+\end{itemize}
+
+All system's component, that is cloud, cloudlet and controller, are represented, obviously, by \texttt{Cloud}, \texttt{Cloudlet} and \texttt{Controller} classes each of which is a \texttt{SystemComponent} subclass; however we have used another subclass, called \texttt{GlobalNetwork}, in order to represent whole system keeping track of golabal state variables.
+
+Observe that, \texttt{Controller} class is also an abstract class because required implementation of a method call \texttt{performRoutingAlgorithm()} used to perform the two required routing algorithms whenever an arrival occurs on controller node; those algorithms are provide by \texttt{ControllerUsingRoutingAlgorithm1} and \texttt{ControllerUsingRoutingAlgorithm2} classes. 
+
+\subsection{Output analysis}
+
+each statistic is associate to an TransientStatistics type instance.
 
 
-Each concrete class provide an implmentation 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
