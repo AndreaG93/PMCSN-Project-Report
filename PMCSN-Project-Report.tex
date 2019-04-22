@@ -257,7 +257,7 @@ In this section we will provide a \textit{specification model} of our system in 
 
 In order to properly describe all system's state variables, we need to introduce some mathematical notations.
 
-$\tau \in (t_0, t)$ denotes a time's instant of our system simulation clock where $t_0$ and $t$ represent respectively \textit{start moment} and \textit{final moment} of our simulation; we will use also $c \in \lbrace 1,2 \rbrace = C$, representing the class to which a job belongs, and $x \in \lbrace cloudlet,cloud \rbrace = X$, used, instead, to refer to a specific system's node.
+$\tau \in (t_0, t)$ denotes a time's instant of our system simulation clock where $t_0$ and $t$ represent respectively \textit{start moment} and \textit{final moment} of our simulation; we will use also $c \in \lbrace 1,2 \rbrace = C$, representing the class to which a job belongs, and $x \in \lbrace cloudlet,cloud,global \rbrace = X$, used, instead, to refer to a specific system's node, or to whole system when $x = global$, where a job is running.
 
 At this point we can introduce all mathematical variables used in our model:
 
@@ -266,9 +266,7 @@ At this point we can introduce all mathematical variables used in our model:
     \small
     \begin{tabular}{rcl}
        
-      $n^{(c)}(\tau)$ & $ = $ & Total number of class $c$ jobs currently running on whole system at time $\tau$ \\
-      $d^{(c)}(\tau)$ & $ = $ & Total number of class $c$ departed jobs at time $\tau$ \\
-      $n_x^{(c)}(\tau)$ & $ = $ & Number of class $c$ jobs currently running on node $x$ at time $\tau$ \\
+      $n_x^{(c)}(\tau)$ & $ = $ & Number of class $c$ jobs currently running at $x$ system's node at time $\tau$ \\
       $d_x^{(c)}(\tau)$ & $ = $ & Number of class $c$ departed jobs from node $x$ at time $\tau$ \\
       $s_{x,i}^{(c)}$ & $ = $ & Service time of class $c$ job $i$ served on $x$ node   \\
       $i_{cloudlet}^{(2)}$ & $ = $ & Number of class 2 interrupted job which were running on cloudlet node\\
@@ -305,13 +303,13 @@ Obliviously is true that:
 
 \begin{equation}
 \begin{array} {lr} 
-\displaystyle n^{(c)}(\tau) = \sum_{x \in X} n_x^{(c)}(\tau) & \forall \tau \in (t_0, t)
+\displaystyle n_{global}^{(c)}(\tau) = \sum_{x \in X \setminus \lbrace global \rbrace } n_x^{(c)}(\tau) & \forall c \in C, \forall \tau \in (t_0, t)
 \end{array}
 \end{equation}
 
 \begin{equation}
 \begin{array} {lr} 
-\displaystyle d^{(c)}(\tau) = \sum_{x \in X} d_x^{(c)}(\tau) & \forall \tau \in (t_0, t)
+\displaystyle d_{global}^{(c)}(\tau) = \sum_{x \in X \setminus \lbrace global \rbrace } d_x^{(c)}(\tau) & \forall c \in C, \forall \tau \in (t_0, t)
 \end{array}
 \end{equation}
 
@@ -336,7 +334,9 @@ n_{cloudlet}^{(1)}(\tau) \leq N & \Leftrightarrow & n_{cloudlet}^{(2)}(\tau) = 0
 
 During this subsection we will describe how we can compute all system's statistics which we need using mathematical notation explained before.
 
-Is $E[N_x](c)$ the \textit{time-averaged number} of class $c$ jobs in $x$ system's node; we can compute it as follows:\footnote{\textit{Ibid.}, 19}
+\paragraph{Time-averaged population}
+
+In order to compute $E[N_x](c)$, that is the \textit{time-averaged number of $c$ class jobs} in $x$ system's node, we can do as follows:\footnote{\textit{Ibid.}, 19}
 
 \begin{equation}
 \begin{array} {rclr} 
@@ -344,16 +344,22 @@ E[N_x](c) & = & \displaystyle  \dfrac{1}{t-t_0}\int_{t_0}^t n_x^{(c)}(\tau)d\tau
 \end{array}
 \end{equation}
 
-Using above equation is very simple to compute both $E[N_x]$ and $E[N]$, denoting respectively the time-averaged number of jobs running in a $x$ system's node and time-averaged number of all jobs running in whole system, proceeding as shown below:
+To calculate instead $E[N_x]$, \textit{not-class-based time-averaged number of jobs} running in a $x$ system's node, we can proceed as shown below:
 
 \begin{equation}
 \begin{array} {rclr} 
-E[N_x] & = & \displaystyle  \sum_{c \in C} E[N_x](c) & \forall x \in X \\
-E[N] & = & \displaystyle  \sum_{x \in X} E[N_x]
+E[N_x] & = & \displaystyle  \dfrac{1}{t-t_0} \cdot \int_{t_0}^t \left( n_x^{(1)}(\tau) + n_x^{(2)}(\tau) \right) d\tau \\\\
+	   & = & \displaystyle  \dfrac{1}{t-t_0} \cdot \int_{t_0}^t n_x^{(1)}(\tau)d\tau + \dfrac{1}{t-t_0} \cdot \int_{t_0}^t n_x^{(2)}(\tau)d\tau \\\\
+	   & = & E[N_x](1) + E[N_x](2) \\\\
+	   & = & \displaystyle  \sum_{c \in C} E[N_x](c) & \forall x \in X
 \end{array}
 \end{equation}
 
-Are $E[S_x](c)$ and $E[T_x](c)$ respectively the \textit{time-averaged service time} and the \textit{time-averaged response time} experienced by class $c$ jobs in $x$ system node. Since our system hasn't queues, there is no waiting time or delay experienced by jobs in our system, therefore result that $E[S_x](c) = E[T_x](c)$.
+\paragraph{Time-average response time}
+
+Are $E[S_x](c)$ and $E[T_x](c)$ respectively the \textit{time-averaged service time of class $c$ jobs} and the \textit{per-class time-averaged response time} experienced by a class $c$ job in $x$ system's node. 
+
+Since our system hasn't queues, there is no waiting time or delay experienced by jobs in our system, therefore result that $E[S_x](c) = E[T_x](c)$.
 Said that, we just have to show how to compute $E[S_x](c)$:\footnote{\textit{Ibid.}, 17}
 
 \begin{equation}
@@ -362,73 +368,95 @@ E[T_x](c) & = & E[S_x](c) & = & \displaystyle \dfrac{1}{d_x^{(c)}(t)} \cdot \sum
 \end{array}
 \end{equation}
 
-While, $E[S_x]$ and $E[T_x]$, respectively time-averaged service time and the time-averaged response time experienced by all jobs in a $x$ system node, are computable using:
+If we aren't interested about per-class metrics, we can compute $E[S_x]$ and $E[T_x]$, respectively \textit{time-averaged service time} and the \textit{time-averaged response time} experienced by any class jobs in a $x$ system's node, as follows:
 
 \begin{equation}
-\begin{array} {rccr} 
-E[T_x] = E[S_x] & = & \dfrac{d_x^{(1)}(t)}{d_x^{(1)}(t) + d_x^{(2)}(t)}E[S_x](1) + \dfrac{d_x^{(2)}(t)}{d_x^{(1)}(t) + d_x^{(2)}(t)}E[S_x](2) & \forall x \in X \\
+\begin{array} {rccccr} 
+E[T_x] & = & E[S_x] & = & \displaystyle \dfrac{1}{d_x^{(1)}(t) + d_x^{(2)}(t)} \cdot \left( \sum_{i = 0}^{d_x^{(1)}(t)} s_{x,i}^{(1)} + \sum_{i = 0}^{d_x^{(2)}(t)} s_{x,i}^{(2)} \right) & \forall x \in X \\
 \end{array}
 \end{equation}
 
+\paragraph{Throughput}
 
+\textit{Per-class system's node throughput}, denoted with $X_x(c)$, is the rate of per-class $c$ completions at $x$ system's node, while \textit{system's node throughput}, indicated with $X_x$, is the rate of any class job completions at $x$ system's node\footnote{Mor Harchol-Balter, \textit{Performance Modeling and Design of Computer Systems} (Carnegie Mellon University, Pennsylvania 2013), 18}. 
 
+Generally the throughput is the ratio between the total number of jobs completed and observation time\footnote{\textit{Ibid.}}, therefore aforesaid metrics are simply computable as follows:
 
+\begin{equation}
+\begin{array} {rccr} 
+X_x(c) & = & \displaystyle \dfrac{d_x^{(c)}(t)}{t} & \forall c \in C, \forall x \in X \\
+\end{array}
+\end{equation}
 
-\subsection{Events}
+\begin{equation}
+\begin{array} {rccr} 
+X_x & = & \displaystyle \dfrac{d_x^{(1)} + d_x^{(2)}(t)}{t} & \forall x \in X \\
+V_V++
+\end{array}
+\end{equation}
 
-Having to built next-event simulation model, let's look to all possible \textbf{events} which can occurs during our simulation. We recall that, by definition, \textbf{an event is an occurrence that may change the state of the system}, therefore our system's state variables can only when an event occurs\footnote{See. 187}. All event capable to alter system's state are reported below:
+\subsection{System's events and assumptions}
 
-\begin{table}[h!]
-    \caption{System's events}
-    \centering
-    \small
-    \label{table:StateVariables}
-     \begin{tabular}{c|c|r|r}
+Let's look to all possible \textit{events} which can occurs during our simulation. 
 
-      \toprule
-      \multirow{2}{*}{\textbf{Event name}} & \multirow{2}{*}{\textbf{Event's place}} & \textbf{State variables} & \textbf{State variables} \\
-      & & \textbf{incremented by one} & \textbf{decremented by one} \\
-      \midrule
-      
-      \multirow{3}{*}{Class 1 Job arrival} & Cloudlet & $n_{\text{cloudlet}}^{(1)}(t)$ & \\ \cline{2-4}
-      & Cloud & $n_{\text{cloud}}^{(1)}(t)$ & \\ \cline{2-4}
-      & Controller & $n_{\text{system}}^{(1)}(t)$ & \\
-       
-      \hline
-       
-      \multirow{3}{*}{Class 2 Job arrival} & Cloudlet & $n_{\text{cloudlet}}^{(2)}(t)$ & \\ \cline{2-4}
-      & Cloud & $n_{\text{cloud}}^{(2)}(t)$ & \\ \cline{2-4}
-      & Controller & $n_{\text{system}}^{(2)}(t)$ & \\
-    
-	  \hline 
-      \vspace{0.1cm}
-      \multirow{2}{*}{Class 1 Job departure} & Cloudlet &
-      $d_{\text{cloudlet}}^{(1)}(t)$, $d_{\text{system}}^{(1)}(t)$ &
-      $n_{\text{cloudlet}}^{(1)}(t)$, $n_{\text{system}}^{(1)}(t)$ \vspace{0.1cm} \\ \cline{2-4}
-    
-      & Cloud & 
-      $d_{\text{cloud}}^{(1)}(t)$, $d_{\text{system}}^{(1)}(t)$ &
-      $n_{\text{cloud}}^{(1)}(t)$, $n_{\text{system}}^{(1)}(t)$ .\\
-        
-      \bottomrule
+Since by definition any event is an occurrence that may change the state of the system\footnote{Lawrence M. Leemis, Stephen K. Park, \textit{Discrete-Event Simulation: A First Course} (Pearson; 1 edition January 6, 2006), 187}, obviously our system's state variables can change only when an event occurs.
 
+All event capable to alter our system's state are reported in table \ref{table:SystemEvents}.
 
-    \end{tabular}
-\end{table}
-
-
-Finally, to complete to turn out our conceptual model into a proper specification model, we have to make additional assumptions reported below:
+Finally, to complete to turn out our conceptual model into a proper specification model, we have to make additional assumptions which we have reported below:
 
 \begin{itemize}
-\item Although initial state variables can have any non-negative integer value\footnote{See. pag 190}, we have choosen, as common, to set $n_x^{(j)}(0) = 0$ and $d_x^{(j)}(0) = 0$ setting, in this way, initial system status as \textbf{idle}. 
+\item Although initial state variables can have any non-negative integer value\footnote{\textit{Ibid.} 190}, we have choosen, as common, to set $n_x^{(j)}(0) = 0$ and $d_x^{(j)}(0) = 0$ setting, in this way, initial system status as \textit{idle}. 
 
-\item As a consequence of the previous point, first event must be either a \textbf{Class 1 Job arrival} or a
-\textbf{Class 2 Job arrival} both on controller node.
+\item As a consequence of the previous point, first event must be either a \textit{Class 1 Job arrival} or a
+\textit{Class 2 Job arrival} both on controller node.
 
 \item Terminal state is also idle. Rather than specifying the number of jobs processed, our stopping criteria has been specified in terms of a time $\tau$ beyond which no new jobs can arrive. This assumption effectively closes the door at time $\tau$ but allows the system to continue operation until all jobs have been completely served. 
 
 Therefore, the last event must be either a class 1 or class 2 job completion.
 \end{itemize}
+
+
+
+\begin{table}[h!]
+    \caption{System's events}
+    \begin{adjustbox}{center=\textwidth}
+    \label{table:SystemEvents}
+     \begin{tabular}{c|c|p{2.5cm}}
+
+      \toprule
+      \textbf{Event name that occurred at time $\tau$} & \textbf{Event's place} & \textbf{Event's effects} \\
+      \midrule
+      
+      \multirow{3}{*}{Class 1 job arrival} & Cloudlet & $n_{\text{cloudlet}}^{(1)}(\tau)\texttt{++}$ \\ \cline{2-3} 
+      & Cloud & $n_{\text{cloud}}^{(1)}(\tau)\texttt{++}$ \\ \cline{2-3} 
+      & Controller & $n_{\text{global}}^{(1)}(\tau)\texttt{++}$ \\ 
+       
+      \hline
+       
+      \multirow{3}{*}{Class 2 job arrival} & Cloudlet & $n_{\text{cloudlet}}^{(2)}(\tau)\texttt{++}$ \\ \cline{2-3} 
+      & Cloud & $n_{\text{cloud}}^{(2)}(\tau)\texttt{++}$ \\ \cline{2-3} 
+      & Controller & $n_{\text{global}}^{(2)}(\tau)\texttt{++}$ \\ 
+    
+	  \hline
+       
+      \multirow{8}{*}{Class 1 job departure} & \multirow{4}{*}{Cloudlet} & $n_{\text{cloudlet}}^{(1)}(\tau)\texttt{--}$ \newline $n_{\text{global}}^{(1)}(\tau)\texttt{--}$ \newline $d_{\text{cloudlet}}^{(1)}(\tau)\texttt{++}$ \newline $d_{\text{global}}^{(1)}(\tau)\texttt{++}$ \\ \cline{2-3} 
+      & \multirow{4}{*}{Cloud} & $n_{\text{cloud}}^{(1)}(\tau)\texttt{--}$ \newline $n_{\text{global}}^{(1)}(\tau)\texttt{--}$ \newline $d_{\text{cloud}}^{(1)}(\tau)\texttt{++}$ \newline $d_{\text{global}}^{(1)}(\tau)\texttt{++}$ \\ \cline{2-3} 
+ 
+ 		\hline
+       
+      \multirow{8}{*}{Class 2 job departure} & \multirow{4}{*}{Cloudlet} & $n_{\text{cloudlet}}^{(2)}(\tau)\texttt{--}$ \newline $n_{\text{global}}^{(2)}(\tau)\texttt{--}$ \newline $d_{\text{cloudlet}}^{(2)}(\tau)\texttt{++}$ \newline $d_{\text{global}}^{(2)}(\tau)\texttt{++}$ \\ \cline{2-3} 
+      & \multirow{4}{*}{Cloud} & $n_{\text{cloud}}^{(2)}(\tau)\texttt{--}$ \newline $n_{\text{global}}^{(2)}(\tau)\texttt{--}$ \newline $d_{\text{cloud}}^{(2)}(\tau)\texttt{++}$ \newline $d_{\text{global}}^{(2)}(\tau)\texttt{++}$ \\
+ 
+      \bottomrule
+
+
+    \end{tabular}
+    \end{adjustbox}
+\end{table}
+
+
+
 
 
 \newpage
@@ -1043,7 +1071,7 @@ X_{\text{cloudlet}} = X - X_{\text{cloud}} \\
 \begin{table}[h!]
     \centering
     \small
-    \begin{adjustbox}{center=\textwidth}
+    \begin{adjustbox}{width=1.5\textwidth,center=\textwidth}
      \begin{tabular}{c|c|c|c|c|c|c|c|c|c}
 
       \toprule
@@ -1060,9 +1088,9 @@ X_{\text{cloudlet}} = X - X_{\text{cloud}} \\
       \hline
       $E[N]$ (jobs) & 5.2040 & 6.622806284512176 & 11.8264 & 13.5521 & 11.75852273 & 25.31062273 & 18.7561 & 18.38092273 & 37.13702273 \\
       \hline
-      $E[S], E[T]$ ($s$)& $20/9$ & 4 & 2.835407407 & $100/27$ & $50/11$ & 4.225763636 & 3460/1107 & 1954/451 & 3.683185595 \\
+      $E[S], E[T]$ ($s$)& $2.\overline{2}$ ($20/9$) & 4 & 2.958089587168020 & $3.703703703703704$ ($100/27$) & $50/11$ & 4.225763636 & 3460/1107 & 1954/451 & 3.683185595 \\
       \hline
-	  $\rho$ & 0.2604888889 & & & 0.6783564815 & &  & 0.9388453704 & &  \\
+	  $\rho$ & 0.2604888889 & & & 0.6783564815 & &  & 0.9388453704 & & \\
      
        
  
