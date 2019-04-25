@@ -14,7 +14,10 @@
 \usepackage{xcolor}
 \usepackage{pgfopts}
 \usepackage{xstring}
-
+\usepackage{lscape}
+\usepackage{graphicx}
+\usepackage{parallel}
+\usepackage{subfig}
 
 \usetikzlibrary{positioning,angles,quotes,calc,shapes.geometric}
 \usetikzlibrary{chains,shapes.multipart}
@@ -810,7 +813,7 @@ To determine this probability, we had modelled cloudlet with a \textbf{continuou
 \subsubsection{Balance equation computing} 
 
 Obviously we can compute \textbf{limiting probabilities} $\pi_{(n_1,n_2)}$, namely the probability according to which the chain is in a certain state, say $j$, independently of the starting state, say $i$, via \textbf{balance} (or \textbf{stationary}) \textbf{equations}, in which we can equate the rate at which the system leaves state $j$ with the rate at which the system enters state $j$ \footnote{\textit{Cfr.} Mor Harchol-Balter - \textit{Performance Modeling and Design of Computer Systems} - Carnegie Mellon University, Pennsylvania, pag. 237}, \textbf{remembering that limiting probabilities sum to 1} (i.e., $\sum_{j=0}^\infty \pi_j = 1$).
-These balance equations, shown in table \ref{table:ALG1-CloudletBalanceEquationList}, are been resolved using a very simple MATLAB script called \texttt{MATLAB\_ALG1\_CTMC\_ResolverScript.m} in which each equation, previously generated through a Java script\footnote{Cfr. \texttt{CTMCResolverScriptGenerator.java} and \texttt{ResolverUsingRoutingAlgorithm1.java} files.}, is been resolved using a MATLAB function called \texttt{solve(eqn,var)}.\footnote{\textit{Cfr.} \texttt{https://www.mathworks.com/help/symbolic/solve.html}}. 
+
 
 \begin{table}[h!]
     \caption{Balance equations.}
@@ -1066,40 +1069,9 @@ X_{\text{cloud}} = \lambda_{\text{cloud}} \\
 X_{\text{cloudlet}} = X - X_{\text{cloud}} \\
 \end{equation}
 
-\subsubsection{Summary of analytical results}
 
-\begin{table}[h!]
-    \centering
-    \small
-    \begin{adjustbox}{width=1.5\textwidth,center=\textwidth}
-     \begin{tabular}{c|c|c|c|c|c|c|c|c|c}
 
-      \toprule
-      
-      & \multicolumn{3}{c|}{ Class 1 Jobs} & \multicolumn{3}{c|}{Class 2 Jobs} & \multirow{2}{*}{Cloudlet} & \multirow{2}{*}{Cloud} & \multirow{2}{*}{Global} \\ \cline{2-7}
-      
-      & Cloudlet & Cloud & System & Cloudlet & Cloud & System & \\
-      \midrule
-      $\Pi_{\text{SendToCloudlet}}$ & & & & & & & & & 0.586074607217989  \\
-      \hline
-      $\Pi_{\text{SendToCloud}}$ & & & & & & & & & 0.413925392782011  \\
-      \hline
-	  $X$, $\lambda$ (jobs/$s$) & 2.3444 & 1.655701571128044 & 4 & 3.663125 & 2.586875 & 6.25 & 6.007525 & 4.242475 & 10.25 \\     
-      \hline
-      $E[N]$ (jobs) & 5.2040 & 6.622806284512176 & 11.8264 & 13.5521 & 11.75852273 & 25.31062273 & 18.7561 & 18.38092273 & 37.13702273 \\
-      \hline
-      $E[S], E[T]$ ($s$)& $2.\overline{2}$ ($20/9$) & 4 & 2.958089587168020 & $3.703703703703704$ ($100/27$) & $50/11$ & 4.225763636 & 3460/1107 & 1954/451 & 3.683185595 \\
-      \hline
-	  $\rho$ & 0.2604888889 & & & 0.6783564815 & &  & 0.9388453704 & & \\
-     
-       
- 
-     
-      \bottomrule
 
-    \end{tabular}
-    \end{adjustbox}
-\end{table}
 
 
 
@@ -1315,5 +1287,281 @@ Differently from the previous case, owing to the use of a different access contr
 \end{array}
 \end{equation}
 \end{center}
+
+\newpage
+\subsection{Summary of analytical results}
+
+
+All analytical results are been computed using a combination of Java and MATLAB\footnote{See. \texttt{https://www.mathworks.com/products/matlab.html}} scripts.
+
+In fact, all balance equations, previously shown in tables \ref{table:ALG1-CloudletBalanceEquationList} and \ref{table:ALG2-CloudletBalanceEquationList}, are firstly automatically generated using simple Java scripts\footnote{See \texttt{CTMCResolverScriptGenerator.java}, \texttt{ResolverUsingRoutingAlgorithm1.java} and \texttt{ResolverUsingRoutingAlgorithm2.java} files.} able to built some MATLAB scripts as output\footnote{See \texttt{MATLAB\_ALG1\_CTMC\_ResolverScript.m} and \texttt{MATLAB\_ALG1\_CTMC\_ResolverScript.m} files} subsequently executed using MATLAB environment.
+
+Is very important to precise that all equation systems are been resolved using a MATLAB function called \texttt{solve},\footnote{See \texttt{https://www.mathworks.com/help/symbolic/solve.html}} which returns all systems solutions as \textit{symbolic variables} or \texttt{sym} objects.\footnote{See \texttt{https://it.mathworks.com/help/symbolic/sym.html}} 
+
+A symbolic variable can hold an expression instead of just a numeric value allowing an higher precision than hardware numbers so is possible to compute more decimal places; obliviously the trade off is that symbolic computations need more memory and are slower than hardware computation. 
+
+Practically all analytical solutions has been represented by MATLAB as fractions some of which are made up of very big numbers because which has been impossible to fit in this page; just think to symbolic variable holding $\Pi_{\text{SendToCloud}}^{(2)}$ solution which has a 658 digits number as numerator! 
+
+In order to represent analytical solutions we have used two MATLAB functions called digits and \texttt{digits}\footnote{See \texttt{https://it.mathworks.com/help/symbolic/digits.html}} and \texttt{vpa}\footnote{See \texttt{https://it.mathworks.com/help/symbolic/vpa.html}}; the first function sets the precision used by \texttt{vpa} to $d$ significant decimal digits while the second is used to evaluate symbolic input to at least $d$ significant digits. Using these functions was possible to list analytical results below.
+
+
+
+\newpage
+
+\begin{table}
+\caption{Analytical results of Algorithm 1 based system. (Part 1)}
+\begin{adjustbox}{center=\textwidth}
+	
+     \begin{tabular}{c|c|c}
+     \toprule
+     \textbf{Variable} & \textbf{Approximate value} & \textbf{Symbolic variable representation} \\
+     \toprule
+	 &&\\
+	 $\Pi_{SendToCloud}$ & $0.413925392$ & $\dfrac{87859436926256646517251117638424741393475341796875000000}{212259113498085857520971393983611845585800622137044274729}$  \\
+	 
+	 &&\\\hline &&\\
+	 
+	 $\Pi_{SendToCloudlet}$ & $0.586074607$ &  $\dfrac{124399676571829211003720276345187104192325280340169274729}{212259113498085857520971393983611845585800622137044274729}$  \\
+	 
+     &&\\\hline &&\\
+
+	 $\lambda^{(1)}$, $X^{(1)}$ & 4 & \\
+	 
+	 &&\\\hline &&\\
+
+	 $\lambda^{(2)}$, $X^{(2)}$ & 6.25 & \\
+	 
+	 &&\\\hline &&\\
+
+	 $\lambda$, $X$ & 10.25 & \\
+	 
+	 &&\\\hline &&\\
+
+     $\lambda_{cloudlet}^{(1)}$, $X_{cloudlet}^{(1)}$ & $2.344298428$ & $\dfrac{2639445382678245}{1125899906842624}$ \\
+
+	 &&\\\hline &&\\
+
+     $\lambda_{cloudlet}^{(2)}$, $X_{cloudlet}^{(2)}$ & $3.662966295$ & $\dfrac{65986134566956125}{18014398509481984}$ \\
+
+	 &&\\\hline &&\\
+
+     $\lambda_{cloudlet}$, $X_{cloudlet}$ & $6.007264723$ & $\dfrac{108217260689808045}{18014398509481984}$ \\
+
+     &&\\\hline &&\\
+
+     $\lambda_{cloud}^{(1)}$, $X_{cloud}^{(1)}$ & $1.655701571$ & $\dfrac{1864154244692251}{1125899906842624}$ \\
+
+	 &&\\\hline &&\\
+
+     $\lambda_{cloud}^{(2)}$, $X_{cloud}^{(2)}$ & $2.587033704$ & $\dfrac{46603856117306275}{18014398509481984}$ \\
+
+	 &&\\\hline &&\\
+
+     $\lambda_{cloud}$, $X_{cloud}$ & $4.242735276$ & $\dfrac{76430324032382291}{18014398509481984}$ \\
+
+     &&\\\hline &&\\
+     
+	 $E[N^{(1)}_{cloudlet}]$ & $5.204009618$ & $\dfrac{1104598468206022474496767594370330477471953336910445636480}{212259113498085857520971393983611845585800622137044274729}$ \\
+     
+     &&\\\hline &&\\
+     
+     $E[N^{(2)}_{cloudlet}]$ & $13.55210838$ & $\dfrac{2876558510953183527335332277006068951749878481537618845000}{212259113498085857520971393983611845585800622137044274729}$ \\
+     
+	 &&\\
+
+     \bottomrule
+
+    \end{tabular}
+    \end{adjustbox}
+\end{table}
+
+
+\begin{table}
+\caption{Analytical results of Algorithm 1 based system. (Part 2)}
+\begin{adjustbox}{center=\textwidth}
+	
+     \begin{tabular}{c|c|c}
+     \toprule
+     \textbf{Variable} & \textbf{Approximate value} & \textbf{Symbolic variable representation} \\
+     \toprule
+	 &&\\
+	 
+	 $E[N_{cloudlet}]$ & $18.75611799$ & $\dfrac{3981156979159206001832099871376399429221831818448064481480}{212259113498085857520971393983611845585800622137044274729}$ \\
+	 
+	 &&\\\hline &&\\
+
+	 $E[N^{(1)}_{cloud}]$ & $6.622806284$ & $\dfrac{1864154244692251}{281474976710656}$  \\
+
+	 &&\\\hline &&\\
+	
+	 $E[N^{(2)}_{cloud}]$ & $11.759244113$ & $\dfrac{1165096402932656875}{99079191802150912}$   \\
+     
+     &&\\\hline &&\\
+     
+     $E[N_{cloud}]$ & $18.382050397$ & $\dfrac{1821278697064329227}{99079191802150912}$  \\
+     
+     &&\\\hline &&\\
+     
+     $E[N^{(1)}]$ & $11.826815902$ &  $\dfrac{13315810923168857}{1125899906842624}$   \\
+     
+     &&\\\hline &&\\
+     
+     $E[N^{(2)}]$ & $25.311352493$  &  $\dfrac{2507828348524290043}{99079191802150912}$ \\
+     
+     &&\\\hline &&\\
+     
+     $E[N]$ & $37.138168396$ & $\dfrac{3679619709763149459}{99079191802150912}$  \\
+	
+	 &&\\\hline &&\\
+     
+     $E[T^{(1)}_{cloudlet}]$, $E[S^{(1)}_{cloudlet}]$ & $2.\overline{2}$ & $\dfrac{20}{9}$  \\
+     
+     &&\\\hline &&\\
+     
+     $E[T^{(2)}_{cloudlet}]$, $E[S^{(2)}_{cloudlet}]$ & $3.\overline{7037}$ & $\dfrac{100}{27}$  \\
+     
+     &&\\\hline &&\\
+     
+     $E[T_{cloudlet}]$, $E[S_{cloudlet}]$ & $3.125564588$ & $\dfrac{3460}{1107}$  \\
+     
+     &&\\\hline &&\\
+     
+     $E[T^{(1)}_{cloud}]$, $E[S^{(1)}_{cloud}]$ & $4$ & \\
+     
+     &&\\\hline &&\\
+     
+     $E[T^{(2)}_{cloud}]$, $E[S^{(2)}_{cloud}]$ & $4.\overline{54}$ & $\dfrac{50}{11}$  \\
+	
+	 &&\\
+
+     \bottomrule
+
+    \end{tabular}
+    \end{adjustbox}
+\end{table}
+
+
+\begin{table}
+\caption{Analytical results of Algorithm 1 based system. (Part 3)}
+\begin{adjustbox}{center=\textwidth}
+	
+     \begin{tabular}{c|c|c}
+     \toprule
+     \textbf{Variable} & \textbf{Approximate value} & \textbf{Symbolic variable representation} \\
+     \toprule
+	 &&\\
+	 
+	 $E[T_{cloud}]$, $E[S_{cloud}]$ & $4.332594235$ & $\dfrac{1954}{451}$  \\
+	 
+	 &&\\\hline &&\\
+     
+     $E[T^{(1)}]$, $E[S^{(1)}]$ & $2.958089587$ & $\dfrac{2497884592968457}{844424930131968}$  \\
+     
+     &&\\\hline &&\\
+     
+     $E[T^{(2)}]$, $E[S^{(2)}]$ & $4.052125751$ & $\dfrac{903333025213434725}{222928181554839552}$  \\
+     
+     &&\\\hline &&\\
+     
+     $E[T]$, $E[S]$ & $3.625184809$ & $\dfrac{33134390151034630493}{9140055443748421632}$  \\
+	
+	 &&\\
+
+     \bottomrule
+
+    \end{tabular}
+    \end{adjustbox}
+\end{table}
+
+% ------------
+
+\begin{table}
+\caption{Analytical results of Algorithm 2 based system. (Part 1)}
+\begin{adjustbox}{center=\textwidth}
+	
+     \begin{tabular}{c|c|c}
+     \toprule
+     \textbf{Variable} & \textbf{Approximate value} & \textbf{Symbolic variable representation} \\
+     \toprule
+	 
+	 &&\\
+	 
+	 SICURO $\Pi_{SendToCloud}^{(2)}$ & $0.356859509$ & To big to be represented! \\
+	 
+	 &&\\\hline &&\\
+	 
+	 SICURO $\Pi_{SendToCloud}^{(2)}$ & $0.643140490$ & To big to be represented! \\
+		 
+	 &&\\\hline &&\\
+	 
+	 SICURO $\Pi_{SendToCloud}^{(1)}$ & $0.0005377649$ & $\dfrac{703687441776640000000000000000}{1308540831314824230819390435296941}$  \\
+	 
+	 &&\\\hline &&\\
+	 
+	 SICURO $\Pi_{SendToCloudlet}^{(1)}$ & $0.999462235$ &  $\dfrac{1307837143873047590819390435296941}{1308540831314824230819390435296941}$  \\
+	 
+     &&\\\hline &&\\
+
+	 $\lambda^{(1)}$, $X^{(1)}$ & 4 & \\
+	 
+	 &&\\\hline &&\\
+
+	 $\lambda^{(2)}$, $X^{(2)}$ & 6.25 & \\
+	 
+	 &&\\\hline &&\\
+
+	 $\lambda$, $X$ & 10.25 & \\
+	 
+	 &&\\\hline &&\\
+	
+	 SICURO $\lambda_{cloudlet}^{(1)}$, $X_{cloudlet}^{(1)}$ & $3.997848940$ & $\dfrac{9002355498360251}{2251799813685248}$ \\
+	 
+	 &&\\\hline &&\\
+	
+	 SICURO $\lambda_{cloud}^{(1)}$, $X_{cloud}^{(1)}$ & $0.002151059$ & $\dfrac{4960006533878655}{2305843009213693952}$ \\
+
+     &&\\\hline &&\\
+     
+     SICURO $E[N^{(1)}_{cloudlet}]$ & $8.884108755$ & $\dfrac{11625219056649311918394581647083920}{1308540831314824230819390435296941}$ \\
+
+	 &&\\\hline &&\\
+     
+     SICURO $E[N^{(1)}_{cloud}]$ & $0.008604239$ & $\dfrac{4960006533878655}{576460752303423488}$ \\
+
+	 &&\\\hline &&\\
+     
+     SICURO $E[T^{(1)}_{cloud}]$, $E[S^{(1)}_{cloud}]$ & $4$ & \\
+     
+     &&\\\hline &&\\
+     
+     SICURO $E[T^{(1)}_{cloudlet}]$, $E[S^{(1)}_{cloudlet}]$ & $2.\overline{2}$ & $\dfrac{20}{9}$  \\
+
+	 &&\\\hline &&\\
+
+	 SICURO $E[T^{(1)}]$, $E[S^{(1)}]$ & $2.223178248$ & $\dfrac{46136700210409393015}{20752587082923245568}$  \\
+
+     &&\\
+
+
+     \bottomrule
+
+    \end{tabular}
+    \end{adjustbox}
+\end{table}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \end{document}
