@@ -18,11 +18,19 @@
 \usepackage{graphicx}
 \usepackage{parallel}
 \usepackage{subfig}
+\usepackage{frontespizio} 
 
 \usetikzlibrary{positioning,angles,quotes,calc,shapes.geometric}
 \usetikzlibrary{chains,shapes.multipart}
 \usetikzlibrary{shapes,calc,fit}
 \usetikzlibrary{automata,positioning}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true, %set true if you want colored links
+    linktoc=all,     %set to all if you want both sections and subsections linked
+    linkcolor=black,  %choose some color if you want links to stand out
+}
 
 
 \lstset{
@@ -40,24 +48,44 @@ breaklines=true
 
 \begin{document}
 
+% Frontespizio
+% ------------------------------------------------------
+\begin{frontespizio} 
+\Universita{Roma ``Tor Vergata'' } 
+\Logo[3cm]{logo}
+\Facolta{Ingegneria} 
+\Corso[Laurea Magistrale]{Ingegneria Informatica} 
+\Annoaccademico{2018--2019} 
+\Titolo{Performance Modeling of\\Computer Systems and Networks\\Project}
+\NCandidato{Studente} 
+\Candidato[0273395]{Andrea Graziani} 
+\NRelatore{Docente}{} 
+\Relatore{Prof. Vittoria de Nitto Personè} 
+\end{frontespizio} 
+
+\tableofcontents
 
 
-\section{Goal}
+\newpage
 
+\section{Introduction}
 
+In this report we will present how we have designed and implemented a discrete-event simulator for required system using the next-event approach. 
 
+In order to do that, we have strictly followed each step required by typical discrete-event simulation model\footnote{Lawrence M. Leemis, Stephen K. Park, \textit{Discrete-Event Simulation: A First Course} (Pearson; 1 edition January 6, 2006), Algorithm 1.1.1, page 4} whose main results are reported in each sections of this document.
 
+\section{Goals}
+
+Our simulation model's goal is to capture some relevant global and local characteristics, including time-averaged response time, population and throughput for each class of jobs, through the design and implementation of two version of system based on two different routing policies, called \textit{access control algorithms}.
+
+Obviously we will compare results obtained by our simulations when based on different routing policies and we will care about to derive an analytical solution in order to validate that results not before to have properly define a queueing model.
+
+\newpage
 \section{Conceptual Model}
 
-Let's start with the \textit{second} step of a typical discrete-event simulation: the \textbf{conceptual model} building. 
 
-First of all our system represents a network of nodes to which some application, running in set of external mobile devices, send their tasks, called \textbf{jobs}, because of performance or energy saving reasons. 
 
-Not all job sent to system are the same, in fact we make distinction between two types of task, denoted as \textbf{class 1 job} and \textbf{class two job}; differences betweens them are described in following sections. 
-
-To minimize mean response time experienced by mobile device users, the system is been built as a "\textit{two-layer}" network in such a way that an arriving job is sent, if possible, firstly to the nearest node.
-
-\begin{adjustbox}{center=\textwidth}
+\begin{figure}[h!]
 \begin{tikzpicture}
 
 
@@ -146,26 +174,43 @@ To minimize mean response time experienced by mobile device users, the system is
 \path (CloudletNode3) edge[->,dashed,ultra thick, bend left, out=0, in=170] node [left] [sloped, yshift=-5,xshift=60] {Interrupted jobs} (CloudNode4);
 
 \end{tikzpicture}
-\end{adjustbox}
+\caption{System diagram.} \label{figure:SystemDiagram}
+\end{figure}
 
 
 
-To be more precise, our system is made up of a set of nodes described below:
+As known, building a system \textit{conceptual model} means to describe it highlighting which state variables are important specifying how they are interrelated.\footnote{\textit{Ibid.}}
+
+Our system represents a network of nodes to which some application, running in a set of external mobile devices, send their tasks, called \textit{jobs} or \textit{task}, because of performance or energy saving reasons. Not all jobs sent to system are the same, in fact we distinguish two class type of jobs, that is \textit{class 1} and \textit{class 2} type jobs.
+
+To minimize mean response time experienced by mobile device users, the system is been built as a \textit{two-layer} network in such a way that any arriving job is sent, if possible, to the nearest node to be run.
+
+To be more precise, as you can see from figure \ref{figure:SystemDiagram}, our system is made up of a set of nodes including:
 
 \begin{description}
-\item[Cloudlet] It represents an \textit{edge cloud server} which, in addition to being located at "\textit{one-hop}" distance from mobile devices users, and therefore nearest to them, is able to guarantee absence of interferences among tasks allocated to it as long as their number does not exceed a given threshold $N$. From our conceptual model point of view, cloudlet represents a \textbf{fixed-capacity multi-server service node with any queue}.
+\item[Cloudlet node] Also called \textit{edge cloud server}, it is a computer cluster located at an "\textit{one-hop}" distance from mobile devices users, that is very close to them, therefore network delay experienced is very low. That cluster is able to guarantee absence of interferences among tasks allocated to it as long as their number does not exceed a given threshold $N$. 
 
-Its capacity, that is the maximum possible number of jobs in it, is fixed to $N$
+Consequently, from our conceptual model point of view, cloudlet node represents a \textit{fixed-capacity multi-server service node with no queue} which capacity, that is the maximum possible number of jobs in it, is fixed to $N$. 
 
-\item[Cloud] It represents a \textit{remote cloud server} which, although it \textbf{suffers for greater network delay}, due of its high distance from mobile devices, has virtually \textbf{unlimited resources} so that he can to process any number of tasks allocated to it. Consequently we had modelled this subsystem as an \textbf{unlimited-capacity multi-server service node with any queue}.
+Since jobs inter-arrival times and service times are \textit{exponentially} distributed according to our project specification, a queuing model able to properly represent that node is the M/M/N/N queueing model system\footnote{Mor Harchol-Balter, \textit{Performance Modeling and Design of Computer Systems} (Carnegie Mellon University, Pennsylvania 2013), 255-256} although there is a very important different with it: due to adopted routing policies, when cloudlet node is "\textit{full}" and so not capable to run a further job, any arriving job is forwarded somewhere else rather than to cloudlet node, therefore no jobs are really lost.
 
-Being made up of an unlimited number of servers, its capacity is also unlimited.
+\item[Cloud node] Also called \textit{remote cloud server}, it is another computer cluster which, although it \textit{suffers for greater network delay}, due of its high distance from mobile devices, being virtually made up of unlimited number of servers, has \textit{unlimited resources}, therefore it can to process any number of tasks allocated to it. 
 
-\item[Controller] It represent the entry point of our system because all task are sent to it from outside in order to decide about whether an arrived job should be sent to the cloudlet or the cloud according to a given access control algorithm.
+Consequently we had modelled this system's node as an \textit{unlimited-capacity multi-server service node with no queue}. 
 
-It is located on cloudlet and has the capability to precess each arriving job \textbf{instantaneously}. So that it is modelled simply as \textbf{single-server service node with no queue}. 
+Since, as we previously said, jobs inter-arrival and service times are exponential, due to the presence of an infinite number of server, such a system's node can be modelled by  a M/M/$\infty$ queueing model system.\footnote{\textit{Ibid.}, 271}. 
+
+
+\item[Controller node] It represents system's entry point being all arriving jobs sent firstly to it by mobile devices. Its duty is to decide about whether an arrived job should be sent to cloudlet or cloud node according to adopted routing policy.
+
+It is located at the same distance of cloudlet node from mobile devices users, therefore, also in this case, network delay experienced is very low. Although it can run only one job at a time, it has the capability to process each arriving job \textit{instantaneously}. 
+
+We have simply modelled it as \textit{single-server service node with no queue}. It's correspondent queuing model system is M/M/1.
 
 \end{description}
+
+
+
 
 \begin{algorithm}
 
@@ -186,14 +231,14 @@ It is located on cloudlet and has the capability to precess each arriving job \t
 \end{algorithmic}
 \end{algorithm}
 
-At this point, in order to properly define our conceptual model, we need to specify \textit{state variables} of our system. 
-Due to access control algorithms characteristics, described below, we have decided to represent the state of our system as an ordered pair $(n_1, n_2)$ where $n_1$ represents the number of class one job while $n_2$ the number of class two job both contained in cloudlet. Consequently we have decided to just ignore type and number of jobs contained in cloud node because not relevant in any access control algorithms and negligible for goal of our study. 
+At this point, in order to properly define our conceptual model, we need to specify which \textit{system state variables} are truly important for our goals.
 
-A this point we can observe access control algorithms used by controller to make decisions which are fully described by their pseudo-code shown in Algorithm \ref{alg:accessControlAlgorithm1} and Algorithm \ref{alg:accessControlAlgorithm2}. 
+A complete characterization of the our system state is simply provided by the number of each class jobs running both on cloudlet and cloud node at a given instant of time; we will formalize this statement in the next section where we will provide relations and computation methods too. 
 
-Observe that to make its decision controller node can use only one access control algorithm at a time. 
+For now we have to just focus on routing policies. As we previously said, there are two type of access control algorithms used by controller node to make decisions; they are fully described by pseudo-code shown in Algorithm \ref{alg:accessControlAlgorithm1} and Algorithm \ref{alg:accessControlAlgorithm2}. Note that you can use only one access control algorithm type a during a simulation run.
 
-Note that Algorithm \ref{alg:accessControlAlgorithm2} use a further threshold variable to make its decision denoted by $S$ which is less or equal than $N$. Remember that when a class 2 job is interrupted and sent on the cloud, a \textbf{ setup time} has to be considered to restart the task on the cloud. 
+Although they are both \textit{work-conserving scheduling policy}, that is they always perform work on some job when there is a job in the system,\footnote{\textit{Ibid.}, Definition 28.1, page 474} there is one difference between them: access control algorithms 1 does not provide job pre-emption once it starts service on cloudlet node unlike access control algorithms 2, which provides, instead, pre-emption when some condition are achieved requiring also a set-up time to restart interrupted job (note that Algorithm \ref{alg:accessControlAlgorithm2} use a further threshold variable to make its decision denoted by $S$ which is less or equal than $N$).
+
 
 \begin{algorithm}[h]
 \caption{}\label{alg:accessControlAlgorithm2}
@@ -249,18 +294,25 @@ Note that Algorithm \ref{alg:accessControlAlgorithm2} use a further threshold va
 
 
 
-
 \clearpage
 \newpage
 \section{Specification  Model}
 
 In this section we will provide a \textit{specification model} of our system in which we will turn all system's states into a collection of mathematical variables together with equations and logic describing how the state variables are interrelated including algorithms for computing their interaction and evolution in time.\footnote{Lawrence M. Leemis, Stephen K. Park, \textit{Discrete-Event Simulation: A First Course} (Pearson; 1 edition January 6, 2006), 186}
 
+In other words, we will provide:
+
+\begin{itemize}
+\item A set of mathematical state variables that together provide a complete system description.
+\item A set of system event types.
+\item A collection of mathematical methods that will take place when each type of event occurs in order to update system state variables.
+\end{itemize}
+
 \subsection{System's variables}
 
 In order to properly describe all system's state variables, we need to introduce some mathematical notations.
 
-$\tau \in (t_0, t)$ denotes a time's instant of our system simulation clock where $t_0$ and $t$ represent respectively \textit{start moment} and \textit{final moment} of our simulation; we will use also $c \in \lbrace 1,2 \rbrace = C$, representing the class to which a job belongs, and $x \in \lbrace cloudlet,cloud,global \rbrace = X$, used, instead, to refer to a specific system's node, or to whole system when $x = global$, where a job is running.
+$\tau \in (t_0, t)$ denotes a time's instant of our system simulation clock where $t_0$ and $t$ represent respectively \textit{start moment} and \textit{final moment} of our simulation; we will use also $c \in \lbrace 1,2 \rbrace = C$, representing the class to which a job belongs, and $x \in \lbrace cloudlet,cloud,global \rbrace = X$, used, instead, to refer to a specific system's node or to the whole system.
 
 At this point we can introduce all mathematical variables used in our model:
 
@@ -272,23 +324,23 @@ At this point we can introduce all mathematical variables used in our model:
       $n_x^{(c)}(\tau)$ & $ = $ & Number of class $c$ jobs currently running at $x$ system's node at time $\tau$ \\
       $d_x^{(c)}(\tau)$ & $ = $ & Number of class $c$ departed jobs from node $x$ at time $\tau$ \\
       $s_{x,i}^{(c)}$ & $ = $ & Service time of class $c$ job $i$ served on $x$ node   \\
-      $i_{cloudlet}^{(2)}$ & $ = $ & Number of class 2 interrupted job which were running on cloudlet node\\
+      $i_{cloudlet}^{(2)}(\tau)$ & $ = $ & Number of class 2 interrupted jobs at time $\tau$ which were running on cloudlet\\
           
     \end{tabular}
 \end{table}
 
-Is $n_x^{(c)}$ the number of class $c$ jobs running on node $x$. We define the \textbf{state} of our system as follow:
+We define the \textit{state} of our system at time $\tau$ as follows:
 
 \begin{equation}
-\omega = (\omega_{cloudlet},\omega_{cloud})
+\omega(\tau) = (\omega_{cloudlet}(\tau),\omega_{cloud}(\tau))
 \end{equation}
 
-In this context, $\omega_{cloudlet}$ and $\omega_{cloud}$ are the states of cloudlet and cloud node respectively. Specifically:
+Where $\omega_{cloudlet}(\tau)$ and $\omega_{cloud}(\tau)$ are, respectively, cloudlet and cloud node state at time $\tau$. Specifically:
 
 \begin{equation}
 \begin{array} {rcl} 
-\omega_{cloudlet} & = & (n_{cloudlet}^{(1)},n_{cloudlet}^{(2)}) \\
-\omega_{cloud} & = & (n_{cloud}^{(1)},n_{cloud}^{(2)}) \\
+\omega_{cloudlet}(\tau) & = & (n_{cloudlet}^{(1)}(\tau),n_{cloudlet}^{(2)}(\tau)) \\
+\omega_{cloud}(\tau) & = & (n_{cloud}^{(1)}(\tau),n_{cloud}^{(2)}(\tau)) \\
 \end{array}
 \end{equation}
 
@@ -296,7 +348,7 @@ Thus:
 
 \begin{equation}
 \begin{array} {rcl} 
-\omega = ((n_{cloudlet}^{(1)},n_{cloudlet}^{(2)}),(n_{cloud}^{(1)},n_{cloud}^{(2)})
+\omega(\tau) = ((n_{cloudlet}^{(1)}(\tau),n_{cloudlet}^{(2)}(\tau)),(n_{cloud}^{(1)}(\tau),n_{cloud}^{(2)}(\tau))
 \end{array}
 \end{equation}
 
@@ -339,39 +391,39 @@ During this subsection we will describe how we can compute all system's statisti
 
 \paragraph{Time-averaged population}
 
-In order to compute $E[N_x](c)$, that is the \textit{time-averaged number of $c$ class jobs} in $x$ system's node, we can do as follows:\footnote{\textit{Ibid.}, 19}
+In order to compute $E[N_x]^{(c)}$, that is the \textit{time-averaged number of $c$ class jobs in $x$ system's node}, we can do as follows:\footnote{\textit{Ibid.}, 19}
 
 \begin{equation}
 \begin{array} {rclr} 
-E[N_x](c) & = & \displaystyle  \dfrac{1}{t-t_0}\int_{t_0}^t n_x^{(c)}(\tau)d\tau & \forall c \in C, \forall x \in X
+E[N_x]^{(c)} & = & \displaystyle  \dfrac{1}{t-t_0}\int_{t_0}^t n_x^{(c)}(\tau)d\tau & \forall c \in C, \forall x \in X
 \end{array}
 \end{equation}
 
-To calculate instead $E[N_x]$, \textit{not-class-based time-averaged number of jobs} running in a $x$ system's node, we can proceed as shown below:
+To calculate instead $E[N_x]$, \textit{not-class-based time-averaged number of jobs running in a $x$ system's node}, we can proceed as shown below:
 
 \begin{equation}
 \begin{array} {rclr} 
 E[N_x] & = & \displaystyle  \dfrac{1}{t-t_0} \cdot \int_{t_0}^t \left( n_x^{(1)}(\tau) + n_x^{(2)}(\tau) \right) d\tau \\\\
 	   & = & \displaystyle  \dfrac{1}{t-t_0} \cdot \int_{t_0}^t n_x^{(1)}(\tau)d\tau + \dfrac{1}{t-t_0} \cdot \int_{t_0}^t n_x^{(2)}(\tau)d\tau \\\\
-	   & = & E[N_x](1) + E[N_x](2) \\\\
-	   & = & \displaystyle  \sum_{c \in C} E[N_x](c) & \forall x \in X
+	   & = & E[N_x]^{(1)} + E[N_x]^{(2)} \\\\
+	   & = & \displaystyle  \sum_{c \in C} E[N_x]^{(c)} & \forall x \in X
 \end{array}
 \end{equation}
 
 \paragraph{Time-average response time}
 
-Are $E[S_x](c)$ and $E[T_x](c)$ respectively the \textit{time-averaged service time of class $c$ jobs} and the \textit{per-class time-averaged response time} experienced by a class $c$ job in $x$ system's node. 
+Are $E[S_x]^{(c)}$ and $E[T_x]^{(c)}$, respectively, the \textit{time-averaged service time and response time of class $c$ jobs in $x$ system's node}. 
 
-Since our system hasn't queues, there is no waiting time or delay experienced by jobs in our system, therefore result that $E[S_x](c) = E[T_x](c)$.
-Said that, we just have to show how to compute $E[S_x](c)$:\footnote{\textit{Ibid.}, 17}
+Since our system hasn't queues, there is no waiting time or delay experienced by jobs in our system, therefore result that $E[S_x]^{(c)} = E[T_x]^{(c)}$.
+Said that, we just have to show how to compute $E[S_x]^{(c)}$:\footnote{\textit{Ibid.}, 17}
 
 \begin{equation}
 \begin{array} {rccccr} 
-E[T_x](c) & = & E[S_x](c) & = & \displaystyle \dfrac{1}{d_x^{(c)}(t)} \cdot \sum_{i = 0}^{d_x^{(c)}(t)} s_{x,i}^{(c)} & \forall c \in C, \forall x \in X \\
+E[T_x]^{(c)} & = & E[S_x]^{(c)} & = & \displaystyle \dfrac{1}{d_x^{(c)}(t)} \cdot \sum_{i = 0}^{d_x^{(c)}(t)} s_{x,i}^{(c)} & \forall c \in C, \forall x \in X \\
 \end{array}
 \end{equation}
 
-If we aren't interested about per-class metrics, we can compute $E[S_x]$ and $E[T_x]$, respectively \textit{time-averaged service time} and the \textit{time-averaged response time} experienced by any class jobs in a $x$ system's node, as follows:
+If we aren't interested about per-class metrics, we can compute $E[S_x]$ and $E[T_x]$, respectively \textit{time-averaged service time} and the \textit{time-averaged response time experienced by any class jobs in a $x$ system's node}, we can do as follows:
 
 \begin{equation}
 \begin{array} {rccccr} 
@@ -394,35 +446,46 @@ X_x(c) & = & \displaystyle \dfrac{d_x^{(c)}(t)}{t} & \forall c \in C, \forall x 
 \begin{equation}
 \begin{array} {rccr} 
 X_x & = & \displaystyle \dfrac{d_x^{(1)} + d_x^{(2)}(t)}{t} & \forall x \in X \\
-V_V++
 \end{array}
 \end{equation}
 
-\subsection{System's events and assumptions}
+\paragraph{Percentage class 2 job interruptions}
 
-Let's look to all possible \textit{events} which can occurs during our simulation. 
+Is $p^{(2)}_{interruption}$ the percentage class 2 job interruptions previously running on cloudlet. Note that this metric is computable only when our simulation is using access control algorithm 2.
 
-Since by definition any event is an occurrence that may change the state of the system\footnote{Lawrence M. Leemis, Stephen K. Park, \textit{Discrete-Event Simulation: A First Course} (Pearson; 1 edition January 6, 2006), 187}, obviously our system's state variables can change only when an event occurs.
+To compute them we can simply do:
 
-All event capable to alter our system's state are reported in table \ref{table:SystemEvents}.
+\begin{equation}
+\begin{array} {rccr} 
+p^{(2)}_{interruption} & = & \displaystyle \dfrac{i_{cloudlet}^{(2)}(t)}{d_{global}^{(2)}(t)} \\ 
+\end{array}
+\end{equation}
 
-Finally, to complete to turn out our conceptual model into a proper specification model, we have to make additional assumptions which we have reported below:
+\subsection{System's assumptions}
+
+To complete to turn out our conceptual model into a proper specification model, we have to make additional assumptions which we have reported below:
 
 \begin{itemize}
-\item Although initial state variables can have any non-negative integer value\footnote{\textit{Ibid.} 190}, we have choosen, as common, to set $n_x^{(j)}(0) = 0$ and $d_x^{(j)}(0) = 0$ setting, in this way, initial system status as \textit{idle}. 
+\item Although initial state variables can have any non-negative integer value\footnote{\textit{Ibid.} 190}, we have choosen, as common, to set $n_x^{(c)}(0) = 0$ and $d_x^{(c)}(0) = 0$ setting, in this way, initial system status as \textit{idle}. 
 
-\item As a consequence of the previous point, first event must be either a \textit{Class 1 Job arrival} or a
-\textit{Class 2 Job arrival} both on controller node.
+\item As a consequence of the previous point, first event must be either a class 1 or class 2 job arrival on controller node.
 
-\item Terminal state is also idle. Rather than specifying the number of jobs processed, our stopping criteria has been specified in terms of a time $\tau$ beyond which no new jobs can arrive. This assumption effectively closes the door at time $\tau$ but allows the system to continue operation until all jobs have been completely served. 
+\item Terminal state is also idle. Rather than specifying the number of jobs processed, our stopping criteria has been specified in terms of a time $\tau^*$ beyond which no new jobs can arrive. This assumption effectively closes the door at time $\tau^*$ but allows the system to continue operation until all jobs have been completely served. 
 
 Therefore, the last event must be either a class 1 or class 2 job completion.
 \end{itemize}
 
 
+\subsection{System's events and assumptions}
 
+Let's look to all possible \textit{events} which can occurs during our simulations. 
+
+Since by definition any event is an occurrence that may change the state of the system\footnote{Lawrence M. Leemis, Stephen K. Park, \textit{Discrete-Event Simulation: A First Course} (Pearson; 1 edition January 6, 2006), 187}, obviously our system's state variables can change only when an event occurs.
+
+All event capable to alter our system's state and their effect on state variables are reported in table \ref{table:SystemEvents} but pay attention to the fact that all events reported just focus on access control algorithm 1 based system. When you use access control algorithm 2, you have to remember that, when a class 1 job arrival on cloudlet node occurs, a class 2 job may be interrupted if algorithm \ref{alg:accessControlAlgorithm2} conditions would be achieved; in this case $n_{\text{cloudlet}}^{(1)}(\tau)$ are then incremented by one while $n_{\text{cloudlet}}^{(2)}(\tau)$ is decremented by one and a class 2 job arrival is scheduled.
+ 
 \begin{table}[h!]
-    \caption{System's events}
+    \caption{Access control algorithm 1 system's events}
     \begin{adjustbox}{center=\textwidth}
     \label{table:SystemEvents}
      \begin{tabular}{c|c|p{2.5cm}}
@@ -461,42 +524,45 @@ Therefore, the last event must be either a class 1 or class 2 job completion.
 
 
 
-
+\clearpage
 \newpage
 \section{Computational Model}
 
-Let's start now description about our system \textit{computational model} in which, as known, system's states exist as a collection of data structure, classes and variables that collectively characterize the system and are systematically updated as simulated time evolves.
+Let's start now the description of our system \textit{computational model} in which, as known, system's states exist as a collection of data structure, classes and variables that collectively characterize the system and are systematically updated as simulated time evolves.
+
+Our model is been implemented using Java programming languages, which source code is fully available on GitHub\footnote{Source code available on \texttt{https://github.com/AndreaG93/PMCSN-Project}}, famous web-based hosting service for version control using \texttt{git}; we remind that \LaTeX\ source code of this report is available too.\footnote{See \texttt{https://github.com/AndreaG93/PMCSN-Project-Report}}
+
+
+
 
 \begin{figure}[H]
 \includegraphics[width=\textwidth]{ClassDiagram}
 \centering
 \caption{Class diagram showing main classes and methods only.}
 
-\label{fig:EventClassDiagram}
+\label{fig:ClassDiagram}
 
 \end{figure}
 
 
 \subsection{Events implementation}
 
-In order to properly build discrete-event simulation models using \textit{next-event} approach we need to understand how all system's events, seen in previous section, are implemented and managed.
+In order to properly describe how our implementation works we need to understand how all system's events, seen in previous section, are represented and managed.
 
-As shown in figure \ref{fig:EventClassDiagram}, a \textit{generic} system's event has been implemented and represented using an \textit{abstract} Java class called \texttt{SimulationEvent} which has two main features:
+As you can see in the class diagram \ref{fig:ClassDiagram}, a \textit{generic} system's event has been implemented and represented using an \textit{abstract} Java class called \texttt{SimulationEvent} (located into \texttt{nexteventsimulation.utility} Java package) which has two main features:
 
 \begin{itemize}
-\item Has only one \texttt{double} type field, called \texttt{StartTime}, used to hold instant of time according to which an event occurs.
-\item Defines interfaces of two very important methods, used by the next-event simulation algorithm implemented in \texttt{ComputationalModel} class, which we will fully describe in next section, called \texttt{perform()}, used to update system's state variables when an event occurs, and \texttt{schedule\-Following\-Event()}, which is used, instead, to inserts into an \textit{event list} events that follows the current one.
+\item Has only one \texttt{double} type field, called \texttt{StartTime}, which is used to hold the instant of time according to which an event occurs. Setter and getter methods are provided in order to manage this field.
+
+\item It declares two very important abstract methods which, as we will can see later, are called by next-event simulation algorithm implemented in \texttt{ComputationalModel} class; these methods are called \texttt{perform()}, whose purpose is to update system's state variables when an event occurs, and \texttt{schedule\-Following\-Event()}, which is used, instead, to inserts into an \textit{event list} events that follows the current one.
+
+Although is obvious that exact methods behaviour depends strictly by which concrete class implements them, is however very important to point out that \texttt{SimulationEvent} class does \textit{not} represent system-specific events. In fact, to ensure low coupling and high cohesion among classes, neither \texttt{SimulationEvent} or \texttt{ComputationalModel} class need to know any specific system information. 
 \end{itemize}
 
-Obviously exact methods behaviour depends strictly by which class implements it, however is very important to point out that \texttt{SimulationEvent} class does \textit{not} represent system-specific events; in fact, to ensure low coupling and high cohesion among classes, \texttt{ComputationalModel} doesn't need, and doesn't have to, know any specific system event information. 
- 
-System-specific event are instead represented by instances of \texttt{SystemEvent} class, partially shown in listing \ref{code:SystemEvent}. Any \texttt{SystemEvent} instance, knowing knowledge about which system's component is involved during an event occurrence, can, implementing \texttt{perform()} method, update state variable of that component taking into account its current state, without altering others parts of system. To be more precise, as you can see from the class diagram shown in figure \ref{fig:EventClassDiagram}, \texttt{perform()} method implementation is provided by \texttt{SystemEvent} subclasses which provide own very specific methods implementation in order to properly simulate effects of each specific system described before.
+System-specific event are instead represented by instances of \texttt{SystemEvent} class (located into \texttt{nexteventsimulation.computationalmodel.model.\-sy\-stem.\-ev\-ent} package) whose code is partially shown in Listing \ref{code:SystemEvent}. 
 
-In this way, taking advantage of polymorphism pattern, every \texttt{SystemEvent} subtype instance can update properly each system's component, including whole system state, while \texttt{ComputationalModel} instance, which actively execute next-event simulation algorithm calling method implemented by them, ignores all specific information about our system.
 
-To reduce further coupling between classes during \texttt{SystemEvent} object instantiation, a sort of factory method pattern, based on Java reflection ability, is used.
-
-\begin{lstlisting}[frame=lines, caption={\texttt{SimulationEvent} class implementation.}, label={code:SystemEvent}]
+\begin{lstlisting}[frame=lines, caption={\texttt{SystemEvent} class implementation.}, label={code:SystemEvent}]
 public abstract class SystemEvent extends SimulationEvent {
 
     protected SystemComponent systemComponent;
@@ -511,17 +577,28 @@ public abstract class SystemEvent extends SimulationEvent {
     ...
 \end{lstlisting}
 
+As you can see from reported snipped, \texttt{SystemEvent} class has a \texttt{SystemCom\-po\-nent} type field, called \texttt{systemComponent}, which is used to hold a reference to that system's node where a generic event occurs; in this way any \texttt{SystemEvent} instance is able to update state variables of the component of which it has the reference, without altering others parts of system.
+
+However, in order to do that, required abstract method implementation is needed. In our implementation there are four concrete \texttt{SystemEvent} type classes used to represents all system's events:
+
+\begin{itemize}
+\item \texttt{Class1JobArrival} class which represents a class 1 job arrival.
+\item \texttt{Class2JobArrival} class which models a class 2 job arrival.
+\item \texttt{Class1JobDeparture} class is used to model a class 1 job departure.
+\item \texttt{Class2JobDeparture} class for class 2 jobs departures.
+\end{itemize}
+
+Any instance of above classes, having knowledge about methods published by \texttt{SystemComponent} class, can finally update states of any component of our system. In this way we can achieve an high degree of cohesion among classes and low coupling taking advantage of polymorphism pattern; in fact, as we can see also from shown class diagram, \texttt{ComputationalModel} class has to know only about \texttt{SimulationEvent} class and, thorough invocation of its methods, being able to update our system ignoring all specific information about our system.
+
 \subsection{Event list}
 
 As known, an \textit{event list}, also called \textit{calendar}, represents a data structure used to keep track of scheduled time of occurrence for the next possible event.
 
-For reasons of efficiency, our event list is been implemented as a \textit{min-heap binary tree}, that is a \textit{priority queue} in which all events are ordered by time, in such a way that the most imminent event is found on the tree's root, providing $O(log_2(n))$ time for the en-queuing and dequeuing operation and constant time for root element retrieval.\footnote{Camil Demetrescu, Irene Finocchi, Giuseppe F. Italiano - \textit{Algorimti e strutture dati} - second edition, McGraw-Hill, pag. 200} 
+For reasons of efficiency, our event list is been implemented as a \textit{min-heap binary tree}, that is a \textit{priority queue} in which all events are ordered by time, in such a way that the most imminent event is found on the tree's root. This data structure is able to provide $O(log_2(n))$ time for the en-queuing and dequeuing operations and constant time for root element retrieval.\footnote{Camil Demetrescu, Irene Finocchi, Giuseppe F. Italiano - \textit{Algorimti e strutture dati} - second edition, McGraw-Hill, pag. 200} 
 
-Its implementation is already available in JDK through Java built-in class called \texttt{PriorityQueue$<$E$>$} which provides all method that we need.
-However, in order to work properly, is required that a total ordering among all possible event exist. To provide it, we need all events instances implement an interface called \texttt{Comparable} providing an implementation, shown in listing \ref{code:compareTo}, of a method called \texttt{compareTo}.
+Fortunately a Java implementation is already available in JDK through built-in class called \texttt{PriorityQueue$<$E$>$} which provides all method that we need, like \texttt{poll}, for root element retrieval, \texttt{add} and \texttt{remove}, used respectively for en-queuing and dequeuing operations.
 
-Remember that \texttt{compareTo} method returns a negative integer, zero, or a positive integer if an  this object is less than, equal to, or greater than the specified object.\footnote{See \texttt{https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/lang/Comparable.html\#compareTo(T)}}
-
+However, in order to that data structure works properly, is required that a total ordering among all possible event exists. To provide it, we need that all \texttt{SimulationEvent} type instances implement an interface called \texttt{Comparable} providing an implementation, shown in listing \ref{code:compareTo}, of a method called \texttt{compareTo}.\footnote{See \texttt{https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/lang/Comparable.html\#compareTo(T)}} In this way, is very easy to order all \texttt{SimulationEvent} type instances based on their start event time, from the youngest to the oldest. 
 
 \begin{lstlisting}[frame=lines, caption={Snippet of \texttt{SimulationEvent} class implementation}, label={code:compareTo}]
 @Override
@@ -534,9 +611,11 @@ public int compareTo(SimulationEvent o) {
 
 As we know a \textit{simulation clock} is necessary to keep track of the current value of simulated time during simulation. 
 
-In our system's implementation, our simulation clock is represented by a \texttt{SimulationClock} type instance, which partial implementation is reported in listing \ref{code:SimulationClock}. Simulation clock state is represented by two \texttt{double} type fields of which one, called \texttt{currentEventTime}, is used to holding current event simulated time value, while the second, called \texttt{nextEventTime}, is used to keep track of next event simulated time value.
+In our system's implementation, our simulation clock is represented by a \texttt{SimulationClock} type instance, whose code is partially reported in Listing \ref{code:SimulationClock}. 
 
-From software architecture point of view, as you can see by code snippet shown below, believing that multiple \texttt{SimulationClock} instance are not necessary, that class is been implemented using \textit{singleton} pattern. 
+Simulation clock state is represented by two \texttt{double} type fields: the first, called \texttt{currentEventTime}, is used to holding current simulated time value, while the second, called \texttt{nextEventTime}, is used instead to keep track of next event simulated time value; obviously, proper setter and getter methods are provided in order to manage them.
+
+From software architecture point of view, believing that multiple \texttt{Simulation\-Clock} instance are not necessary for our purposes, we have choosen to design this class using the \textit{singleton} pattern. 
 
 \begin{lstlisting}[frame=lines, caption={\texttt{SimulationClock} class implementation.}, label={code:SimulationClock}]
 public class SimulationClock {
@@ -553,33 +632,32 @@ public class SimulationClock {
         if (instance == null)
             instance = new SimulationClock();
         return instance;
-    }
-    
-    /* ... */
+    } 
+    ...
 \end{lstlisting}
 
 
 \subsection{Next-event simulation logic}
 
-To execute a next-event simulation, we simply need to call a method, called \texttt{perform()}, using an instance of \texttt{ComputationalModel} class.
-As shown in listing \ref{code:perform}, in that method has been implemented the algorithm \footnote{See Algorithm 5.1.1, pag. 189} used to perform our simulation, which consists of the following steps: 
+The most important code is included into \texttt{ComputationalModel} class because it contains main simulation logic.
+
+To start a next-event simulation is very easy because we just need to invoke an its method called \texttt{perform} which contains the algorithm\footnote{Lawrence M. Leemis, Stephen K. Park, \textit{Discrete-Event Simulation: A First Course} (Pearson; 1 edition January 6, 2006), Algorithm 5.1.1, page 189} used to perform a simulation based on next-event approach, whose Java implementation is reported in Listing \ref{code:perform}. Our algorithm consists of the following steps: 
 
 \begin{description}
-\item[Simulation initialization] As the phase name suggested, this step is performed to initialize system's state variables, including simulation clock and event list, inserting into them first possible events.
+\item[Simulation initialization] As phase name suggests, during this step system state variables, simulation clock, event list and everything is needed for simulation is initialized compatibly with what we have described in previous section, during specification model analysis.
 
-As you can see from code snippet, this task is performed calling \texttt{initialize\-Simulation()} method, which make a set of call to some abstract methods that have to be implemented by a concrete class which will describe next. 
+Remember that \texttt{ComputationalModel} is an abstract class which knows anything about our specific system, therefore, obviously, system initialization phase differs according to which concrete class implements that class. Anyhow, as you can see from code snippet reported below, this task is performed invoking \texttt{initialize\-Simulation()} method; that invocation represents a short-cut used to call a large set of abstract methods for initialization purposes, like \texttt{initializeSystemStateVariables}, \texttt{initializeSimulationClock} and \texttt{scheduleInitialEvent}.
 
-\item[Process current event] Until event list is not empty (line 6), the most imminent possible event is extracted and removed from event list (line 8); then simulation clock is advanced to this event's scheduled time of occurrence (line 12) and finally system state is updated (line 14). 
+\item[Process current event] Although we believe the code is self explanatory, we sum up this phase as follows: until event list is not empty (line 6), the most imminent possible event is extracted and removed from event list (line 8); then simulation clock is advanced to this event's scheduled time of occurrence (line 12) and finally system state is updated (line 14). 
 
-\item[Schedule following event] Until a fixed simulation time $\tau$ in not exceeded, a new event is generated by current event and consequently placed into event list. Subsequently simulation clock instance field, used to holding time of occurrence of next possible event, is updated in order to compute some system metrics.
+\item[Schedule following event] Until a fixed simulation time $\tau^*$ in not exceeded, a new event is generated by current event and consequently placed into event list. Subsequently simulation clock state is updated in order to compute some system metrics.
 
-\item[Statistic update] While simulation advance from one event time to the next, calling an abstract method called \texttt{updateStatistics()}, all system's statistic metrics are updated.
+\item[Statistic update] While simulation advance from one event time to the next, through an invocation to an abstract method called \texttt{updateStati\-stics}, is possible to update some variables for system's statistic metrics computation.
 
-\item[Simulation result generation and print] During this final step all data previously computed are elaborated using batch means approach and output data saved on file system.
+\item[Simulation result generation] During this final step, all collected data are elaborated using various approaches, producing some statistic metrics including graphics like histograms or scatter plots. We will examine involved classes later.
 \end{description}
 
 \begin{lstlisting}[frame=lines, caption={Snippet of \texttt{perform} method}, label={code:perform}]
-...
 public void perform() {
 
         initializeSimulation();
@@ -603,33 +681,43 @@ public void perform() {
             updateStatistics();
         }
 
-        produceStatisticResultsThroughBatchMeansMethod();
+        BatchMeansRegister.getInstance().computeStatisticsAndWriteData();
+        ScatterPlotRegister.getInstance().writingOutputData();
+        HistogramsRegister.getInstance().computeStatisticsAndWriteData();
 
-        printSimulationResults();
+        manageCurrentSimulationResult();
     }
-...
 \end{lstlisting}
 
 
 \subsection{System network implementation}
 
-While a very generic queues network is represented by an instance of \texttt{ComputationalModel} class, our specific system is been modelled using \texttt{System} type instances which have very important responsibilities including:
+As we have seen in previous subsection, \texttt{ComputationalModel} is used to represent a very \textit{generic} form of system (or queues network) because it includes only the code, seen previously, used to perform a next-event simulation.  
 
-A System type instance has many role including:
+Our specific queues network is been modelled using an abstract class called \texttt{System}, which provide all required methods implementations in order to perform our simulation. 
+
+The state of any \texttt{System} type instance is made up of four \texttt{SystemComponent} type fields which are used to hold a reference to any system's component, that is cloud node, cloudlet node and controller; an extra \texttt{SystemComponent} type field is a short-cut used to represent the global system.
+
+A \texttt{System} type instance has very important responsibilities including:
 
 \begin{itemize}
 
-\item Allocates \texttt{SystemComponent} type instances used to represent each system's nodes.
+\item Allocation all \texttt{SystemComponent} type objects in order to represent each system's nodes.
 
-\item Initializes all instance fields representing a system variables of each system's node including simulated clock.
+\item Methods implementation providing for simulation clock and system nodes state variables initialization.
 
-\item Updates event list for future events scheduling on each system's component. 
+\item To manage event scheduling through some methods invocations like \texttt{sche\-dule\-Event\-OnCloud}, \texttt{scheduleEventOnCloulet} etc.
 
+\item To provide a method able to manage class 2 job interruption; the so called \texttt{removeCloud\-let\-Class2JobDeparture} method
 \end{itemize}
 
-As we now 
+As you can see from class diagram reported in Figure \ref{fig:ClassDiagram}, there are two \texttt{System}'s concrete sub-class called \texttt{Sys\-tem\-Using\-RoutingAlgorithm1} and \texttt{System\-UsingRoutingAlgorithm2}; as their names suggest, they are used respectively to represents a system based on access control algorithm 1 and 2. 
 
-\texttt{SystemComponent} class has key role during our simulation performing because:
+A \textit{generic} system's node, like cloud or cloudlet node, is modelled by a \texttt{SystemComponent} class. 
+
+
+
+class has key role during our simulation performing because:
 \begin{itemize}
 
 \item Has a set of fields used to keep track of component's variable states, like number of departed jobs or current jobs population, including those used to compute time-average statistics.
@@ -678,7 +766,7 @@ each statistic is associate to an TransientStatistics type instance.
 
 In this last section we will develop an analytical solution to validate the results obtained previously through our simulations. 
 
-\subsection{System based on access control Algorithm 1}
+\subsection{System based on access control Algorithm 1}\label{subsub:alg1}
 \begin{figure}
 \caption{Access control algorithm 1 based cloudlet's CTMC.} \label{fig:ALG1-CloudletMarkovChain}
 \begin{adjustbox}{center=\textwidth}
@@ -810,7 +898,7 @@ To determine this probability, we had modelled cloudlet with a \textbf{continuou
 
 
 
-\subsubsection{Balance equation computing} 
+\subsubsection{Balance equation} 
 
 Obviously we can compute \textbf{limiting probabilities} $\pi_{(n_1,n_2)}$, namely the probability according to which the chain is in a certain state, say $j$, independently of the starting state, say $i$, via \textbf{balance} (or \textbf{stationary}) \textbf{equations}, in which we can equate the rate at which the system leaves state $j$ with the rate at which the system enters state $j$ \footnote{\textit{Cfr.} Mor Harchol-Balter - \textit{Performance Modeling and Design of Computer Systems} - Carnegie Mellon University, Pennsylvania, pag. 237}, \textbf{remembering that limiting probabilities sum to 1} (i.e., $\sum_{j=0}^\infty \pi_j = 1$).
 
@@ -901,11 +989,12 @@ Then we get $\lambda_i$, that is \textbf{total arrival rate to system's componen
 
 \subsubsection{Average population}
 
-Is $E[N_i](c)$ the \textbf{average number of class $c$ jobs into a component $i$}. 
+Is $E[N_x]^{(c)}$ the time-average population of class $c$ jobs into a system's node $x$. 
 
 We can use previously computed stationary probabilities to get average population for cloudlet; it's enough to sum each state's limiting probability multiplied by corresponding number of job as follows:
 
 \begin{equation}
+\label{eq:cloudletAveragePopulation}
 \begin{array} {rcl} 
 E[N_{\text{cloudlet}}](1) & = & \displaystyle \sum_{ (n_1, n_2) \in M} n_1 \cdot \pi(n_1,n_2) \\\\
 
@@ -921,7 +1010,7 @@ E[N_{\text{cloudlet}}] & = & E[N_{\text{cloudlet}}](1) + E[N_{\text{cloudlet}}](
 Since we have modelled cloud component as a $M/M/\infty$ system, in which there is no job's waiting time due to presence of an infinite number of servers, we can simply to apply \textbf{Little’s Law}\footnote{\textit{Cfr.} \textit{Ivi}, pag. 95, theorem (6.1)} in order to get cloud's average population as shown in Equation \ref{equation:ALG-1}.
 
 \begin{equation}
-\label{equation:ALG-1}
+\label{eq:cloudAveragePopulation1}
 \begin{array} {rcl} 
 E[N_{\text{cloud}}](1) & = & \lambda_{\text{cloud}}(1) \cdot E[T_{\text{cloud}}](1)  \\\\
 
@@ -937,12 +1026,14 @@ E[N_{\text{cloud}}](1) & = & \lambda_{\text{cloud}}(1) \cdot E[T_{\text{cloud}}]
 Similarly:
  
 \begin{equation}
+\label{eq:cloudAveragePopulation2}
 \begin{array} {rcl} 
 E[N_{\text{cloud}}](2) & = & \dfrac{\lambda_{\text{cloud}}(2)}{\mu_{\text{cloud}}(2)}
 \end{array}
 \end{equation}
 
 \begin{equation}
+\label{eq:cloudAveragePopulation3}
 \begin{array} {rcl} 
 E[N_{\text{cloud}}] & = & E[N_{\text{cloud}}](1) + E[N_{\text{cloud}}](2)
 \end{array}
@@ -951,6 +1042,7 @@ E[N_{\text{cloud}}] & = & E[N_{\text{cloud}}](1) + E[N_{\text{cloud}}](2)
 Finally we can get global average job populations as follows:
 
 \begin{equation}
+\label{eq:AveragePopulation}
 \begin{array} {rcl} 
 
 E[N](1) & = & E[N_{\text{cloudlet}}](1) + E[N_{\text{cloud}}](1) \\\\
@@ -1047,7 +1139,7 @@ Finally, using obtained results, we can get global mean response times as shown 
 E[T] = E[T](1) \cdot \dfrac{\lambda_1}{\lambda_1 + \lambda_2} + E[T](2) \cdot \dfrac{\lambda_2}{\lambda_1 + \lambda_2}
 \end{equation}
 
-\subsubsection{Throughput}
+\subsubsection{Throughput}\ref{subsub:throughput}
 
 To determine system's throughput let's prove if our system is stable.
 As we know, every queueing system in which its mean arrival rate is less than its mean service rate is known as a stable system; formally, are $\lambda$ and $\mu$ our system's mean arrival rate and mean service rate respectively, if $\lambda \leq \mu$, given system is stable.
@@ -1076,9 +1168,8 @@ X_{\text{cloudlet}} = X - X_{\text{cloud}} \\
 
 
 \newpage
-\subsection{System based on access control Algorithm 2}
 
-\begin{figure}
+\begin{figure}[h!]
 \caption{Cloudlet system component modeled using a CTMC} \label{fig:ALG2-CloudletMarkovChain}
 \begin{adjustbox}{center=\textwidth}
 \begin{tikzpicture}[->,node distance=3.2cm,>=latex,font=\small, minimum width=1.7cm]
@@ -1203,90 +1294,169 @@ X_{\text{cloudlet}} = X - X_{\text{cloud}} \\
 \end{adjustbox}
 \end{figure}
 
-\begin{adjustbox}{center=\textwidth}
-\label{equation:AccessControlAlgorithm1-BalanceEquations}
+\newpage
+\subsection{System based on access control Algorithm 2}
 
-$\begin{cases} 
-(\lambda_1 + \lambda_2)\pi_{(0,0)} = \mu_1\pi_{(1,0)} + \mu_2\pi_{(0,1)} \\
+Based on our analysis, performance achieved by our system when its routing policy is based on second algorithm, reported in Algorithm \ref{alg:accessControlAlgorithm2}, are very different from previous case. 
 
-(\lambda_1 + \lambda_2 + i\mu_1)\pi_{(i,0)} = \lambda_1\pi_{(i-1,0)} + \mu_1(i+1)\pi_{(i+1,0)} + \mu_2\pi_{(i,1)} & \forall i \in \mathbb{N} \mid 1 \leq i \leq S-1 \\
+The main feature of this kind of system is that a class 2 job, running on cloudlet, may be stopped through its execution on system's cloudlet node and then subsequently resumed in system's cloud node; is important to specify that adopted routing policy is \textit{not} work-conserving because it re-runs interrupted jobs losing work previously done. Moreover, when a class 2 job is interrupted and sent on the system's cloud node, a setup time, denoted whit $s_{setup}$, has to be considered to restart the task on the cloud. 
 
-(\lambda_1 + \lambda_2 + i\mu_2)\pi_{(0,i)} = \lambda_2\pi_{(0,i-1)} + \mu_1\pi_{(1,i)} + \mu_2(i+1)\pi_{(0,i+1)} & \forall i \in \mathbb{N} \mid 1 \leq i \leq S-1 \\
+Most equations described and used in section \ref{subsub:alg1} are still valid also for this system, although there are differences about numerical values of each metrics; therefore in this section we focus only to differences compared to previous case.
 
-(S\mu_1+\lambda_1)\pi_{(S,0)} = \lambda_1\pi_{(S-1,0)} + \lambda_1\pi_{(S-1,1)} + (S+1)\mu_1 \pi_{(S+1,0)}\\
+\subsubsection{Balance equation}
 
-(\lambda_1 + S\mu_2) \pi_{(0,S)} = \lambda_2\pi_{(0,S-1)} \\
-
-(i\mu_1 + j\mu_2 + \lambda_1)\pi_{(i,j)} = \lambda_1\pi_{(i-1,j)} + \lambda_2\pi_{(i,j-1)} & \forall i,j \in \mathbb{N} \mid \begin{array} {l} 1 \leq i \leq S-1 \\ 1 \leq j \leq S-1 \end{array} \mid i + j = S \\
-
-(\lambda_1 + \lambda_2 + i\mu_1 + j\mu_2)\pi_{(i,j)} = \lambda_1\pi_{(i-1,j)} + \lambda_2\pi_{(i,j-1)} + \mu_1(i+1)\pi_{(i+1,j)} + \mu_2(j+1)\pi_{(i,j+1)} & \forall i,j \in \mathbb{N} \mid \begin{array} {l} 1 \leq i \leq S-1 \\ 1 \leq j \leq S-1 \end{array} \mid i + j < S \\
-
-(i\mu_1 + \lambda_1)\pi_{(i,0)} = \mu_1(i+1)\pi_{(i+1,0)} + \lambda_1\pi_{(i-1,0)} & \forall i \in \mathbb{N} \mid S+1 \leq i \leq N-1 \\
-
-N\mu_1\pi_{(N,0)} = \lambda_1\pi_{(N-1,0)} \\
-
-\sum \pi_{(i,j)} = 1 & \forall i,j \in \mathbb{N}_0
-
-\end{cases}
-$ 
-\end{adjustbox}
-
-\subsubsection{Probabilities computing}
-
-although... To properly analyse this system, we need do compute some useful probabilities.
-
-Similarly to the previous case we need to now following probabilities:
-
-
+Regarding balance equation necessary for stationary probabilities computation, since there are no differences about mathematical notation used or significant conceptual differences compared to previously case, we limit ourselves to report them in table \ref{table:ALG2-CloudletBalanceEquationList}.
 
 \begin{table}[h!]
-    \caption{Lista dei file del malware FASTCash}
+    \caption{Balance equations.}
     \centering
     \small
-    \label{tab:MalwareFileList}
-     \begin{tabular}{rp{8cm}}
+    \begin{adjustbox}{center=\textwidth}
+    \label{table:ALG2-CloudletBalanceEquationList}
+     \begin{tabular}{rcll}
 
       \toprule
 
-      $\Pi_{\text{SendToCloudlet}}(k)$ & Probability that an arriving job of class $k$ on controller has to be forwarded to cloudlet \\
-\\
-      $\Pi_{\text{SendToCloud}}(k)$ & Probability that an arriving job of class $k$ on controller has to be forwarded to cloud \\
-\\
-      $\Pi_{\text{Class2JobInterruption}}(k)$ & Probability that a job of class 2 running on cloudlet has to be interrupted and forwarded to cloud due of  arriving class 1 job on cloudlet. \\
+      $(\lambda_1 + \lambda_2)\pi_{(0,0)}$ & $=$ & $\mu_1\pi_{(1,0)} + \mu_2\pi_{(0,1)}$ \\\\
+       
+      $(\lambda_1 + \lambda_2 + n_1\mu_1)\pi_{(n_1,0)} $ & $=$ & $ \lambda_1\pi_{(n_1-1,0)} + \mu_1(n_1+1)\pi_{(n_1+1,0)} + \mu_2\pi_{(n_1,1)}$ & $\forall n_1 \in \mathbb{N} \cap [1, S-1]$ \\\\
+      
+      $(\lambda_1 + \lambda_2 + n_2\mu_2)\pi_{(0,n_2)} $ & $=$ & $ \lambda_2\pi_{(0,n_2-1)} + \mu_1\pi_{(1,n_2)} + \mu_2(n_2+1)\pi_{(0,n_2+1)}$ & $ \forall n_2 \in \mathbb{N} \cap [1, S-1]$ \\\\
+      
+      $(S\mu_1+\lambda_1)\pi_{(S,0)}$ & $=$ & $\lambda_1\pi_{(S-1,0)} + \lambda_1\pi_{(S-1,1)} + (S+1)\mu_1 \pi_{(S+1,0)}$ \\\\
+      
+      $(\lambda_1 + S\mu_2) \pi_{(0,S)}$ & $=$ & $\lambda_2\pi_{(0,S-1)}$ \\\\
+      
+      $(n_1\mu_1 + n_2\mu_2 + \lambda_1)\pi_{(n_1,n_2)} $ & $=$ & $ \lambda_1\pi_{(n_1-1,n_2+1)} + \lambda_1\pi_{(n_1-1,n_2)} + \lambda_2\pi_{(n_1,n_2-1)}$ & $\forall n_1,n_2 \in \mathbb{N} \cap [1, S-1] \mid n_1 + n_2 = S $ \\\\
+      
+      $(\lambda_1 + \lambda_2 + n_1\mu_1 + n_2\mu_2)\pi_{(n_1,n_2)} $ & $=$ & $ \lambda_1\pi_{(n_1-1,n_2)} + \lambda_2\pi_{(n_1,n_2-1)} + \mu_1(n_1+1)\pi_{(n_1+1,n_2)} $ & $\forall n_1,n_2 \in \mathbb{N} \cap [1, S-1] \mid n_1 + n_2 < S$\\
+      && $+\; \mu_2(n_2+1)\pi_{(n_1,n_2+1)}$ & \\\\
+      
+      $(n_1\mu_1 + \lambda_1)\pi_{(n_1,0)}$ & = & $\mu_1(n_1+1)\pi_{(n_1+1,0)} + \lambda_1\pi_{(n_1-1,0)}$ & $\forall n_1 \in \mathbb{N} \mid S+1 \leq n_1 \leq N-1$ \\\\
 
+      $N\mu_1\pi_{(N,0)}$ & = & $\lambda_1\pi_{(N-1,0)}$ \\
+      
       \bottomrule
 
     \end{tabular}
+    \end{adjustbox}
 \end{table}
 
-Differently from the previous case, owing to the use of a different access control algorithm, jobs of different classes have different probability according to which an arriving job on controller has to be send to cloud. From CTMC analysis, we can easily understand that:
+\newpage
+\subsubsection{Probabilities computing}
 
+Let's start clarifying all differences, compared to previous case, about routing probabilities necessary for analytical results computations.
+
+Is $\Pi_{\text{SendToCloud}}^{(c)}$ the probability according to which an arriving class $c$ job on controller has to be forwarded to system's cloud node. Observing both CTMC and routing policy algorithm is very easy to understand that:
 
 \begin{equation}
 \begin{array} {lcl} 
-\Pi_{\text{SendToCloud}}(1) & = & P\lbrace{\text{An arrival class 1 job on controller sees $N$ class 1 jobs in cloudlet}}\rbrace \\ 
+\Pi_{\text{SendToCloud}}^{(1)} & = & P\lbrace\text{An arrival class 1 job on controller sees $N$ class 1 jobs in cloudlet.}\rbrace \\ 
 \\
 & = & P\lbrace{n_1 = N}\rbrace \\ 
 \\
-& = & \pi(N,0)
+& = & \pi_{(N,0)}
 \end{array}
 \end{equation}
 
 
-
-\begin{center}
 \begin{equation}
 \begin{array} {lcl} 
-\Pi_{\text{SendToCloud}}(2) & = & P\lbrace{\text{An arrival class 2 job on controller sees that number of jobs in cloudlet exceed or is equal to a given threshold S}}\rbrace \\ 
+\Pi_{\text{SendToCloud}}^{(2)} & = & P \bigg\{ \begin{array}{l} \text{An arrival class 2 job on controller sees that number of} \\ \text{jobs in cloudlet exceed or is equal to a given threshold $S$.} \end{array} \bigg\} \\
 \\
-& = & P\lbrace{n_1 + n_2 \geq N}\rbrace \\ 
+& = & P\lbrace{n_1 + n_2 \geq S}\rbrace \\ 
 \\
-& = & \displaystyle \sum_{\substack{n_1,n_2 = 0 \\ n_1 + n_2 = S}}^{S} \pi(n_1,n_2) + \sum_{n_1 = S+1}^{N}\pi(n_1,0) \\
+& = & \displaystyle \sum_{\substack{0 \leq n_1 \leq S \\ 0 \leq n_2 \leq S \\ n_1 + n_2 = S}} \pi_{(n_1,n_2)} + \sum_{n_1 = S+1}^{N}\pi_{(n_1,0)} \\
 \\
-& = & \displaystyle \sum_{\substack{0 \leq n_1 \leq N \\ 0 \leq n_2 \leq S \\ n_1 + n_2 \geq S}} \pi(n_1,n_2)
+& = & \displaystyle \sum_{\substack{0 \leq n_1 \leq N \\ 0 \leq n_2 \leq S \\ n_1 + n_2 \geq S}} \pi_{(n_1,n_2)}\\
 \end{array}
 \end{equation}
-\end{center}
+
+Is $\Pi_{\text{SendToCloudlet}}^{(c)}$ the probability that an arriving class $c$ job on controller has to be forwarded to system's cloudlet node. 
+
+In order to compute these probabilities we can proceed as shown below:
+
+\begin{equation}
+\begin{array} {lcl} 
+\Pi_{\text{SendToCloudlet}}^{(1)} & = & 1 - \Pi_{\text{SendToCloud}}^{(1)} \\
+\\
+\Pi_{\text{SendToCloudlet}}^{(2)} & = & 1 - \Pi_{\text{SendToCloud}}^{(2)} \\
+\end{array}
+\end{equation}
+
+To compute $\Pi_{\text{interruption}}^{(2)}$, that is the probability according to which a class 2 job, running on cloudlet, have to be stopped and forwarded to system's cloud node, is necessary know firstly $\Pi_{\text{interruptible}}$, the probability that system's cloudlet node is in a state in which any future class 1 job arrival is able to cause a class 2 job interruption. Formally:
+
+\begin{equation}
+\begin{array} {lcl} 
+\Pi_{\text{interruptible}} & = & P \bigg\{ \begin{array}{l} \text{System's cloudlet node is in a state in which any future class} \\ \text{1 job arrival is able to cause a class 2 job interruption.} \end{array} \bigg\} \\
+\\
+& = & P\lbrace{n_1 + n_2 = S, n_2 > 0}\rbrace \\ 
+\\
+& = & \displaystyle \sum_{\substack{0 \leq n_1 \leq S-1 \\ 1 \leq n_2 \leq S \\ n_1 + n_2 = S}} \pi(n_1,n_2) \\
+\\
+\end{array}
+\end{equation}
+
+At this point we can formally define $\Pi_{\text{interruption}}^{(2)}$ as follows:
+
+\begin{equation}
+\begin{array} {lcl} 
+\Pi_{\text{interruption}}^{(2)} & = & P \Bigg\{ \begin{array}{l} \text{A class 1 job is forwarded to system's cloudlet node when} \\ \text{it is in a state in which any class 1 job arrival is able to} \\ \text{cause a class 2 job interruption.} \end{array} \Bigg\} \\
+\\
+& = & P \Bigg\{ \Bigg( \begin{array}{l} \text{System's cloudlet node is in a} \\ \text{state in which any future class} \\ \text{1 job arrival is able to cause a} \\ \text{class 2 job interruption.} \end{array} \Bigg) \cap \Bigg( \begin{array}{l} \text{A class 1 job is forwarded} \\ \text{to system's cloudlet node.} \end{array} \Bigg) \Bigg\} \\
+\\
+& = & \Pi_{\text{interruptible}} \cdot \Pi_{\text{SendToCloudlet}}^{(1)}\\
+\\
+\end{array}
+\end{equation}
+
+\subsubsection{Average arrival rates}
+
+Finally, applying previous results, we can now compute per-class average arrival rates as follow of our system:
+
+\begin{equation}
+\begin{array} {rcl}
+
+\lambda_{\text{cloud}}^{(1)} & = & \lambda_1\cdot \Pi_{\text{SendToCloud}}^{(1)} \\\\
+\lambda_{\text{cloud}}^{(2)} & = & \lambda_2\cdot \Pi_{\text{SendToCloud}}^{(2)} \\\\
+\lambda_{\text{cloudlet}}^{(1)} & = & \lambda_1\cdot \Pi_{\text{SendToCloudlet}}^{(1)} \\\\
+\lambda_{\text{cloudlet}}^{(2)} & = & \lambda_2\cdot \Pi_{\text{SendToCloudlet}}^{(2)} \\\\
+\end{array}
+\end{equation}
+
+Then we can get $\lambda_x$, that is total arrival rate to system's component $x$, proceeding as follows:
+
+\begin{equation}
+\begin{array} {rcl}
+
+\lambda_{\text{cloud}} & = & \lambda_{\text{cloud}}^{(1)} + \lambda_{\text{cloud}}^{(2)} + \lambda_{\text{cloudlet}}^{(2)} \cdot \Pi_{\text{interruption}}^{(2)} \\\\
+
+\lambda_{\text{cloudlet}} & = & \lambda_{\text{cloudlet}}^{(1)} + \lambda_{\text{cloudlet}}^{(2)} \\
+\end{array}
+\end{equation}
+
+\subsubsection{Other metrics}
+
+In order to compute $E[N_x]^{(c)}$ and $E[T_x]^{(c)}$, respectively time-averaged population and response time of class $c$ jobs running in a $x$ system's node, is possible to  use same equations described in previous section because, although stationary probabilities and arrival rates have different numeric values due to different routing policy, there are no conceptual differences between the two kind of system.
+Analytical methods used to computed system throughput are still valid.
+
+Regarding $E[T]^{(2)}$, that is time-averaged response time experienced by class 2 jobs, there are, instead, some conceptual differences due to jobs interruptions. Formally:
+
+\begin{equation}
+\begin{array} {lcl} 
+E[T]^{(2)} & = & E[T_{\text{cloudlet}}]^{(2)} \cdot P\lbrace\text{An arrival class 2 job is sent to cloudlet}\rbrace \\
+\\
+& & +\; E[T_{\text{cloud}}]^{(2)}\cdot P\lbrace\text{An arrival class 2 job is sent to cloud}\rbrace \\
+\\
+& & +\; E[S_{setup}] \\
+\\
+& = & E[T_{\text{cloudlet}}]^{(2)}\cdot \Pi_{\text{SendToCloudlet}}^{(2)} + E[T_{\text{cloud}}]^{(2)}\cdot \Pi_{\text{SendToCloud}}^{(2)} + E[S_{setup}] \\
+
+\end{array}
+\end{equation}
+
+
+
 
 \newpage
 \subsection{Summary of analytical results}
@@ -1485,20 +1655,25 @@ In order to represent analytical solutions we have used two MATLAB functions cal
      \toprule
 	 
 	 &&\\
+	  
 	 
-	 SICURO $\Pi_{SendToCloud}^{(2)}$ & $0.356859509$ & To big to be represented! \\
+	 $\Pi_{SendToCloud}^{(1)}$ & $0.0005377649$ & $\dfrac{703687441776640000000000000000}{1308540831314824230819390435296941}$  \\
 	 
-	 &&\\\hline &&\\
+	 &&\\\hline &&\\	 
 	 
-	 SICURO $\Pi_{SendToCloud}^{(2)}$ & $0.643140490$ & To big to be represented! \\
-		 
-	 &&\\\hline &&\\
-	 
-	 SICURO $\Pi_{SendToCloud}^{(1)}$ & $0.0005377649$ & $\dfrac{703687441776640000000000000000}{1308540831314824230819390435296941}$  \\
+	 $\Pi_{SendToCloud}^{(2)}$ & $0.356859509$ & To big to be represented! \\
 	 
 	 &&\\\hline &&\\
 	 
-	 SICURO $\Pi_{SendToCloudlet}^{(1)}$ & $0.999462235$ &  $\dfrac{1307837143873047590819390435296941}{1308540831314824230819390435296941}$  \\
+	 $\Pi_{SendToCloudlet}^{(1)}$ & $0.999462235$ &  $\dfrac{1307837143873047590819390435296941}{1308540831314824230819390435296941}$  \\
+	 
+	 &&\\\hline &&\\
+	 
+	 $\Pi_{SendToCloudlet}^{(2)}$ & $0.643140490$ & To big to be represented! \\
+	 
+	 &&\\\hline &&\\
+	 
+	 DA VEDERE $\Pi_{Interrupted}^{(2)}$ & $0.35705151957534072695649962275511$ & To big to be represented! \\
 	 
      &&\\\hline &&\\
 
@@ -1514,32 +1689,28 @@ In order to represent analytical solutions we have used two MATLAB functions cal
 	 
 	 &&\\\hline &&\\
 	
-	 SICURO $\lambda_{cloudlet}^{(1)}$, $X_{cloudlet}^{(1)}$ & $3.997848940$ & $\dfrac{9002355498360251}{2251799813685248}$ \\
+	 $\lambda_{cloudlet}^{(1)}$, $X_{cloudlet}^{(1)}$ & $3.997848940$ & $\dfrac{9002355498360251}{2251799813685248}$ \\
 	 
 	 &&\\\hline &&\\
 	
-	 SICURO $\lambda_{cloud}^{(1)}$, $X_{cloud}^{(1)}$ & $0.002151059$ & $\dfrac{4960006533878655}{2305843009213693952}$ \\
+	 $\lambda_{cloud}^{(1)}$, $X_{cloud}^{(1)}$ & $0.002151059$ & $\dfrac{4960006533878655}{2305843009213693952}$ \\
 
      &&\\\hline &&\\
      
-     SICURO $E[N^{(1)}_{cloudlet}]$ & $8.884108755$ & $\dfrac{11625219056649311918394581647083920}{1308540831314824230819390435296941}$ \\
-
-	 &&\\\hline &&\\
-     
-     SICURO $E[N^{(1)}_{cloud}]$ & $0.008604239$ & $\dfrac{4960006533878655}{576460752303423488}$ \\
-
-	 &&\\\hline &&\\
-     
-     SICURO $E[T^{(1)}_{cloud}]$, $E[S^{(1)}_{cloud}]$ & $4$ & \\
+     $E[N^{(1)}_{cloudlet}]$ & $8.884108755$ & $\dfrac{11625219056649311918394581647083920}{1308540831314824230819390435296941}$ \\
      
      &&\\\hline &&\\
      
-     SICURO $E[T^{(1)}_{cloudlet}]$, $E[S^{(1)}_{cloudlet}]$ & $2.\overline{2}$ & $\dfrac{20}{9}$  \\
-
+     $E[N^{(2)}_{cloudlet}]$ & $9.608670684$ & To big to be represented! \\
+     
 	 &&\\\hline &&\\
-
-	 SICURO $E[T^{(1)}]$, $E[S^{(1)}]$ & $2.223178248$ & $\dfrac{46136700210409393015}{20752587082923245568}$  \\
-
+     
+     $E[N_{cloudlet}]$ & $ 18.492779440$ & To big to be represented! \\     
+     
+	 &&\\\hline &&\\
+     
+     $E[N^{(1)}_{cloud}]$ & $0.008604239$ & $\dfrac{4960006533878655}{576460752303423488}$ \\
+  
      &&\\
 
 
@@ -1551,10 +1722,35 @@ In order to represent analytical solutions we have used two MATLAB functions cal
 
 
 
+\begin{table}
+\caption{Analytical results of Algorithm 2 based system. (Part 1)}
+\begin{adjustbox}{center=\textwidth}
+	
+     \begin{tabular}{c|c|c}
+     \toprule
+     \textbf{Variable} & \textbf{Approximate value} & \textbf{Symbolic variable representation} \\
+     \toprule
+	 
+	 &&\\
+
+	 $E[T^{(1)}_{cloud}]$, $E[S^{(1)}_{cloud}]$ & $4$ & \\
+     
+     &&\\\hline &&\\
+     
+     $E[T^{(1)}_{cloudlet}]$, $E[S^{(1)}_{cloudlet}]$ & $2.\overline{2}$ & $\dfrac{20}{9}$  \\
+
+	 &&\\\hline &&\\
+
+	 $E[T^{(1)}]$, $E[S^{(1)}]$ & $2.223178248$ & $\dfrac{46136700210409393015}{20752587082923245568}$  \\
+
+	 &&\\
 
 
+     \bottomrule
 
-
+    \end{tabular}
+    \end{adjustbox}
+\end{table}
 
 
 
