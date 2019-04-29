@@ -19,6 +19,8 @@
 \usepackage{parallel}
 \usepackage{subfig}
 \usepackage{frontespizio} 
+\usepackage{subfig}
+\usepackage{geometry}
 
 \usetikzlibrary{positioning,angles,quotes,calc,shapes.geometric}
 \usetikzlibrary{chains,shapes.multipart}
@@ -694,46 +696,122 @@ public void perform() {
 
 As we have seen in previous subsection, \texttt{ComputationalModel} is used to represent a very \textit{generic} form of system (or queues network) because it includes only the code, seen previously, used to perform a next-event simulation.  
 
-Our specific queues network is been modelled using an abstract class called \texttt{System}, which provide all required methods implementations in order to perform our simulation. 
+In fact, we have used another abstract class to represent our specific queues network; that class, which also provide the implementation of all previously mentioned required methods in order to perform our simulation, is called \texttt{System}.
 
-The state of any \texttt{System} type instance is made up of four \texttt{SystemComponent} type fields which are used to hold a reference to any system's component, that is cloud node, cloudlet node and controller; an extra \texttt{SystemComponent} type field is a short-cut used to represent the global system.
+Although a \texttt{System} type instance represents our specific queues network, it however do \textit{not} contain any system state variables and do \textit{not} perform any statistic metric computation about them; its main purpose is to hold a reference to any system's node, represented by \texttt{SystemComponent} objects, in order to manage them. 
 
-A \texttt{System} type instance has very important responsibilities including:
+In fact the state of a \texttt{System} type instance is made up of four \texttt{SystemComponent} type fields which are used to hold a reference to all system's components: cloud, cloudlet and controller. An extra \texttt{SystemComponent} type field is used as a convenient short-cut to represent the global system.
+
+Its other responsibilities are:
 
 \begin{itemize}
 
-\item Allocation all \texttt{SystemComponent} type objects in order to represent each system's nodes.
+\item Allocation and management of all \texttt{SystemComponent} type objects.
 
 \item Methods implementation providing for simulation clock and system nodes state variables initialization.
 
-\item To manage event scheduling through some methods invocations like \texttt{sche\-dule\-Event\-OnCloud}, \texttt{scheduleEventOnCloulet} etc.
+\item Event scheduling management through some methods invocations like \texttt{sche\-dule\-Event\-OnCloud}, \texttt{scheduleEventOnCloulet} etc.
 
-\item To provide a method able to manage class 2 job interruption; the so called \texttt{removeCloud\-let\-Class2JobDeparture} method
+\item Class 2 job interruption management through the so called \texttt{removeCloud\-let\-Class2JobDeparture} method.
 \end{itemize}
 
 As you can see from class diagram reported in Figure \ref{fig:ClassDiagram}, there are two \texttt{System}'s concrete sub-class called \texttt{Sys\-tem\-Using\-RoutingAlgorithm1} and \texttt{System\-UsingRoutingAlgorithm2}; as their names suggest, they are used respectively to represents a system based on access control algorithm 1 and 2. 
 
-A \textit{generic} system's node, like cloud or cloudlet node, is modelled by a \texttt{SystemComponent} class. 
+Regarding class 2 job interruption management, note that \texttt{removeCloud\-let\-Class2JobDeparture} is invoked when conditions, established by Algorithm \ref{alg:accessControlAlgorithm2}, are achieved. When that method is running, a randomly choosen event, representing a cloudlet class 2 departure event, is simply removed from event list.
 
+Now we can finally take a look to \texttt{SystemComponent} abstract class which, as previously said, is used to represent any system's node; there are, in fact, its four \texttt{SystemComponent} subclasses used to represent any of them: \texttt{Cloud}, \texttt{Cloudlet}, \texttt{Controller} and \texttt{GlobalNetwork}. 
 
+Main purpose of any \texttt{SystemComponent} type instance is to hold a reference to any relevant system's node specific state variables, like actual per-class job population or the number of departed jobs from that specific node which represents; a set of fields, used to compute time-average statistics are also included.
 
-class has key role during our simulation performing because:
+A full list of all class fields representing \texttt{SystemComponent} type instance state is shown in Listing \ref{code:SystemComponentFields}.
+
+\begin{lstlisting}[frame=lines, caption={Fields of \texttt{SystemComponent} abstract class.}, label={code:SystemComponentFields}]
+protected double class1AverageArrivalRate;
+protected double class2AverageArrivalRate;
+protected double class1AverageServiceRate;
+protected double class2AverageServiceRate;
+
+private int numberOfClass1Jobs;
+private int numberOfClass2Jobs;
+private int numberOfClass1DepartedJobs;
+private int numberOfClass2DepartedJobs;
+
+private double areaNumberOfClass1Jobs = 0.0;
+private double areaNumberOfClass2Jobs = 0.0;
+private double areaServiceTimeClass1Jobs = 0.0;
+private double areaServiceTimeClass2Jobs = 0.0;
+
+private double areaServiceTime = 0.0;
+private double areaNumberOfJobs = 0.0;
+...
+\end{lstlisting}
+
+\texttt{SystemComponent} class has other very important responsibilities including: 
+  
 \begin{itemize}
 
-\item Has a set of fields used to keep track of component's variable states, like number of departed jobs or current jobs population, including those used to compute time-average statistics.
+\item System state variables update management every time an event occurs; for example, when a class one job arrives on a certain system's component, \texttt{updateStatusAfterClass1JobArrival()} method can be invoked in order to update the number of class one jobs actually present on that component.
 
-\item Provides a very important set of functions for status updating after event occurrences; for example, when a class one job arrives on a certain system's component, \texttt{updateStatusAfterClass1JobArrival()} method can be invoked in order to update the number of class one jobs actually present on that component.
+\item Inter-arrival and service times computation, necessary for event scheduling. As you can see also from Listing \ref{code:SystemComponentFields}, \texttt{SystemComponent} class has some fields holding component-specific mean rates in order to compute them; these field are initialize in constructor methods of each concrete \texttt{SystemComponent} class.
 
-\item Contains a set of method used to computed inter-arrival and service times, necessary for future event scheduling. Obviously each concrete \texttt{SystemComponent} instance has his own mean rates to compute those values.
-
-\item Includes another set used instead to schedule future events after event occurrence, like a departure after an arrival. 
-
-Is very important to precise that these methods are abstract and have to be implemented by each concrete implementations in order to reflect each component behaviour; In fact controller node doesn't need to schedule departure after an arrival because of his routing role.
+\item Method providing in order to model component's behaviour when an event occurs. Note that these methods are abstract and have to be implemented by each \texttt{SystemComponent} class in order to reflect the exact specific component behaviour. These method are directly invoked by any \texttt{SystemEvent} type instances when they are extracted from event list.
 \end{itemize}
 
-All system's component, that is cloud, cloudlet and controller, are represented, obviously, by \texttt{Cloud}, \texttt{Cloudlet} and \texttt{Controller} classes each of which is a \texttt{SystemComponent} subclass; however we have used another subclass, called \texttt{GlobalNetwork}, in order to represent whole system keeping track of golabal state variables.
+\texttt{Cloud}, \texttt{Cloudlet}, \texttt{Controller} and \texttt{GlobalNetwork} class contains the code which declare   what to do when an event occurs; we believe that code contain in them is self explanatory therefore refer to it for more informations.
 
-Observe that, \texttt{Controller} class is also an abstract class because required implementation of a method call \texttt{performRoutingAlgorithm()} used to perform the two required routing algorithms whenever an arrival occurs on controller node; those algorithms are provide by \texttt{ControllerUsingRoutingAlgorithm1} and \texttt{ControllerUsingRoutingAlgorithm2} classes. 
+However is very important to focus on \texttt{Controller} abstract class which main purpose is, obviously, job routing policy performing.
+In order to do perform its task, whenever an arrival occurs, a method, called \texttt{performRoutingAlgorithm}
+is invoked; since there are two access control algorithms, we have decide to use two subclasses, called \texttt{Controller\-Using\-Routing\-Algorithm1} and \texttt{Controller\-Using\-Routing\-Algorithm2}, which contains respectively the implementations of access control algorithms 1 and 2, both reported in Listing \ref{code:performRoutingAlgorithm1} and \ref{code:performRoutingAlgorithm2}.
+
+\begin{lstlisting}[frame=lines, caption={\texttt{performRoutingAlgorithm} method implementation concerning access control algorithm 1.},label={code:performRoutingAlgorithm1}]
+protected void performRoutingAlgorithm(SystemEvent event) {
+
+   int n1 = this.system.getNumberOfClass1JobOnCloudlet();
+   int n2 = this.system.getNumberOfClass2JobOnCloudlet();
+
+   if ((n1 + n2) == this.system.getThreshold())
+      this.system.scheduleEventOnCloud(event, 0);
+   else
+      this.system.scheduleEventOnCloudlet(event, 0);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[frame=lines, caption={\texttt{performRoutingAlgorithm} method implementation concerning access control algorithm 2.},label={code:performRoutingAlgorithm2}]
+protected void performRoutingAlgorithm(SystemEvent event) {
+
+   int n1 = this.system.getNumberOfClass1JobOnCloudlet();
+   int n2 = this.system.getNumberOfClass2JobOnCloudlet();
+
+   if (event instanceof Class1JobArrival) {
+
+       if (n1 == this.system.getThreshold())
+           this.system.scheduleEventOnCloud(event, 0);
+       else if (n1 + n2 < this.system.getThreshold())
+           this.system.scheduleEventOnCloudlet(event, 0);
+       else if (n2 > 0) {
+
+           this.system.removeFarthermostCloudletClass2JobDeparture();
+
+           this.system.scheduleEventOnCloudlet(event, 0);
+
+           double setupTime = RandomNumberGenerator.getInstance().getExponential(5, 0.8);
+
+           this.system.scheduleEventOnCloud(SystemEventFactory.buildClass2JobArrival(), setupTime);
+
+           this.numberOfInterruptedClass2Jobs++;
+
+        } else
+           this.system.scheduleEventOnCloudlet(event, 0);
+    } else {
+
+        if ((n1 + n2) >= this.system.getThreshold())
+           this.system.scheduleEventOnCloud(event, 0);
+        else
+           this.system.scheduleEventOnCloudlet(event, 0);
+    }
+}
+\end{lstlisting}
+
 
 \subsection{Output analysis}
 
@@ -1478,7 +1556,7 @@ In order to represent analytical solutions we have used two MATLAB functions cal
 
 \newpage
 
-\begin{table}
+\begin{table}[h!]
 \caption{Analytical results of Algorithm 1 based system. (Part 1)}
 \begin{adjustbox}{center=\textwidth}
 	
@@ -1546,7 +1624,7 @@ In order to represent analytical solutions we have used two MATLAB functions cal
 \end{table}
 
 
-\begin{table}
+\begin{table}[h!]
 \caption{Analytical results of Algorithm 1 based system. (Part 2)}
 \begin{adjustbox}{center=\textwidth}
 	
@@ -1611,7 +1689,7 @@ In order to represent analytical solutions we have used two MATLAB functions cal
 \end{table}
 
 
-\begin{table}
+\begin{table}[h!]
 \caption{Analytical results of Algorithm 1 based system. (Part 3)}
 \begin{adjustbox}{center=\textwidth}
 	
@@ -1645,7 +1723,7 @@ In order to represent analytical solutions we have used two MATLAB functions cal
 
 % ------------
 
-\begin{table}
+\begin{table}[h!]
 \caption{Analytical results of Algorithm 2 based system. (Part 1)}
 \begin{adjustbox}{center=\textwidth}
 	
@@ -1722,7 +1800,7 @@ In order to represent analytical solutions we have used two MATLAB functions cal
 
 
 
-\begin{table}
+\begin{table}[h!]
 \caption{Analytical results of Algorithm 2 based system. (Part 1)}
 \begin{adjustbox}{center=\textwidth}
 	
@@ -1752,12 +1830,66 @@ In order to represent analytical solutions we have used two MATLAB functions cal
     \end{adjustbox}
 \end{table}
 
+\clearpage
+\newpage
+\section{Model verification}
+
+Our computational model is been verified by an extensive testing process, made using debugging systems provided by our programming environment,\footnote{We have used IntelliJ IDEA as integrated development environment (IDE).} during which we have focused on checking whether our computational model is working as expected.
+
+\section{Model validation}
+
+Model validation was performed by comparing simulation results with previously described analytical results
+
+Based on our results, verified computational model is a reasonable approximation of required system; in mostly all cases, 
+means, computed analytically, lie in our 95\% confidence interval estimates. 
+
+\subsection{System based on access control Algorithm 1 simulations results}
+
+\newpage
+\newgeometry{left=5mm, right=5mm}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=9cm]{./ALG1/Cloudlet_AverageClass1Population.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./ALG1/ScatterPlot_Cloudlet_AverageClass1Population.png} }}%
+    
+    \subfloat{{\includegraphics[width=9cm]{./ALG1/BM_Cloudlet_AverageClass1Population.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./ALG1/H_Cloudlet_AverageClass1Population.png} }}%
+    \caption{Cloudlet Time-Average class 1 job population. (Algorithm 1)}%
+    \label{fig:example}
+\end{figure}
+\restoregeometry  
+
+\newpage
+\newgeometry{left=5mm, right=5mm}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=9cm]{./ALG1/Cloudlet_AverageClass2Population.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./ALG1/ScatterPlot_Cloudlet_AverageClass2Population.png} }}%
+    
+    \subfloat{{\includegraphics[width=9cm]{./ALG1/BM_Cloudlet_AverageClass2Population.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./ALG1/H_Cloudlet_AverageClass2Population.png} }}%
+    \caption{Cloudlet Time-Average class 2 job population. (Algorithm 1)}%
+    \label{fig:example}
+\end{figure}
+\restoregeometry  
 
 
 
+\newpage
+\newgeometry{left=5mm, right=5mm}
 
-
-
-
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=9cm]{./ALG1/Cloud_AverageClass1Population.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./ALG1/ScatterPlot_Cloud_AverageClass1Population.png} }}%
+    
+    \subfloat{{\includegraphics[width=9cm]{./ALG1/BM_Cloud_AverageClass1Population.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./ALG1/H_Cloud_AverageClass1Population.png} }}%
+    \caption{Cloud Time-Average class 1 job population. (Algorithm 1)}%
+    \label{fig:example}
+\end{figure}
+\restoregeometry  
 
 \end{document}
