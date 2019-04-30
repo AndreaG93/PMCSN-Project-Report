@@ -813,36 +813,53 @@ protected void performRoutingAlgorithm(SystemEvent event) {
 \end{lstlisting}
 
 
-\subsection{Output analysis}
+\subsection{Output analysis and graphics generation}
 
-each statistic is associate to an TransientStatistics type instance.
+In order to properly show all collected data and computed statistics, a very large set of graphics, including scatter plots, histograms and others, are automatically generated using various Java scripts; the total number of generated graphics is 92! 
 
+All Java classes, containing logic used to produce all aforesaid graphics, are located into \texttt{outputanaylisis} Java package where the most important is \texttt{Statistics} class whose purpose is to generate various statistics, like mean or standard deviation, from \texttt{double} type raw input data. 
 
+In that class two very important methods are present: the first, called \texttt{computeMeanAnd\-Stan\-dard\-Deviation} and shown in Listing \ref{code:computeMeanAndStandardDeviation}, contains an implementation of \textit{Welford’s algorithm} in order to compute mean of input data while the second, called \texttt{getConfidenceInterval}, is used to compute confidence interval estimation.\footnote{Lawrence M. Leemis, Stephen K. Park, \textit{Discrete-Event Simulation: A First Course} (Pearson; 1 edition January 6, 2006), Algorithm 8.1.1 - pag 354}
 
+\begin{lstlisting}[frame=lines, caption={\texttt{computeMeanAndStandardDeviation} method implementation},label={code:computeMeanAndStandardDeviation}]
+private void computeMeanAndStandardDeviation() {
 
+        int n = 0;
+        double sum = 0.0;
+        double diff;
+        this.mean = 0.0;
 
+        for (double value : this.randomValuesList) {
+            n++;
+            diff = value - this.mean;
+            sum += Math.pow(diff, 2) * ((n - 1.0) / n);
+            this.mean += diff / n;
 
+            if (value > max)
+                max = value;
+            else if (value < min)
+                min = value;
+        }
 
+        this.standardDeviation = Math.sqrt(sum / n);
+    }
+\end{lstlisting}
 
+Data output graphics generation is the duty 
+BatchMeans, ScatterPlot, Histograms, EnsembleStatistic . Each existing instance of above classes is used to collect one type data, like job population or throughput, during a simulation in order to generate output graphics.
 
+ 
 
+From software engineering point of view, all these classes are designed using the \textit{registry pattern}\footnote{See \texttt{https://martinfowler.com/eaaCatalog/registry.html}} because, besides being easy to implement, it guaranties to retrieve a reference to a specific   graphics object in a very simple way using its name only, reducing at the same time coupling among classes. 
 
-
-
-
-
-
-
-
-
-
+We prefer to omit a detail descriptions of Java classes involved into MATLAB graphics generation because they are just scripts and therefore not relevant from conceptual point of view. 
 
 
 
 \newpage
 \section{Analytical solution}
 
-In this last section we will develop an analytical solution to validate the results obtained previously through our simulations. 
+In thi s last section we will develop an analytical solution to validate the results obtained previously through our simulations. 
 
 \subsection{System based on access control Algorithm 1}\label{subsub:alg1}
 \begin{figure}
@@ -1843,19 +1860,23 @@ Model validation was performed by comparing simulation results with previously d
 Based on our results, verified computational model is a reasonable approximation of required system; in mostly all cases, 
 means, computed analytically, lie in our 95\% confidence interval estimates. 
 
-\subsection{System based on access control Algorithm 1 simulations results}
+
+
+% ------------------------------------------------------------------------------------------------------------ %
+% JOB 1 POPULATION
+% ------------------------------------------------------------------------------------------------------------ %
 
 \newpage
 \newgeometry{left=5mm, right=5mm}
 
 \begin{figure}[h!]
     \centering
-    \subfloat{{\includegraphics[width=9cm]{./ALG1/Cloudlet_AverageClass1Population.png} }}%
-    \subfloat{{\includegraphics[width=9cm]{./ALG1/ScatterPlot_Cloudlet_AverageClass1Population.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/EnsembleStatisticsCloudlet_Class1JobsNumber.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/ScatterPlotCloudlet_Class1JobsNumber.png} }}%
     
-    \subfloat{{\includegraphics[width=9cm]{./ALG1/BM_Cloudlet_AverageClass1Population.png} }}%
-    \subfloat{{\includegraphics[width=9cm]{./ALG1/H_Cloudlet_AverageClass1Population.png} }}%
-    \caption{Cloudlet Time-Average class 1 job population. (Algorithm 1)}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/BatchMeansCloudlet_Class1JobsNumber.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/HistogramsCloudlet_Class1JobsNumber.png} }}%
+    \caption{Cloudlet Time-Average Class 1 Job Population. (Algorithm 1)}%
     \label{fig:example}
 \end{figure}
 \restoregeometry  
@@ -1865,31 +1886,346 @@ means, computed analytically, lie in our 95\% confidence interval estimates.
 
 \begin{figure}[h!]
     \centering
-    \subfloat{{\includegraphics[width=9cm]{./ALG1/Cloudlet_AverageClass2Population.png} }}%
-    \subfloat{{\includegraphics[width=9cm]{./ALG1/ScatterPlot_Cloudlet_AverageClass2Population.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/EnsembleStatisticsCloud_Class1JobsNumber.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/ScatterPlotCloud_Class1JobsNumber.png} }}%
     
-    \subfloat{{\includegraphics[width=9cm]{./ALG1/BM_Cloudlet_AverageClass2Population.png} }}%
-    \subfloat{{\includegraphics[width=9cm]{./ALG1/H_Cloudlet_AverageClass2Population.png} }}%
-    \caption{Cloudlet Time-Average class 2 job population. (Algorithm 1)}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/BatchMeansCloud_Class1JobsNumber.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/HistogramsCloud_Class1JobsNumber.png} }}%
+    \caption{Cloud Time-Average Class 1 Job Population. (Algorithm 1)}%
     \label{fig:example}
 \end{figure}
-\restoregeometry  
-
-
+\restoregeometry 
 
 \newpage
 \newgeometry{left=5mm, right=5mm}
 
 \begin{figure}[h!]
     \centering
-    \subfloat{{\includegraphics[width=9cm]{./ALG1/Cloud_AverageClass1Population.png} }}%
-    \subfloat{{\includegraphics[width=9cm]{./ALG1/ScatterPlot_Cloud_AverageClass1Population.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/EnsembleStatisticsGlobalNetwork_Class1JobsNumber.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/ScatterPlotGlobalNetwork_Class1JobsNumber.png} }}%
     
-    \subfloat{{\includegraphics[width=9cm]{./ALG1/BM_Cloud_AverageClass1Population.png} }}%
-    \subfloat{{\includegraphics[width=9cm]{./ALG1/H_Cloud_AverageClass1Population.png} }}%
-    \caption{Cloud Time-Average class 1 job population. (Algorithm 1)}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/BatchMeansGlobalNetwork_Class1JobsNumber.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/HistogramsGlobalNetwork_Class1JobsNumber.png} }}%
+    \caption{Global Time-Average Class 1 Job Population. (Algorithm 1)}%
+    \label{fig:example}
+\end{figure}
+\restoregeometry 
+
+% ------------------------------------------------------------------------------------------------------------ %
+% JOB 2 POPULATION
+% ------------------------------------------------------------------------------------------------------------ %
+
+\newpage
+\newgeometry{left=5mm, right=5mm}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/EnsembleStatisticsCloudlet_Class2JobsNumber.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/ScatterPlotCloudlet_Class2JobsNumber.png} }}%
+    
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/BatchMeansCloudlet_Class2JobsNumber.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/HistogramsCloudlet_Class2JobsNumber.png} }}%
+    \caption{Cloudlet Time-Average Class 2 Job Population. (Algorithm 1)}%
     \label{fig:example}
 \end{figure}
 \restoregeometry  
+
+\newpage
+\newgeometry{left=5mm, right=5mm}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/EnsembleStatisticsCloud_Class2JobsNumber.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/ScatterPlotCloud_Class2JobsNumber.png} }}%
+    
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/BatchMeansCloud_Class2JobsNumber.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/HistogramsCloud_Class2JobsNumber.png} }}%
+    \caption{Cloud Time-Average Class 2 Job Population. (Algorithm 1)}%
+    \label{fig:example}
+\end{figure}
+\restoregeometry 
+
+\newpage
+\newgeometry{left=5mm, right=5mm}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/EnsembleStatisticsGlobalNetwork_Class2JobsNumber.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/ScatterPlotGlobalNetwork_Class2JobsNumber.png} }}%
+    
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/BatchMeansGlobalNetwork_Class2JobsNumber.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/HistogramsGlobalNetwork_Class2JobsNumber.png} }}%
+    \caption{Global Time-Average Class 2 Job Population. (Algorithm 1)}%
+    \label{fig:example}
+\end{figure}
+\restoregeometry 
+
+% ------------------------------------------------------------------------------------------------------------ %
+% JOB POPULATION
+% ------------------------------------------------------------------------------------------------------------ %
+
+\newpage
+\newgeometry{left=5mm, right=5mm}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/EnsembleStatisticsCloudlet_JobsNumber.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/ScatterPlotCloudlet_JobsNumber.png} }}%
+    
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/BatchMeansCloudlet_JobsNumber.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/HistogramsCloudlet_JobsNumber.png} }}%
+    \caption{Cloudlet Time-Average Class Job Population. (Algorithm 1)}%
+    \label{fig:example}
+\end{figure}
+\restoregeometry  
+
+\newpage
+\newgeometry{left=5mm, right=5mm}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/EnsembleStatisticsCloud_JobsNumber.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/ScatterPlotCloud_JobsNumber.png} }}%
+    
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/BatchMeansCloud_JobsNumber.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/HistogramsCloud_JobsNumber.png} }}%
+    \caption{Cloud Time-Average Class Job Population. (Algorithm 1)}%
+    \label{fig:example}
+\end{figure}
+\restoregeometry 
+
+\newpage
+\newgeometry{left=5mm, right=5mm}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/EnsembleStatisticsGlobalNetwork_JobsNumber.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/ScatterPlotGlobalNetwork_JobsNumber.png} }}%
+    
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/BatchMeansGlobalNetwork_JobsNumber.png} }}%
+    \subfloat{{\includegraphics[width=9cm]{./GraphicsAlg1/HistogramsGlobalNetwork_JobsNumber.png} }}%
+    \caption{Global Time-Average Class Job Population. (Algorithm 1)}%
+    \label{fig:example}
+\end{figure}
+\restoregeometry 
+
+% ------------------------------------------------------------------------------------------------------------ %
+% Class1JobsServiceTime
+% ------------------------------------------------------------------------------------------------------------ %
+
+\newpage
+\newgeometry{top=10mm, left=8mm, right=8mm}
+\subsubsection{Time-Average Class 1 Job Service/Response Time. (Algorithm 1)}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/EnsembleStatisticsCloudlet_Class1JobsServiceTime.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/ScatterPlotCloudlet_Class1JobsServiceTime.png} }}%  
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/BatchMeansCloudlet_Class1JobsServiceTime.png} }}%
+    \caption{Cloudlet}%
+    \label{fig:example}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/EnsembleStatisticsCloud_Class1JobsServiceTime.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/ScatterPlotCloud_Class1JobsServiceTime.png} }}%  
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/BatchMeansCloud_Class1JobsServiceTime.png} }}%
+    \caption{Cloud}%
+    \label{fig:example}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/EnsembleStatisticsGlobalNetwork_Class1JobsServiceTime.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/ScatterPlotGlobalNetwork_Class1JobsServiceTime.png} }}%   
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/BatchMeansGlobalNetwork_Class1JobsServiceTime.png} }}%
+   
+    \caption{Global}%
+    \label{fig:example}
+\end{figure}
+\restoregeometry 
+
+% ------------------------------------------------------------------------------------------------------------ %
+% Class2JobsServiceTime
+% ------------------------------------------------------------------------------------------------------------ %
+
+\newpage
+\newgeometry{top=10mm, left=8mm, right=8mm}
+\subsubsection{Time-Average Class 2 Job Service/Response Time. (Algorithm 1)}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/EnsembleStatisticsCloudlet_Class2JobsServiceTime.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/ScatterPlotCloudlet_Class2JobsServiceTime.png} }}%  
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/BatchMeansCloudlet_Class2JobsServiceTime.png} }}%
+    \caption{Cloudlet}%
+    \label{fig:example}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/EnsembleStatisticsCloud_Class2JobsServiceTime.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/ScatterPlotCloud_Class2JobsServiceTime.png} }}%  
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/BatchMeansCloud_Class2JobsServiceTime.png} }}%
+    \caption{Cloud}%
+    \label{fig:example}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/EnsembleStatisticsGlobalNetwork_Class2JobsServiceTime.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/ScatterPlotGlobalNetwork_Class2JobsServiceTime.png} }}%   
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/BatchMeansGlobalNetwork_Class2JobsServiceTime.png} }}%
+   
+    \caption{Global}%
+    \label{fig:example}
+\end{figure}
+\restoregeometry 
+
+% ------------------------------------------------------------------------------------------------------------ %
+% JobsServiceTime
+% ------------------------------------------------------------------------------------------------------------ %
+
+\newpage
+\newgeometry{top=10mm, left=8mm, right=8mm}
+\subsubsection{Time-Average Service/Response Time. (Algorithm 1)}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/EnsembleStatisticsCloudlet_JobsServiceTime.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/ScatterPlotCloudlet_JobsServiceTime.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/BatchMeansCloudlet_JobsServiceTime.png} }}%
+    \caption{Cloudlet}%
+    \label{fig:example}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/EnsembleStatisticsCloud_JobsServiceTime.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/ScatterPlotCloud_JobsServiceTime.png} }}%  
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/BatchMeansCloud_JobsServiceTime.png} }}%
+    \caption{Cloud}%
+    \label{fig:example}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/EnsembleStatisticsGlobalNetwork_JobsServiceTime.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/ScatterPlotGlobalNetwork_JobsServiceTime.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/BatchMeansGlobalNetwork_JobsServiceTime.png} }}% 
+    \caption{Global}%
+    \label{fig:example}
+\end{figure}
+\restoregeometry 
+
+
+% ------------------------------------------------------------------------------------------------------------ %
+% Throughput 1
+% ------------------------------------------------------------------------------------------------------------ %
+
+\newpage
+\newgeometry{top=10mm, left=8mm, right=8mm}
+\subsubsection{Class 1 Job Throughput. (Algorithm 1)}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/EnsembleStatisticsCloudlet_Class1Throughput.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/ScatterPlotCloudlet_Class1Throughput.png} }}%  
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/BatchMeansCloudlet_Class1Throughput.png} }}%
+    \caption{Cloudlet}%
+    \label{fig:example}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/EnsembleStatisticsCloud_Class1Throughput.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/ScatterPlotCloud_Class1Throughput.png} }}%   
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/BatchMeansCloud_Class1Throughput.png} }}%
+    \caption{Cloud}%
+    \label{fig:example}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/EnsembleStatisticsGlobalNetwork_Class1Throughput.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/ScatterPlotGlobalNetwork_Class1Throughput.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/BatchMeansGlobalNetwork_Class1Throughput.png} }}%   
+    \caption{Global}%
+    \label{fig:example}
+\end{figure}
+\restoregeometry 
+
+% ------------------------------------------------------------------------------------------------------------ %
+% Throughput 2
+% ------------------------------------------------------------------------------------------------------------ %
+
+\newpage
+\newgeometry{top=10mm, left=8mm, right=8mm}
+\subsubsection{Class 2 Job Throughput. (Algorithm 1)}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/EnsembleStatisticsCloudlet_Class2Throughput.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/ScatterPlotCloudlet_Class2Throughput.png} }}%  
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/BatchMeansCloudlet_Class2Throughput.png} }}%
+    \caption{Cloudlet}%
+    \label{fig:example}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/EnsembleStatisticsCloud_Class2Throughput.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/ScatterPlotCloud_Class2Throughput.png} }}%   
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/BatchMeansCloud_Class2Throughput.png} }}%
+    \caption{Cloud}%
+    \label{fig:example}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/EnsembleStatisticsGlobalNetwork_Class2Throughput.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/ScatterPlotGlobalNetwork_Class2Throughput.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/BatchMeansGlobalNetwork_Class2Throughput.png} }}%   
+    \caption{Global}%
+    \label{fig:example}
+\end{figure}
+\restoregeometry 
+
+% ------------------------------------------------------------------------------------------------------------ %
+% Throughput
+% ------------------------------------------------------------------------------------------------------------ %
+
+\newpage
+\newgeometry{top=10mm, left=8mm, right=8mm}
+\subsubsection{Throughput. (Algorithm 1)}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/EnsembleStatisticsCloudlet_Throughput.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/ScatterPlotCloudlet_Throughput.png} }}%  
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/BatchMeansCloudlet_Throughput.png} }}%
+    \caption{Cloudlet}%
+    \label{fig:example}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/EnsembleStatisticsCloud_Throughput.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/ScatterPlotCloud_Throughput.png} }}%   
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/BatchMeansCloud_Throughput.png} }}%
+    \caption{Cloud}%
+    \label{fig:example}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/EnsembleStatisticsGlobalNetwork_Throughput.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/ScatterPlotGlobalNetwork_Throughput.png} }}%
+    \subfloat{{\includegraphics[width=6.5cm]{./GraphicsAlg1/BatchMeansGlobalNetwork_Throughput.png} }}%   
+    \caption{Global}%
+    \label{fig:example}
+\end{figure}
+\restoregeometry 
 
 \end{document}
