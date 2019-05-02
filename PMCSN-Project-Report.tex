@@ -859,7 +859,7 @@ We prefer to omit a detail descriptions of Java classes involved into MATLAB gra
 \newpage
 \section{Analytical solution}
 
-In thi s last section we will develop an analytical solution to validate the results obtained previously through our simulations. 
+In this section we will develop an analytical solution to validate all results obtained through our simulations; in order to do that, we will compare analytic and simulation results in section \ref{sec:ModelValidation}.
 
 \subsection{System based on access control Algorithm 1}\label{subsub:alg1}
 \begin{figure}
@@ -985,17 +985,15 @@ In thi s last section we will develop an analytical solution to validate the res
 \end{adjustbox}
 \end{figure}
 
-Let's start with presentation of analytical solution of system based on access control algorithm 1.
+Let's start with the analysis of the system when its routing policy is based on Algorithm \ref{alg:accessControlAlgorithm1}.
 
-In order to compute all parameters and metrics of interest associated with above-mentioned system, due to cloudlet's limited resources according to which it can accept jobs until their number does not exceed a given threshold $N$, is crucial compute first the \textbf{fraction of jobs that are forwarded to cloudlet and to cloud}; to do it, we must compute at first probability according to which the sum of job of each class in cloudlet system is equal to that threshold. 
+In order to compute all parameters and metrics of interest associated with that kind of system, we need to focus on  cloudlet node behaviour: since we know that, due to its limited resources, it can accept jobs until their number does not exceed a given threshold $N$, is crucial to firstly compute the \textit{fraction of jobs that are forwarded to cloudlet and to cloud}; in other word, from analytical point of view, our intent is to obtain the probability according to which the sum of job of each class in cloudlet node is equal to that threshold which can permit us to calculate fraction of jobs that are forwarded to each system's node.
 
-To determine this probability, we had modelled cloudlet with a \textbf{continuous-time Markov chain} (\textbf{CTMC}), of which you can see a graphical representationin Figure \ref{fig:ALG1-CloudletMarkovChain}, where each chain's state, denoted with $(n_1,n_2)$, is represented by the number of class 1 job, $n_1$, and class 2 job, $n_2$, present in system at a certain moment.
-
-
+To determine this probability, we have modelled cloudlet node as a \textit{continuous-time Markov chain} (CTMC) whose graphical representation is shown in Figure \ref{fig:ALG1-CloudletMarkovChain}; as you can see, each chain's state is denoted with $(n_1,n_2)$, where $n_1$ and $n_2$ represent respectively the number of class 1 and class 2 jobs.
 
 \subsubsection{Balance equation} 
 
-Obviously we can compute \textbf{limiting probabilities} $\pi_{(n_1,n_2)}$, namely the probability according to which the chain is in a certain state, say $j$, independently of the starting state, say $i$, via \textbf{balance} (or \textbf{stationary}) \textbf{equations}, in which we can equate the rate at which the system leaves state $j$ with the rate at which the system enters state $j$ \footnote{\textit{Cfr.} Mor Harchol-Balter - \textit{Performance Modeling and Design of Computer Systems} - Carnegie Mellon University, Pennsylvania, pag. 237}, \textbf{remembering that limiting probabilities sum to 1} (i.e., $\sum_{j=0}^\infty \pi_j = 1$).
+After have made CTMC modelling, we can compute \textit{limiting probabilities} $\pi_{(n_1,n_2)}$, namely the probability according to which the chain is in a certain state, say $j$, independently of the starting state, say $i$, via \textit{balance} (or \textit{stationary}) \textit{equations}, in which we can equate the rate at which the system leaves state $j$ with the rate at which the system enters state $j$ \footnote{Mor Harchol-Balter - \textit{Performance Modeling and Design of Computer Systems} - Carnegie Mellon University, Pennsylvania, page 237}, remembering that limiting probabilities sum to 1, that is $\sum_{j=0}^\infty \pi_j = 1$. Those balance equations are shown in table \ref{table:ALG1-CloudletBalanceEquationList}.
 
 
 \begin{table}[h!]
@@ -1029,12 +1027,15 @@ Obviously we can compute \textbf{limiting probabilities} $\pi_{(n_1,n_2)}$, name
     \end{adjustbox}
 \end{table}
 
+Regarding balance equations resolution we have develop 
+
+
 
 
 \newpage
 \subsubsection{Probabilities computing}
 
-Having found the stationary probabilities, we can now find \textbf{$\Pi_{\text{SendToCloud}}$}, that is the \textbf{probability that an arriving job on controller has to be forwarded to cloud}. Observe that the class to which an arrival job belongs to is not important because, according to access control Algorithm 1, \textbf{jobs of both classes have same probability to be sent to cloud}. To be more precise, \textbf{$\Pi_{\text{SendToCloud}}$} is the probability that an arrival job find that the number of jobs present in cloudlet has exceeded threshold $N$, which occurs when $n_1 + n_2 = N$. Formally:
+Having found the stationary probabilities, we can now find $\Pi_{\text{SendToCloud}}$, that is the \textit{probability that an arriving job on controller has to be forwarded to cloud}. Observe that the class to which an arrival job belongs to is not important because, according to access control Algorithm 1, jobs of both classes have same probability to be sent to cloud. To be more precise, \textbf{$\Pi_{\text{SendToCloud}}$} is the probability that an arrival job find that the number of jobs present in cloudlet has exceeded threshold $N$, which occurs when $n_1 + n_2 = N$. Formally:
 
 \begin{equation}
 \begin{array} {lcl} 
@@ -1059,15 +1060,15 @@ At this point we can easily compute \textbf{$\Pi_{\text{SendToCloudlet}}$}, whic
 
 \subsubsection{Average arrival rates}
 
-Is $\lambda_i(c)$ the \textbf{total arrival rate into a system's component $i$ of class $c$ job}. Applying previous results, using an appropriate equation\footnote{\textit{Cfr.} \textit{Ivi}, pag. 315, equation (18.1)}, we can now compute per-class average arrival rates as follow:
+Is $\lambda_x^{(c)}$ the \textit{total arrival rate into a system's component $x$ of class $c$ job}. Applying previous results, using an appropriate equation\footnote{\textit{Cfr.} \textit{Ibid.}, page 315, equation (18.1)}, we can now compute per-class average arrival rates as follow:
 
 \begin{equation}
 \begin{array} {rcl}
 
-\lambda_{\text{cloud}}(1) & = & \lambda_1\cdot \Pi_{\text{SendToCloud}} \\
-\lambda_{\text{cloud}}(2) & = & \lambda_2\cdot \Pi_{\text{SendToCloud}} \\
-\lambda_{\text{cloudlet}}(1) & = & \lambda_1\cdot \Pi_{\text{SendToCloudlet}} \\
-\lambda_{\text{cloudlet}}(2) & = & \lambda_2\cdot \Pi_{\text{SendToCloudlet}} \\\\
+\lambda_{\text{cloud}}^{(1)} & = & \lambda_1\cdot \Pi_{\text{SendToCloud}} \\\\
+\lambda_{\text{cloud}}^{(2)} & = & \lambda_2\cdot \Pi_{\text{SendToCloud}} \\\\
+\lambda_{\text{cloudlet}}^{(1)} & = & \lambda_1\cdot \Pi_{\text{SendToCloudlet}} \\\\
+\lambda_{\text{cloudlet}}^{(2)} & = & \lambda_2\cdot \Pi_{\text{SendToCloudlet}} \\\\
 \end{array}
 \end{equation}
 
@@ -1075,9 +1076,8 @@ Then we get $\lambda_i$, that is \textbf{total arrival rate to system's componen
 
 \begin{equation}
 \begin{array} {rcl}
-
-\lambda_{\text{cloud}} & = & \lambda_{\text{cloud}}(1) + \lambda_{\text{cloud}}(2) \\
-\lambda_{\text{cloudlet}} & = & \lambda_{\text{cloudlet}}(1) + \lambda_{\text{cloudlet}}(2) \\
+\lambda_{\text{cloud}} & = & \lambda_{\text{cloud}}^{(1)} + \lambda_{\text{cloud}}^{(2)} \\\\
+\lambda_{\text{cloudlet}} & = & \lambda_{\text{cloudlet}}^{(1)} + \lambda_{\text{cloudlet}}^{(2)} \\\\
 \end{array}
 \end{equation}
 
@@ -1532,18 +1532,18 @@ Analytical methods used to computed system throughput are still valid.
 
 Regarding $E[T]^{(2)}$, that is time-averaged response time experienced by class 2 jobs, there are, instead, some conceptual differences due to jobs interruptions. Formally:
 
+
 \begin{equation}
 \begin{array} {lcl} 
-E[T]^{(2)} & = & E[T_{\text{cloudlet}}]^{(2)} \cdot P\lbrace\text{An arrival class 2 job is sent to cloudlet}\rbrace \\
-\\
-& & +\; E[T_{\text{cloud}}]^{(2)}\cdot P\lbrace\text{An arrival class 2 job is sent to cloud}\rbrace \\
-\\
-& & +\; E[S_{setup}] \\
-\\
-& = & E[T_{\text{cloudlet}}]^{(2)}\cdot \Pi_{\text{SendToCloudlet}}^{(2)} + E[T_{\text{cloud}}]^{(2)}\cdot \Pi_{\text{SendToCloud}}^{(2)} + E[S_{setup}] \\
+E[T]^{(2)}  & = & \Pi_{\text{SendToCloud}}^{(2)} \cdot E[T_{\text{cloud}}^{(2)}] \; +  \\
+& & \Pi_{\text{SendToCloudlet}}^{(2)} \cdot \bigg( \Pi_{\text{interruption}}^{(2)}\cdot(E[S_{setup}] + E[T_{\text{cloud}}^{(2)}]) + (1-\Pi_{\text{interruption}}^{(2)}) \cdot E[T_{\text{cloudlet}}^{(2)}] \bigg)
+
+
 
 \end{array}
 \end{equation}
+
+
 
 
 
@@ -1915,7 +1915,7 @@ In order to represent analytical solutions we have used two MATLAB functions cal
 
 Our computational model is been verified by an extensive testing process, made using debugging systems provided by our programming environment,\footnote{We have used IntelliJ IDEA as integrated development environment (IDE).} during which we have focused on checking whether our computational model is working as expected.
 
-\section{Model validation}
+\section{Model validation}\label{sec:ModelValidation}
 
 Model validation was performed by comparing simulation results with previously described analytical results
 
