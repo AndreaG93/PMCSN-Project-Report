@@ -551,7 +551,7 @@ Our model is been implemented using Java programming languages, which source cod
 
 In order to properly describe how our implementation works we need to understand how all system's events, seen in previous section, are represented and managed.
 
-As you can see in the class diagram \ref{fig:ClassDiagram}, a \textit{generic} system's event has been implemented and represented using an \textit{abstract} Java class called \texttt{SimulationEvent} (located into \texttt{nexteventsimulation.utility} Java package) which has two main features:
+As you can see in the class diagram \ref{fig:ClassDiagram}, a \textit{generic} system's event has been implemented and represented using an \textit{abstract} Java class called \texttt{SimulationEvent} (located into \texttt{nexteventsimulation.\-utility} Java package) which has two main features:
 
 \begin{itemize}
 \item Has only one \texttt{double} type field, called \texttt{StartTime}, which is used to hold the instant of time according to which an event occurs. Setter and getter methods are provided in order to manage this field.
@@ -588,9 +588,11 @@ However, in order to do that, required abstract method implementation is needed.
 \item \texttt{Class2JobArrival} class which models a class 2 job arrival.
 \item \texttt{Class1JobDeparture} class is used to model a class 1 job departure.
 \item \texttt{Class2JobDeparture} class for class 2 jobs departures.
+\item \texttt{PreviouslyInterruptedClass2JobArrival} this class (not displayed in class diagram shown in Figure \ref{fig:ClassDiagram}) represents a class 2 jobs arrival which is been previously interrupted on cloudlet node.
+\item \texttt{PreviouslyInterruptedClass2JobDeparture} like previous one but focused on class 2 jobs departure.
 \end{itemize}
 
-Any instance of above classes, having knowledge about methods published by \texttt{SystemComponent} class, can finally update states of any component of our system. In this way we can achieve an high degree of cohesion among classes and low coupling taking advantage of polymorphism pattern; in fact, as we can see also from shown class diagram, \texttt{ComputationalModel} class has to know only about \texttt{SimulationEvent} class and, thorough invocation of its methods, being able to update our system ignoring all specific information about our system.
+Any instance of above classes, having knowledge about methods published by \texttt{SystemComponent} class, can update states of any component of our system. In this way we can achieve an high degree of cohesion among classes and low coupling taking advantage of polymorphism pattern; in fact, as we can see also from shown class diagram, \texttt{ComputationalModel} class has to know only about \texttt{SimulationEvent} class and, thorough invocation of its methods, being able to update our system ignoring all specific information about our system.
 
 \subsection{Event list}
 
@@ -779,39 +781,56 @@ protected void performRoutingAlgorithm(SystemEvent event) {
 \begin{lstlisting}[frame=lines, caption={\texttt{performRoutingAlgorithm} method implementation concerning access control algorithm 2.},label={code:performRoutingAlgorithm2}]
 protected void performRoutingAlgorithm(SystemEvent event) {
 
-   int n1 = this.system.getNumberOfClass1JobOnCloudlet();
-   int n2 = this.system.getNumberOfClass2JobOnCloudlet();
+    int n1 = this.system.getNumberOfClass1JobOnCloudlet();
+    int n2 = this.system.getNumberOfClass2JobOnCloudlet();
 
-   if (event instanceof Class1JobArrival) {
+        if (event instanceof Class1JobArrival) {
 
-       if (n1 == this.system.getThreshold())
-           this.system.scheduleEventOnCloud(event, 0);
-       else if (n1 + n2 < this.system.getThreshold())
-           this.system.scheduleEventOnCloudlet(event, 0);
-       else if (n2 > 0) {
+            if (n1 == this.system.getThreshold())
+                this.system.scheduleEventOnCloud(event, 0);
+            else if (n1 + n2 < this.system.getThreshold())
+                this.system.scheduleEventOnCloudlet(event, 0);
+            else if (n2 > 0) {
 
-           this.system.removeFarthermostCloudletClass2JobDeparture();
+                double runningCloudletTimeOfInterruptedJob = this.system.removeCloudletClass2JobDeparture();
 
-           this.system.scheduleEventOnCloudlet(event, 0);
+                this.system.scheduleEventOnCloudlet(event, 0);
 
-           double setupTime = RandomNumberGenerator.getInstance().getExponential(5, 0.8);
+                double setupTime = RandomNumberGenerator.getInstance().getExponential(5, 0.8);
 
-           this.system.scheduleEventOnCloud(SystemEventFactory.buildClass2JobArrival(), setupTime);
+                this.system.scheduleEventOnCloud(SystemEventFactory.buildPreviouslyInterruptedClass2JobArrival(setupTime + runningCloudletTimeOfInterruptedJob), setupTime);
 
-           this.numberOfInterruptedClass2Jobs++;
+                this.numberOfInterruptedClass2Jobs++;
 
-        } else
-           this.system.scheduleEventOnCloudlet(event, 0);
-    } else {
+            } else
+                this.system.scheduleEventOnCloudlet(event, 0);
 
-        if ((n1 + n2) >= this.system.getThreshold())
-           this.system.scheduleEventOnCloud(event, 0);
-        else
-           this.system.scheduleEventOnCloudlet(event, 0);
+
+        } else {
+
+            this.numberOfTotalClass2Jobs++;
+
+            if ((n1 + n2) >= this.system.getThreshold())
+                this.system.scheduleEventOnCloud(event, 0);
+            else {
+                this.numberOfClass2JobsForwardedToCloudlet++;
+                this.system.scheduleEventOnCloudlet(event, 0);
+            }
+        }
     }
-}
 \end{lstlisting}
 
+\subsection{Class 2 job interruption management}
+
+Due to our system design, class 2 job interruption management is exactly the same to normal class 2 jobs handling, although there are very little differences concerning only statistic metric computation. 
+
+As previously said, to represent an interrupted class 2 job we have used two classes denoted \texttt{PreviouslyInterruptedClass2JobArrival} and \texttt{PreviouslyInterruptedClass2JobDeparture}, which are very similar to \texttt{Class2JobArrival} and  \texttt{Class2JobDeparture}. 
+
+However, unlike \texttt{Class2JobArrival} class, the \texttt{PreviouslyInterruptedClass2JobArrival} class has a very important \texttt{double} field, called \texttt{delay}, which is used to hold a time value representing the sum of \textit{how long it has been running on cloudlet before interruption} and of \textit{setup time}; this field is obviously necessary for statistic metric computation like time-average response time.
+
+As you can see from Listing \ref{code:performRoutingAlgorithm2}, when a class 2 job has to be interrupted on cloudlet, a method, called \texttt{removeCloudletClass2JobDeparture} is invoked. That method, in addition to delete a \texttt{Class2JobDeparture} occurrence on cloudlet note from event list, returns a \texttt{double} value representing how long the interrupted job has been running so far on cloudlet; to compute them, we can simply to subtract the value of current simulation time with time's instance corresponding to execution start time of the job on cloudlet node. Note that every \texttt{Class2JobDeparture} type instances hold a \texttt{double} value called \texttt{jobExecutionStartTime} representing execution start time of that job.
+
+There are no other conceptual differences respect to \texttt{Class2JobArrival}; the effects of the invocation of \texttt{perform} method using a \texttt{PreviouslyInterruptedClass2JobArrival} type instance has the same effect of using \texttt{Class2JobArrival} type instance because same update methods are invoked although in the first case other fields are updated in order to compute statistical metrics. To convince yourself of this, please refer to the code which is very self explanatory. 
 
 \subsection{Output analysis and graphics generation}
 
@@ -1091,29 +1110,29 @@ We can use previously computed stationary probabilities to get average populatio
 \begin{equation}
 \label{eq:cloudletAveragePopulation}
 \begin{array} {rcl} 
-E[N_{\text{cloudlet}}](1) & = & \displaystyle \sum_{ (n_1, n_2) \in M} n_1 \cdot \pi(n_1,n_2) \\\\
+E[N_{\text{cloudlet}}^{(1)}] & = & \displaystyle \sum_{ (n_1, n_2) \in M} n_1 \cdot \pi_{(n_1,n_2)}  \\\\
 
-E[N_{\text{cloudlet}}](2) & = & \displaystyle \sum_{ (n_1, n_2) \in M} n_2 \cdot \pi(n_1,n_2) \\\\
+E[N_{\text{cloudlet}}^{(2)}] & = & \displaystyle \sum_{ (n_1, n_2) \in M} n_2 \cdot \pi_{(n_1,n_2)}  \\\\
 
-E[N_{\text{cloudlet}}] & = & E[N_{\text{cloudlet}}](1) + E[N_{\text{cloudlet}}](2) \\\\
+E[N_{\text{cloudlet}}] & = & E[N_{\text{cloudlet}}^{(1)}] + E[N_{\text{cloudlet}}^{(2)}] \\\\
 
-& = & \displaystyle \sum_{ (n_1, n_2) \in M} (n_1 + n_2) \cdot \pi(n_1,n_2) \\\\
+& = & \displaystyle \sum_{ (n_1, n_2) \in M} (n_1 + n_2) \cdot \pi_{(n_1,n_2)} \\\\
 
 \end{array}
 \end{equation}
 
-Since we have modelled cloud component as a $M/M/\infty$ system, in which there is no job's waiting time due to presence of an infinite number of servers, we can simply to apply \textbf{Little’s Law}\footnote{\textit{Cfr.} \textit{Ivi}, pag. 95, theorem (6.1)} in order to get cloud's average population as shown in Equation \ref{equation:ALG-1}.
+Since we have modelled cloud component as a $M/M/\infty$ system, in which there is no job's waiting time due to presence of an infinite number of servers, we can simply to apply \textbf{Little’s Law}\footnote{\textit{Ibid.}, pag. 95, theorem (6.1)} in order to get cloud's average population as shown in Equation \ref{equation:ALG-1}.
 
 \begin{equation}
 \label{eq:cloudAveragePopulation1}
 \begin{array} {rcl} 
-E[N_{\text{cloud}}](1) & = & \lambda_{\text{cloud}}(1) \cdot E[T_{\text{cloud}}](1)  \\\\
+E[N_{\text{cloud}}^{(1)}] & = & \lambda_{\text{cloud}}^{(1)} \cdot E[T_{\text{cloud}}^{(1)}]  \\\\
 
-& = & \lambda_{\text{cloud}}(1) \cdot (E[T_{Q_{\text{cloud}}}](1) + E[S_{\text{cloud}}](1))  \\\\
+& = & \lambda_{\text{cloud}}^{(1)} \cdot (E[T_{Q_{\text{cloud}}}^{(1)}] + E[S_{\text{cloud}}^{(1)}])  \\\\
 
-& = & \lambda_{\text{cloud}}(1) \cdot (\frac{1}{\mu_{\text{cloud}}(1)}) \\\\
+& = & \lambda_{\text{cloud}}^{(1)} \cdot (\frac{1}{\mu_{\text{cloud}}^{(1)}}) \\\\
 
-& = & \dfrac{\lambda_{\text{cloud}}(1)}{\mu_{\text{cloud}}(1)} \\
+& = & \dfrac{\lambda_{\text{cloud}}^{(1)}}{\mu_{\text{cloud}}^{(1)}} \\
 
 \end{array}
 \end{equation}
@@ -1123,14 +1142,14 @@ Similarly:
 \begin{equation}
 \label{eq:cloudAveragePopulation2}
 \begin{array} {rcl} 
-E[N_{\text{cloud}}](2) & = & \dfrac{\lambda_{\text{cloud}}(2)}{\mu_{\text{cloud}}(2)}
+E[N_{\text{cloud}}^{(2)}] & = & \dfrac{\lambda_{\text{cloud}}^{(2)}}{\mu_{\text{cloud}}^{(2)}}
 \end{array}
 \end{equation}
 
 \begin{equation}
 \label{eq:cloudAveragePopulation3}
 \begin{array} {rcl} 
-E[N_{\text{cloud}}] & = & E[N_{\text{cloud}}](1) + E[N_{\text{cloud}}](2)
+E[N_{\text{cloud}}] & = & E[N_{\text{cloud}}^{(1)}] + E[N_{\text{cloud}}^{(2)}]
 \end{array}
 \end{equation}
 
@@ -1140,11 +1159,11 @@ Finally we can get global average job populations as follows:
 \label{eq:AveragePopulation}
 \begin{array} {rcl} 
 
-E[N](1) & = & E[N_{\text{cloudlet}}](1) + E[N_{\text{cloud}}](1) \\\\
+E[N^{(1)}] & = & E[N_{\text{cloudlet}}^{(1)}] + E[N_{\text{cloud}}^{(1)}] \\\\
 
-E[N](2) & = & E[N_{\text{cloudlet}}](2) + E[N_{\text{cloud}}](2) \\\\
+E[N^{(2)}] & = & E[N_{\text{cloudlet}}^{(2)}] + E[N_{\text{cloud}}^{(2)}] \\\\
 
-E[N] & = & E[N](1) + E[N](2) 
+E[N] & = & E[N^{(1)}] + E[N^{(2)}]
 
 \end{array}
 \end{equation}
@@ -1152,53 +1171,53 @@ E[N] & = & E[N](1) + E[N](2)
 
 \subsubsection{Average response time}
 
-Is $E[T_i](c)$ the \textbf{mean response time experienced by a class $c$ jobs into a component $i$}. 
+Is $E[T_x^{(c)}]$ the \textit{mean response time experienced by a class $c$ jobs into a component $x$}. 
 
 In order to properly compute said metric for each system's component observe that:
 \begin{itemize}
-\item Knowing per-class average job population and per-class mean arrival rates, we can easily compute $E[T_i](c)$ using Little’s Law.
-\item Since our system haven't queues, because of there is no waiting time experienced by jobs, is true that $E[T_i](c)$ is also equal to $E[S_i](c)$, that is \textbf{mean service time experienced by a class $c$ jobs into a component $i$}, which is equal to $1/\mu_i(c)$, where $\mu_i(c)$ \textbf{means average service rate at which a class $c$ jobs into a component $i$ is served}.
+\item Knowing per-class average job population and per-class mean arrival rates, we can easily compute $E[T_x^{(c)}]$ using Little’s Law.
+\item Since our system haven't queues, no waiting time is experienced by jobs, therefore is true that $E[T_x^{(c)}]$ is also equal to $E[S_x^{(c)}]$, that is \textit{mean service time experienced by a class $c$ jobs into a component $x$}, which is equal to $1/\mu_x^{(c)}$, where $\mu_x^{(c)}$ means average service rate at which a class $c$ jobs into a component $x$ is served.
 \end{itemize}
 
 Therefore we can get these metric as follows.
 
 \begin{equation}
 \begin{array} {rcl} 
-E[T_{\text{cloudlet}}](1) & = & \dfrac{E[N_{\text{cloudlet}}](1)}{\lambda_{\text{cloudlet}}(1)} \\\\
+E[T_{\text{cloudlet}}^{(1)}] & = & \dfrac{E[N_{\text{cloudlet}}^{(1)}]}{\lambda_{\text{cloudlet}}^{(1)}} \\\\
 
-& = & E[S_{\text{cloudlet}}](1) \\\\
+& = & E[S_{\text{cloudlet}}^{(1)}] \\\\
 
-& = & \dfrac{1}{\mu_{\text{cloudlet}}(1)} \\\\
+& = & \dfrac{1}{\mu_{\text{cloudlet}}^{(1)}} \\\\
 \end{array}
 \end{equation}
 
 \begin{equation}
 \begin{array} {rcl} 
-E[T_{\text{cloudlet}}](2) & = & \dfrac{E[N_{\text{cloudlet}}](2)}{\lambda_{\text{cloudlet}}(1)} \\\\
+E[T_{\text{cloudlet}}^{(2)}] & = & \dfrac{E[N_{\text{cloudlet}}^{(2)}]}{\lambda_{\text{cloudlet}}^{(2)}} \\\\
 
-& = & E[S_{\text{cloudlet}}](2) \\\\
+& = & E[S_{\text{cloudlet}}^{(2)}] \\\\
 
-& = & \dfrac{1}{\mu_{\text{cloudlet}}(2)} \\\\
+& = & \dfrac{1}{\mu_{\text{cloudlet}}^{(2)}} \\\\
 \end{array}
 \end{equation}
 
 \begin{equation}
 \begin{array} {rcl} 
-E[T_{\text{cloud}}](1) & = & \dfrac{E[N_{\text{cloud}}](1)}{\lambda_{\text{cloud}}(1)} \\\\
+E[T_{\text{cloud}}^{(1)}] & = & \dfrac{E[N_{\text{cloud}}^{(1)}]}{\lambda_{\text{cloud}}^{(1)}} \\\\
 
-& = & E[S_{\text{cloud}}](1) \\\\
+& = & E[S_{\text{cloud}}^{(1)}] \\\\
 
-& = & \dfrac{1}{\mu_{\text{cloud}}(1)} \\\\
+& = & \dfrac{1}{\mu_{\text{cloud}}^{(1)}} \\\\
 \end{array}
 \end{equation}
 
 \begin{equation}
 \begin{array} {rcl} 
-E[T_{\text{cloud}}](2) & = & \dfrac{E[N_{\text{cloud}}](2)}{\lambda_{\text{cloud}}(2)} \\\\
+E[T_{\text{cloud}}^{(2)}] & = & \dfrac{E[N_{\text{cloud}}^{(2)}]}{\lambda_{\text{cloud}}^{(2)}} \\\\
 
-& = & E[S_{\text{cloud}}](2) \\\\
+& = & E[S_{\text{cloud}}^{(2)}] \\\\
 
-& = & \dfrac{1}{\mu_{\text{cloud}}(2)} \\\\
+& = & \dfrac{1}{\mu_{\text{cloud}}^{(2)}} \\\\
 \end{array}
 \end{equation}
 
@@ -1206,11 +1225,11 @@ At this point we can get global per-class mean response times as follows:
 
 \begin{equation}
 \begin{array} {lcl} 
-E[T](1) & = & E[T_{\text{cloudlet}}](1)\cdot P\lbrace\text{An arrival class 1 job is sent to cloudlet}\rbrace \\
+E[T^{(1)}] & = & E[T_{\text{cloudlet}}^{(1)}] \cdot P\lbrace\text{An arrival class 1 job is sent to cloudlet}\rbrace \\
 \\
-& & +\; E[T_{\text{cloud}}](1)\cdot P\lbrace\text{An arrival class 1 job is sent to cloud}\rbrace \\
+& & +\; E[T_{\text{cloud}}^{(1)}] \cdot P\lbrace\text{An arrival class 1 job is sent to cloud}\rbrace \\
 \\
-& = & E[T_{\text{cloudlet}}](1)\cdot \Pi_{\text{SendToCloudlet}} + E[T_{\text{cloud}}](1)\cdot \Pi_{\text{SendToCloud}} \\
+& = & E[T_{\text{cloudlet}}^{(1)}] \cdot \Pi_{\text{SendToCloudlet}} + E[T_{\text{cloud}}^{(1)}] \cdot \Pi_{\text{SendToCloud}} \\
 
 \end{array}
 \end{equation}
@@ -1219,11 +1238,11 @@ Similarly:
 
 \begin{equation}
 \begin{array} {lcl} 
-E[T](2) & = & E[T_{\text{cloudlet}}](2)\cdot P\lbrace\text{An arrival class 2 job is sent to cloudlet}\rbrace \\
+E[T^{(2)}] & = & E[T_{\text{cloudlet}}^{(2)}] \cdot P\lbrace\text{An arrival class 2 job is sent to cloudlet}\rbrace \\
 \\
-& & +\; E[T_{\text{cloud}}](2)\cdot P\lbrace\text{An arrival class 2 job is sent to cloud}\rbrace \\
+& & +\; E[T_{\text{cloud}}^{(2)}] \cdot P\lbrace\text{An arrival class 2 job is sent to cloud}\rbrace \\
 \\
-& = & E[T_{\text{cloudlet}}](2)\cdot \Pi_{\text{SendToCloudlet}} + E[T_{\text{cloud}}](2)\cdot \Pi_{\text{SendToCloud}} \\
+& = & E[T_{\text{cloudlet}}^{(2)}] \cdot \Pi_{\text{SendToCloudlet}} + E[T_{\text{cloud}}^{(2)}] \cdot \Pi_{\text{SendToCloud}} \\
 
 \end{array}
 \end{equation}
@@ -1231,10 +1250,10 @@ E[T](2) & = & E[T_{\text{cloudlet}}](2)\cdot P\lbrace\text{An arrival class 2 jo
 Finally, using obtained results, we can get global mean response times as shown below:
 
 \begin{equation}
-E[T] = E[T](1) \cdot \dfrac{\lambda_1}{\lambda_1 + \lambda_2} + E[T](2) \cdot \dfrac{\lambda_2}{\lambda_1 + \lambda_2}
+E[T] = E[T^{(1)}] \cdot \dfrac{\lambda_1}{\lambda_1 + \lambda_2} + E[T^{(2)}] \cdot \dfrac{\lambda_2}{\lambda_1 + \lambda_2}
 \end{equation}
 
-\subsubsection{Throughput}\ref{subsub:throughput}
+\subsubsection{Throughput}
 
 To determine system's throughput let's prove if our system is stable.
 As we know, every queueing system in which its mean arrival rate is less than its mean service rate is known as a stable system; formally, are $\lambda$ and $\mu$ our system's mean arrival rate and mean service rate respectively, if $\lambda \leq \mu$, given system is stable.
@@ -1527,25 +1546,35 @@ Then we can get $\lambda_x$, that is total arrival rate to system's component $x
 
 \subsubsection{Other metrics}
 
-In order to compute $E[N_x]^{(c)}$ and $E[T_x]^{(c)}$, respectively time-averaged population and response time of class $c$ jobs running in a $x$ system's node, is possible to  use same equations described in previous section because, although stationary probabilities and arrival rates have different numeric values due to different routing policy, there are no conceptual differences between the two kind of system.
-Analytical methods used to computed system throughput are still valid.
+In order to compute $E[N_x]^{(c)}$ and $E[T_x]^{(c)}$, respectively averaged population and response time of class $c$ jobs running in a $x$ system's node, is possible to use same equations described in previous section because, although stationary probabilities and arrival rates have different numeric values, due to different routing policy, there are no conceptual differences about computation of those metrics.
 
-Regarding $E[T]^{(2)}$, that is time-averaged response time experienced by class 2 jobs, there are, instead, some conceptual differences due to jobs interruptions. Formally:
+Analytical methods used to compute system throughput are pretty the same as those used in previous section. The only difference lies in cloudlet class 2 throughput  $X_{\text{cloudlet}}^{(2)}$ computation, computable using equation shown below:
+
+\begin{equation}
+\begin{array} {lcl} 
+X_{\text{cloudlet}}^{(2)} & = & \lambda_{\text{cloudlet}}^{(2)} - \lambda_{\text{cloudlet}}^{(2)} \cdot \Pi_{\text{interruption}}^{(2)}
+\end{array}
+\end{equation}
+
+Regarding instead $E[T]^{(2)}$, that is global averaged response time experienced by class 2 jobs, there are, instead, some conceptual differences due to jobs interruptions. Formally:
 
 
 \begin{equation}
 \begin{array} {lcl} 
 E[T]^{(2)}  & = & \Pi_{\text{SendToCloud}}^{(2)} \cdot E[T_{\text{cloud}}^{(2)}] \; +  \\
 & & \Pi_{\text{SendToCloudlet}}^{(2)} \cdot \bigg( \Pi_{\text{interruption}}^{(2)}\cdot(E[S_{setup}] + E[T_{\text{cloud}}^{(2)}]) + (1-\Pi_{\text{interruption}}^{(2)}) \cdot E[T_{\text{cloudlet}}^{(2)}] \bigg)
-
-
-
 \end{array}
 \end{equation}
 
+Finally, in order to compute average response time relating to interrupted class 2 jobs only, denoted with $E[T]^{(2)}_{\text{interrupted}}$, we can simply proceed as shown below:
 
+\begin{equation}
+\begin{array} {lcll} 
+E[T]^{(2)}_{\text{interrupted}}  & = & E[S_{\text{setup}}] + E[T_{\text{cloud}}^{(2)}] + \alpha \cdot E[T_{\text{cloudlet}}^{(2)}] & \quad \forall \alpha \in \mathbb{R} \mid 0 \leq \alpha \leq 1
+\end{array}
+\end{equation}
 
-
+In order to compute the fraction of time during which interrupted class 2 job was running on the cloudlet, we have used an attenuation factor $\alpha$ which value, determined experimentally, is equal to $0.649$.
 
 
 \newpage
@@ -2581,12 +2610,10 @@ means, computed analytically, lie in our 95\% confidence interval estimates.
 
 \section{Conclusions: which routing policy is better?}
 
-
+In this last section we will compare performance achieved by both routing policies used to build our system. 
 
 \subsection{Time Average population comparison}
-Let's start our comparison from time average job population point of view.
-
-In order to do that is very important to observe Figure \ref{fig:Class1JobsNumberComparasion}, in which are represented some scatter plots used to show time average job population trend over simulation time; represented data are related both to the case in which the system uses routing policy based on Algorithm \ref{alg:accessControlAlgorithm1} and Algorithm \ref{alg:accessControlAlgorithm2}.
+Let's start our comparison from a time average job population point of view observing Figure \ref{fig:Class1JobsNumberComparasion} and Figure \ref{fig:Class2JobsNumberComparasion}, in which are represented scatter plots about both cases according to which our system uses routing policy based on Algorithm \ref{alg:accessControlAlgorithm1} or Algorithm \ref{alg:accessControlAlgorithm2}.
 
 \begin{figure}[h!]
     \centering
@@ -2607,9 +2634,10 @@ In order to do that is very important to observe Figure \ref{fig:Class1JobsNumbe
 \end{figure}
 
 As we expect, when we are using a routing policy based on Algorithm \ref{alg:accessControlAlgorithm2}, the number of class 1 jobs in cloudlet node (Figure \ref{fig:Class1JobsNumberComparasion} (a)) increases a lot while decreases dramatically in reference to cloud node, which is almost empty (Figure \ref{fig:Class1JobsNumberComparasion} (b)).
-This consideration is reversed observing figure \ref{fig:Class2JobsNumberComparasion}, focused on time average class 2 jobs population.  
 
-In general, in a system whose routing policy is based on Algorithm \ref{alg:accessControlAlgorithm2}, time-average number of jobs is less than the other case because that routing policy is able to make better use of the performance achieved by cloudlet node when in it class 1 jobs are running. Obviously all considerations made so far are confirmed by the analytical results.
+Regarding class 2 jobs population, the situation is practically reversed respect to previous case.
+
+In general, in a system whose routing policy is based on Algorithm \ref{alg:accessControlAlgorithm2}, time-average number of jobs is less than the other case because that routing policy is able to make better use of the performance achieved by cloudlet node when in it class 1 jobs are running. To convince yourself about that, observe Figure \ref{fig:JobsNumberComparasion}.
 
 \begin{figure}[h!]
     \centering
@@ -2620,9 +2648,13 @@ In general, in a system whose routing policy is based on Algorithm \ref{alg:acce
     \label{fig:JobsNumberComparasion}
 \end{figure}
 
+Obviously all considerations made so far are confirmed by the analytical results.
+
 \subsection{Time Average service/response time comparison}
 
-Since class 1 jobs execution on the cloudlet is just more convenient, mobile devices users experience a lower delay when routing policy is based on Algorithm \ref{alg:accessControlAlgorithm2} (\ref{fig:Class1Class2ServiceTimeComparasion} (a)).; this true because, as we previously saw, that algorithm gives more priority to class 1 jobs in order to be performed in cloudlet node respect to the other class, whose jobs experience, instead, a longer time average response time due to interruptions and set-up time required for restating (\ref{fig:Class1Class2ServiceTimeComparasion} (b)).
+Since class 1 jobs execution on the cloudlet is just more convenient respect to class 2 jobs, mobile devices users experience a lower delay when routing policy is based on Algorithm \ref{alg:accessControlAlgorithm2} (Figure \ref{fig:Class1Class2ServiceTimeComparasion} (a)).
+
+This statement is true because that algorithm gives more priority to class 1 jobs in order to be performed in cloudlet node respect to the other class, whose jobs experience, instead, a longer time average response time due to interruptions and set-up time required for restating (Figure \ref{fig:Class1Class2ServiceTimeComparasion} (b)).
 
 \begin{figure}[h!]
     \centering
@@ -2633,20 +2665,22 @@ Since class 1 jobs execution on the cloudlet is just more convenient, mobile dev
     \label{fig:Class1Class2ServiceTimeComparasion}
 \end{figure}
 
-In general, using a routing policy based on Algorithm \ref{alg:accessControlAlgorithm2}, observing both analytical results and Figure \ref{fig:Class1Class2ServiceTimeComparasion} (c), we, as users, can experience a lower average response time.
-
-
-\begin{figure}[h!]
-    \centering
-    \subfloat[]{\includegraphics[width=7cm]{./Compare/ScatterPlotGlobalNetwork_Special_WaitVersusNumber.png}}
-    \caption{Global Time-Average service/response time trend over Global Time-Average Jobs Population}%
-    \label{fig:Class1Class2ServiceTimeComparasion}
-\end{figure}
+In general, when we are using a routing policy based on Algorithm \ref{alg:accessControlAlgorithm2}, according to analytical results and data displayed in Figure \ref{fig:Class1Class2ServiceTimeComparasion} (c), users can experience a lower average response time.
 
 \subsection{Throughput comparison}
 
-As consequence of what has been said so far about a system whose routing policy based on Algorithm \ref{alg:accessControlAlgorithm2}, is normal to expect an higher throughput
-of cloudlet node; that consideration is confirmed by analytical results too.
+In previous subsection we have demonstrated that both average population and response time are lower when we are using a routing policy based on Algorithm \ref{alg:accessControlAlgorithm2}. What can we say about throughput? 
+
+Is normal to expect same global throughout when we are use both routing policies; obviously there are no differences because, due of system stability, throughput depends on arrival rates only; changing in routing policy cannot alter global system throughput; To realize it, just look Figure \ref{fig:Throughput}.
+
+\begin{figure}[h!]
+    \centering
+    \subfloat[]{\includegraphics[width=7cm]{./Compare/ScatterPlotGlobalNetwork_Throughput.png}}
+    \caption{Global Throughput}%
+    \label{fig:Throughput}
+\end{figure}
+
+However, per-component and per-class throughout values aren't the same, because different routing policies give rise to different per-component and per-class arrival rates. Give a look to Figure \ref{fig:CloudletThroughput} and {fig:CloudThroughput} in order to see differences.
 
 \begin{figure}[h!]
     \centering
@@ -2667,13 +2701,13 @@ of cloudlet node; that consideration is confirmed by analytical results too.
     \label{fig:CloudThroughput}
 \end{figure}
 
-What can we say about global throughput? Obviously there are no differences because, due of its stability, throughput depends on arrival rates only; changing in routing policy cannot alter global system throughput; To realize it, just look Figure \ref{fig:Throughput}.
+\subsection{Other comparison}
 
 \begin{figure}[h!]
     \centering
-    \subfloat[]{\includegraphics[width=7cm]{./Compare/ScatterPlotGlobalNetwork_Throughput.png}}
-    \caption{Global Throughput}%
-    \label{fig:Throughput}
+    \subfloat[]{\includegraphics[width=7cm]{./Compare/ScatterPlotGlobalNetwork_Special_WaitVersusNumber.png}}
+    \caption{Global Time-Average service/response time trend over Global Time-Average Jobs Population}%
+    \label{fig:SPECIAL}
 \end{figure}
 
 \end{document}
