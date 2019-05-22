@@ -534,9 +534,6 @@ Let's start now the description of our system \textit{computational model} in wh
 
 Our model is been implemented using Java programming languages, which source code is fully available on GitHub\footnote{Source code available on \texttt{https://github.com/AndreaG93/PMCSN-Project}}, famous web-based hosting service for version control using \texttt{git}; we remind that \LaTeX\ source code of this report is available too.\footnote{See \texttt{https://github.com/AndreaG93/PMCSN-Project-Report}}
 
-
-
-
 \begin{figure}[H]
 \includegraphics[width=\textwidth]{ClassDiagram}
 \centering
@@ -853,11 +850,6 @@ private void computeMeanAndStandardDeviation() {
             diff = value - this.mean;
             sum += Math.pow(diff, 2) * ((n - 1.0) / n);
             this.mean += diff / n;
-
-            if (value > max)
-                max = value;
-            else if (value < min)
-                min = value;
         }
 
         this.standardDeviation = Math.sqrt(sum / n);
@@ -867,13 +859,9 @@ private void computeMeanAndStandardDeviation() {
 Data output graphics generation is the duty 
 BatchMeans, ScatterPlot, Histograms, EnsembleStatistic . Each existing instance of above classes is used to collect one type data, like job population or throughput, during a simulation in order to generate output graphics.
 
- 
-
 From software engineering point of view, all these classes are designed using the \textit{registry pattern}\footnote{See \texttt{https://martinfowler.com/eaaCatalog/registry.html}} because, besides being easy to implement, it guaranties to retrieve a reference to a specific   graphics object in a very simple way using its name only, reducing at the same time coupling among classes. 
 
 We prefer to omit a detail descriptions of Java classes involved into MATLAB graphics generation because they are just scripts and therefore not relevant from conceptual point of view. 
-
-
 
 \newpage
 \section{Analytical solution}
@@ -2608,6 +2596,25 @@ means, computed analytically, lie in our 95\% confidence interval estimates.
 \end{figure}
 \restoregeometry 
 
+% ------------------------------------------------------------------------------------------------------------ %
+% Interrupted jobs
+% ------------------------------------------------------------------------------------------------------------ %
+
+\subsubsection{Class 2 interrupted jobs}
+
+According to our experimental results, percentage of interrupted class 2 jobs, respectively to all class 2 jobs accepted on cloudlet node, is approximately equal to $35,83\%$ with an error of $0,20\%$.
+
+Form a global point of view, that is respectively to all class 2 jobs accepted on system, that percentage is  approximately equal to $22.97\%$ with an error of $0.12\%$.
+
+\begin{figure}[h!]
+    \centering
+    \subfloat[Respect to class 2 job accepted on cloudlet]{{\includegraphics[width=6.5cm]{./GraphicsAlg2/EnsembleStatisticsInterruptedClass2JobsNumberPercentage.png} }}%
+    \subfloat[Respect to class 2 job accepted globally]{{\includegraphics[width=6.5cm]{./GraphicsAlg2/EnsembleStatisticsInterruptedClass2JobsNumberPercentageGlobal.png} }}%
+\end{figure}
+
+
+\newpage
+
 \section{Conclusions: which routing policy is better?}
 
 In this last section we will compare performance achieved by both routing policies used to build our system. 
@@ -2680,7 +2687,7 @@ Is normal to expect same global throughout when we are use both routing policies
     \label{fig:Throughput}
 \end{figure}
 
-However, per-component and per-class throughout values aren't the same, because different routing policies give rise to different per-component and per-class arrival rates. Give a look to Figure \ref{fig:CloudletThroughput} and {fig:CloudThroughput} in order to see differences.
+However, per-component and per-class throughout values aren't the same, because different routing policies give rise to different per-component and per-class arrival rates. Give a look to Figure \ref{fig:CloudletThroughput} and \ref{fig:CloudThroughput} in order to see differences.
 
 \begin{figure}[h!]
     \centering
@@ -2701,7 +2708,7 @@ However, per-component and per-class throughout values aren't the same, because 
     \label{fig:CloudThroughput}
 \end{figure}
 
-\subsection{Other comparison}
+\subsection{Other graphics}
 
 \begin{figure}[h!]
     \centering
