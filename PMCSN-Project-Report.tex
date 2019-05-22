@@ -1109,7 +1109,7 @@ E[N_{\text{cloudlet}}] & = & E[N_{\text{cloudlet}}^{(1)}] + E[N_{\text{cloudlet}
 \end{array}
 \end{equation}
 
-Since we have modelled cloud component as a $M/M/\infty$ system, in which there is no job's waiting time due to presence of an infinite number of servers, we can simply to apply \textbf{Little’s Law}\footnote{\textit{Ibid.}, pag. 95, theorem (6.1)} in order to get cloud's average population as shown in Equation \ref{equation:ALG-1}.
+Since we have modelled cloud component as a $M/M/\infty$ system, in which there is no job's waiting time due to presence of an infinite number of servers, we can simply to apply \textbf{Little’s Law}\footnote{\textit{Ibid.}, pag. 95, theorem (6.1)} in order to get cloud's average population.
 
 \begin{equation}
 \label{eq:cloudAveragePopulation1}
@@ -1825,22 +1825,6 @@ In order to represent analytical solutions we have used two MATLAB functions cal
 	 &&\\\hline &&\\
 	
 	 $\lambda_{cloud}$, $X_{cloud}$ & $3.664033650$ &  To big to be represented! \\
-
-     &&\\\hline &&\\
-     
-     $E[N^{(1)}_{cloudlet}]$ & $8.884108755$ & $\dfrac{11625219056649311918394581647083920}{1308540831314824230819390435296941}$ \\
-     
-     &&\\\hline &&\\
-     
-     $E[N^{(2)}_{cloudlet}]$ & $9.608670684$ & To big to be represented! \\
-     
-	 &&\\\hline &&\\
-     
-     $E[N_{cloudlet}]$ & $18.492779440$ & To big to be represented! \\     
-     
-	 &&\\\hline &&\\
-     
-     $E[N^{(1)}_{cloud}]$ & $0.008604239$ & $\dfrac{4960006533878655}{576460752303423488}$ \\
   
      &&\\
 
@@ -1854,7 +1838,7 @@ In order to represent analytical solutions we have used two MATLAB functions cal
 
 
 \begin{table}[h!]
-\caption{Analytical results of Algorithm 2 based system. (Part 1)}
+\caption{Analytical results of Algorithm 2 based system. (Part 2)}
 \begin{adjustbox}{center=\textwidth}
 	
      \begin{tabular}{c|c|c}
@@ -1863,6 +1847,22 @@ In order to represent analytical solutions we have used two MATLAB functions cal
      \toprule
 	 
 	 &&\\
+
+$E[N^{(1)}_{cloudlet}]$ & $8.884108755$ & $\dfrac{11625219056649311918394581647083920}{1308540831314824230819390435296941}$ \\
+     
+     &&\\\hline &&\\
+     
+     $E[N^{(2)}_{cloudlet}]$ & $9.608670684$ & To big to be represented! \\
+     
+	 &&\\\hline &&\\
+     
+     $E[N_{cloudlet}]$ & $18.492779440$ & To big to be represented! \\     
+     
+	 &&\\\hline &&\\
+     
+     $E[N^{(1)}_{cloud}]$ & $0.008604239$ & $\dfrac{4960006533878655}{576460752303423488}$ \\
+
+&&\\\hline &&\\
 
 	 $E[N^{(2)}_{cloud}]$ & $16.644920866$ & To big to be represented! \\
 
@@ -1906,7 +1906,27 @@ In order to represent analytical solutions we have used two MATLAB functions cal
      
      $E[T_{cloud}]$, $E[S_{cloud}]$ & $4.545134323$ & To big to be represented!  \\
 
-	 &&\\\hline &&\\
+
+	 
+	 &&\\
+
+     \bottomrule
+
+    \end{tabular}
+    \end{adjustbox}
+\end{table}
+
+\begin{table}[h!]
+\caption{Analytical results of Algorithm 2 based system. (Part 3)}
+\begin{adjustbox}{center=\textwidth}
+	
+     \begin{tabular}{c|c|c}
+     \toprule
+     \textbf{Variable} & \textbf{Approximate value} & \textbf{Symbolic variable representation} \\
+     \toprule
+	 
+	 &&\\
+
 
 	 $E[T^{(1)}]$, $E[S^{(1)}]$ & $2.223178248$ & $\dfrac{46136700210409393015}{20752587082923245568}$  \\
 
@@ -1917,7 +1937,7 @@ In order to represent analytical solutions we have used two MATLAB functions cal
 	 &&\\\hline &&\\
 
 	 $E[T]$, $E[S]$ & $3.538386577$ & To big to be represented!  \\
-	 
+
 	 &&\\
 
      \bottomrule
@@ -1925,6 +1945,7 @@ In order to represent analytical solutions we have used two MATLAB functions cal
     \end{tabular}
     \end{adjustbox}
 \end{table}
+
 
 \clearpage
 \newpage
