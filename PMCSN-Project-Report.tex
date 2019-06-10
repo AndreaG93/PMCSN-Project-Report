@@ -655,7 +655,7 @@ Remember that \texttt{ComputationalModel} is an abstract class which knows anyth
 
 \item[Statistic update] While simulation advance from one event time to the next, through an invocation to an abstract method called \texttt{updateStati\-stics}, is possible to update some variables for system's statistic metrics computation.
 
-\item[Simulation result generation] During this final step, all collected data are elaborated using various approaches, producing some statistic metrics including graphics like histograms or scatter plots. We will examine involved classes later.
+\item[Simulation result generation] During this final step, all collected data are elaborated using various approaches, producing some statistic metrics including graphics like histograms or scatter plots.
 \end{description}
 
 \begin{lstlisting}[frame=lines, caption={Snippet of \texttt{perform} method}, label={code:perform}]
@@ -829,9 +829,14 @@ As you can see from Listing \ref{code:performRoutingAlgorithm2}, when a class 2 
 
 There are no other conceptual differences respect to \texttt{Class2JobArrival}; the effects of the invocation of \texttt{perform} method using a \texttt{PreviouslyInterruptedClass2JobArrival} type instance has the same effect of using \texttt{Class2JobArrival} type instance because same update methods are invoked although in the first case other fields are updated in order to compute statistical metrics. To convince yourself of this, please refer to the code which is very self explanatory. 
 
-\subsection{Output analysis and graphics generation}
+\subsection{Data analysis and graphics generation}
 
-In order to properly show all collected data and computed statistics, a very large set of graphics, including scatter plots, histograms and others, are automatically generated using various Java scripts; the total number of generated graphics is 92! 
+In section \ref{sec:ModelValidation} we will provide details about approaches used for data output analysis from a theoretical point of view. 
+
+As we will analyse in detail later, our application performs a \textit{finite-horizon simulation} and therefore is very important to perform many simulation replication varying the \texttt{rngs} initial states from run to run; the  
+\texttt{RandomNumberGenerator} class, which provides very important method about random number generation, has the responsibility to do that.
+
+For better comprehension, all computed simulation results are been displayed using a very large set of graphics, including scatter plots and histograms, which are automatically generated using various Java scripts.
 
 All Java classes, containing logic used to produce all aforesaid graphics, are located into \texttt{outputanaylisis} Java package where the most important is \texttt{Statistics} class whose purpose is to generate various statistics, like mean or standard deviation, from \texttt{double} type raw input data. 
 
@@ -859,7 +864,7 @@ private void computeMeanAndStandardDeviation() {
 Data output graphics generation is the duty 
 BatchMeans, ScatterPlot, Histograms, EnsembleStatistic . Each existing instance of above classes is used to collect one type data, like job population or throughput, during a simulation in order to generate output graphics.
 
-From software engineering point of view, all these classes are designed using the \textit{registry pattern}\footnote{See \texttt{https://martinfowler.com/eaaCatalog/registry.html}} because, besides being easy to implement, it guaranties to retrieve a reference to a specific   graphics object in a very simple way using its name only, reducing at the same time coupling among classes. 
+From software engineering point of view, all these classes are designed using the \textit{registry pattern}\footnote{See \texttt{https://martinfowler.com/eaaCatalog/registry.html}} because, besides being easy to implement, it guaranties to retrieve a reference to a specific graphics object in a very simple way using its name only, reducing at the same time coupling among classes. 
 
 We prefer to omit a detail descriptions of Java classes involved into MATLAB graphics generation because they are just scripts and therefore not relevant from conceptual point of view. 
 
@@ -1955,11 +1960,26 @@ Our computational model is been verified by an extensive testing process, made u
 
 \section{Model validation}\label{sec:ModelValidation}
 
-Model validation was performed by comparing simulation results with previously described analytical results
+Our application performs a \textit{finite-horizon simulation}, that is a discrete-event simulation for which the simulated operational time is finite.\footnote{Lawrence M. Leemis, Stephen K. Park, \textit{Discrete-Event Simulation: A First Course} (Pearson; 1 edition January 6, 2006), - pag. 369}
 
-Based on our results, verified computational model is a reasonable approximation of required system; in mostly all cases, 
-means, computed analytically, lie in our 95\% confidence interval estimates. 
+Observe that if a discrete-event simulation is \textit{repeated}, varying only the \texttt{rngs} initial states from run to run, as we have do in our computational model, then each run of the simulation program is a \textit{replication} and the totality of replications is said to be an \textit{ensemble}. Moreover, each ensemble's replication produces an independent observation of a transient statistic of interest and these observations can be combined to produce a \textit{point and interval estimate}\footnote{\textit{Ibid.} - pag 373}.
 
+Our finite-horizon simulation is replicated 10 times, each time generating time-averaged transient statistic $x_i$, where $i = 1,2,...,n$ is the replication index within the ensemble. Each data point $x_i$ represents then an independent observation of the random variable $X$. Since we are interested to obtain the expected value of $E[X]$,  a \textit{point estimation} of this transient statistic is available as an \textit{ensemble average}, even if $n$ is not large. Formally:
+\begin{equation}
+E[X] = \dfrac{1}{n} \cdot \sum_{i=1}^{n} x_i
+\end{equation}
+
+Moreover, a 95\% confidence interval estimate for $E[X]$ is been calculated from the ensemble mean and standard deviation. \footnote{\textit{Ibid.} - Algorithm 8.1.1 - pag 354}
+
+Observe that the exact \textit{steady-state} value, determined by analytic methods, is properly indicated in every graphics produced by our application; since mostly all steady-state value indicators are interior to 95\% confidence interval estimate, we can say that our computational model is a reasonable approximation of required system because it can produce statistics that are very close to their steady-state values.\footnote{\textit{Ibid.} - pag. 374}
+
+Although replicated finite-horizon statistics can be used to generate accurate steady-state interval estimates,  there is however an initial bias problem with this technique (each replication was initialized with the same system state)\footnote{\textit{Ibid.} - pag 378}; therefore, we have used another interval estimation technique too: \textit{batch means method}.
+
+With this method, the initial state bias is eliminated because the statistics for each batch (other than the first) are naturally initialized to the state of the system at the time the statistical counters for the batch are reset.\footnote{\textit{Ibid.}}
+
+We have repeated batch means method 10 times setting, for every statistic of interest, a batch size fixed to 4096 data points. Our results suggest that most of these interval estimates brackets the true analytically computed steady-state value, resulting in an actual coverage of 95%. 
+
+However, in some cases, due to an incorrect data batching, our results lead to unrealistically small variance estimates, resulting that confidence interval estimate, alleged to have 95\% confidence, appears to have a coverage less than 95%.
 
 \clearpage
 \newpage
