@@ -59,10 +59,10 @@ breaklines=true
 \Corso[Laurea Magistrale]{Ingegneria Informatica} 
 \Annoaccademico{2018--2019} 
 \Titolo{Performance Modeling of\\Computer Systems and Networks\\Project}
-\NCandidato{Studente} 
+\NCandidato{Studenggggggte} 
 \Candidato[0273395]{Andrea Graziani} 
 \NRelatore{Docente}{} 
-\Relatore{Prof. Vittoria de Nitto Personè} 
+\Relatore{Vittoria de Nitto Personè} 
 \end{frontespizio} 
 
 \tableofcontents
@@ -84,8 +84,6 @@ Obviously we will compare results obtained by our simulations when based on diff
 
 \newpage
 \section{Conceptual Model}
-
-
 
 \begin{figure}[h!]
 \begin{tikzpicture}
@@ -181,7 +179,7 @@ Obviously we will compare results obtained by our simulations when based on diff
 
 
 
-As known, building a system's \textit{conceptual model} means to describe it highlighting which state variables are important specifying how they are interrelated.\footnote{\textit{Ibid.}}
+As known, building a system's \textit{conceptual model} means to describe it highlighting which state variables are important and specifying how they are interrelated.\footnote{\textit{Ibid.}}
 
 Our system represents a network of nodes to which some applications, running in a set of external mobile devices, send their tasks, called \textit{jobs} or \textit{task}, because of performance or energy saving reasons. Not all jobs sent to system are the same, in fact we distinguish two job's class types, that is \textit{class 1} and \textit{class 2} job's types.
 
@@ -190,24 +188,23 @@ To minimize mean response time experienced by mobile device users, the system is
 To be more precise, as you can see from figure \ref{figure:SystemDiagram}, our system is made up of a set of nodes including:
 
 \begin{description}
-\item[Cloudlet node] Also called \textit{edge cloud server}, it is a computer cluster located at an "\textit{one-hop}" distance from mobile devices users, that is very close to them, therefore network delay experienced is very low. That cluster is able to guarantee absence of interferences among tasks allocated to it as long as their number does not exceed a given threshold $N$. 
+\item[Cloudlet node] Also called \textit{edge cloud server}, it is a computer cluster located at an ``\textit{one-hop}" distance from mobile devices users, that is very close to them, therefore network delay experienced by users is very low. That cluster is able to guarantee absence of interferences among tasks allocated to it as long as their number does not exceed a given threshold $N$. 
 
 Consequently, from our conceptual model point of view, cloudlet node represents a \textit{fixed-capacity multi-server service node with no queue} which capacity, that is the maximum possible number of jobs in it, is fixed to $N$. 
 
-Since jobs inter-arrival times and service times are \textit{exponentially} distributed according to our project specification, a queuing model able to properly represent that node is the M/M/N/N queueing model system\footnote{Mor Harchol-Balter, \textit{Performance Modeling and Design of Computer Systems} (Carnegie Mellon University, Pennsylvania 2013), 255-256} although there is a very important different with it: due to adopted routing policies, when cloudlet node is "\textit{full}" and so not capable to run a further job, any arriving job is forwarded somewhere else rather than to cloudlet node, therefore no jobs are really lost.
+Since jobs inter-arrival times and service times are \textit{exponentially} distributed according to our project specification, a queuing model able to properly represent that node is the M/M/N/N queueing model system\footnote{Mor Harchol-Balter, \textit{Performance Modeling and Design of Computer Systems} (Carnegie Mellon University, Pennsylvania 2013), 255-256} although there is a very important different with it: due to adopted routing policies, when cloudlet node is ``\textit{full}", therefore incapable to run any further job, any arriving task is forwarded somewhere else rather than dropped, therefore no jobs are really lost.
 
-\item[Cloud node] Also called \textit{remote cloud server}, it is another computer cluster which, although it \textit{suffers for greater network delay}, due of its high distance from mobile devices, being virtually made up of unlimited number of servers, has \textit{unlimited resources}, therefore it can to process any number of tasks allocated to it. 
+\item[Cloud node] Also called \textit{remote cloud server}, it is another computer cluster which, although it \textit{suffers for greater network delay} due to its high distance from mobile devices, being virtually made up of unlimited number of servers, has \textit{unlimited resources}, therefore it can process any number of tasks allocated to it. 
 
 Consequently we had modelled this system's node as an \textit{unlimited-capacity multi-server service node with no queue}. 
 
-Since, as we previously said, jobs inter-arrival and service times are exponential, due to the presence of an infinite number of server, such a system's node can be modelled by  a M/M/$\infty$ queueing model system.\footnote{\textit{Ibid.}, 271}. 
+Since, as we previously said, jobs inter-arrival and service times are exponential, due to the presence of an infinite number of server, such a system's node can be modelled by a M/M/$\infty$ queueing model system.\footnote{\textit{Ibid.}, 271}. 
 
-
-\item[Controller node] It represents system's entry point being all arriving jobs sent firstly to it by mobile devices. Its duty is to decide about whether an arrived job should be sent to cloudlet or cloud node according to adopted routing policy.
+\item[Controller node] It represents system's entry point since \textit{all} arriving jobs are sent to it by mobile devices. Its duty is to decide about whether an arrived job should be sent to cloudlet or cloud node according to adopted routing policy.
 
 It is located at the same distance of cloudlet node from mobile devices users, therefore, also in this case, network delay experienced is very low. Although it can run only one job at a time, it has the capability to process each arriving job \textit{instantaneously}. 
 
-We have simply modelled it as \textit{single-server service node with no queue}. It's correspondent queuing model system is M/M/1.
+We have simply modelled it as a \textit{single-server service node with no queue}. It's correspondent queuing model system is M/M/1.
 
 \end{description}
 
@@ -235,12 +232,11 @@ We have simply modelled it as \textit{single-server service node with no queue}.
 
 At this point, in order to properly define our conceptual model, we need to specify which \textit{system state variables} are truly important for our goals.
 
-A complete characterization of the our system state is simply provided by the number of each class jobs running both on cloudlet and cloud node at a given instant of time; we will formalize this statement in the next section where we will provide relations and computation methods too. 
+A complete characterization of our system state is simply provided by the number of each class jobs running both on cloudlet and cloud node at a given instant of time; we will formalize this statement in section \ref{Specification}. 
 
-For now we have to just focus on routing policies. As we previously said, there are two type of access control algorithms used by controller node to make decisions; they are fully described by pseudo-code shown in Algorithm \ref{alg:accessControlAlgorithm1} and Algorithm \ref{alg:accessControlAlgorithm2}. Note that you can use only one access control algorithm type a during a simulation run.
+For now we have to just focus on routing policies. As we previously said, there are two type of access control algorithms used by controller node to make decisions; they are fully described by pseudo-code shown in Algorithm \ref{alg:accessControlAlgorithm1} and Algorithm \ref{alg:accessControlAlgorithm2}. Note that you can use only one access control algorithm type during a simulation run.
 
-Although they are both \textit{work-conserving scheduling policy}, that is they always perform work on some job when there is a job in the system,\footnote{\textit{Ibid.}, Definition 28.1, page 474} there is one difference between them: access control algorithms 1 does not provide job pre-emption once it starts service on cloudlet node unlike access control algorithms 2, which provides, instead, pre-emption when some condition are achieved requiring also a set-up time to restart interrupted job (note that Algorithm \ref{alg:accessControlAlgorithm2} use a further threshold variable to make its decision denoted by $S$ which is less or equal than $N$).
-
+Although they are both \textit{work-conserving scheduling policy}, that is they always perform work on some job when there is a job in the system,\footnote{\textit{Ibid.}, Definition 28.1, page 474} there is one difference between them: access control algorithms 1 does \textit{not} provide \textit{job pre-emption} unlike access control algorithms 2, which, instead, has the capability to perform pre-emption on jobs running on cloudlet node when some condition, which are been fully described by pseudo-code shown in Algorithm \ref{alg:accessControlAlgorithm2}, are achieved; note that, according to our project specification, job pre-emption is performed only on \textit{class 2} job's type; moreover, in order to restart interrupted jobs, a set-up time, with known mean, has to be considered.
 
 \begin{algorithm}[h]
 \caption{}\label{alg:accessControlAlgorithm2}
@@ -283,23 +279,23 @@ Although they are both \textit{work-conserving scheduling policy}, that is they 
 
 \clearpage
 \newpage
-\section{Specification  Model}
+\section{Specification Model}\label{Specification}
 
-In this section we will provide a \textit{specification model} of our system in which we will turn all system's states into a collection of mathematical variables together with equations and logic describing how the state variables are interrelated including algorithms for computing their interaction and evolution in time.\footnote{Lawrence M. Leemis, Stephen K. Park, \textit{Discrete-Event Simulation: A First Course} (Pearson; 1 edition January 6, 2006), 186}
+In this section we will provide a \textit{specification model} of our system in which we will turn all system's states into a collection of mathematical variables together with equations and logic describing how the state variables are interrelated, including algorithms for computing their interaction and evolution in time.\footnote{Lawrence M. Leemis, Stephen K. Park, \textit{Discrete-Event Simulation: A First Course} (Pearson; 1 edition January 6, 2006), 186}
 
 In other words, we will provide:
 
 \begin{itemize}
-\item A set of mathematical state variables that together provide a complete system description.
+\item A set of mathematical state variables that, together, provide a complete system description.
 \item A set of system event types.
-\item A collection of mathematical methods that will take place when each type of event occurs in order to update system state variables.
+\item A collection of mathematical equations capable to update system state variables when each type of event occurs.
 \end{itemize}
 
 \subsection{System's variables}
 
 In order to properly describe all system's state variables, we need to introduce some mathematical notations.
 
-$\tau \in (t_0, t)$ denotes a time's instant of our system simulation clock where $t_0$ and $t$ represent respectively \textit{start moment} and \textit{final moment} of our simulation; we will use also $c \in \lbrace 1,2 \rbrace = C$, representing the class to which a job belongs, and $x \in \lbrace cloudlet,cloud,global \rbrace = X$, used, instead, to refer to a specific system's node or to the whole system.
+$\tau \in (t_0, t)$ denotes an instant of time of our system simulation clock where $t_0$ and $t$ represent respectively \textit{start moment} and \textit{final moment} of our simulation; we will use also $c \in \lbrace 1,2 \rbrace = C$, representing the class to which a job belongs, and $x \in \lbrace cloudlet,cloud,global \rbrace = X$ used, instead, to refer to a specific system's node or to the whole system.
 
 At this point we can introduce all mathematical variables used in our model:
 
@@ -374,7 +370,7 @@ n_{cloudlet}^{(1)}(\tau) \leq N & \Leftrightarrow & n_{cloudlet}^{(2)}(\tau) = 0
 
 \subsection{Statistics computing}
 
-During this subsection we will describe how we can compute all system's statistics which we need using mathematical notation explained before.
+During this subsection, using mathematical notation explained before, we will describe how we can compute all system's statistics which we need.
 
 \paragraph{Time-averaged population}
 
@@ -399,7 +395,7 @@ E[N_x] & = & \displaystyle  \dfrac{1}{t-t_0} \cdot \int_{t_0}^t \left( n_x^{(1)}
 
 \paragraph{Time-average response time}
 
-Are $E[S_x]^{(c)}$ and $E[T_x]^{(c)}$, respectively, the \textit{time-averaged service time and response time of class $c$ jobs in $x$ system's node}. 
+Are $E[S_x]^{(c)}$ and $E[T_x]^{(c)}$, respectively the \textit{time-averaged service time and response time of class $c$ jobs in $x$ system's node}. 
 
 Since our system hasn't queues, there is no waiting time or delay experienced by jobs in our system, therefore result that $E[S_x]^{(c)} = E[T_x]^{(c)}$.
 Said that, we just have to show how to compute $E[S_x]^{(c)}$:\footnote{\textit{Ibid.}, 17}
@@ -410,7 +406,7 @@ E[T_x]^{(c)} & = & E[S_x]^{(c)} & = & \displaystyle \dfrac{1}{d_x^{(c)}(t)} \cdo
 \end{array}
 \end{equation}
 
-If we aren't interested about per-class metrics, we can compute $E[S_x]$ and $E[T_x]$, respectively \textit{time-averaged service time} and the \textit{time-averaged response time experienced by any class jobs in a $x$ system's node}, we can do as follows:
+If we aren't interested about per-class metrics, we can compute $E[S_x]$ and $E[T_x]$, respectively \textit{time-averaged service time} and the \textit{time-averaged response time experienced by any class jobs in a $x$ system's node}, as follows:
 
 \begin{equation}
 \begin{array} {rccccr} 
@@ -438,9 +434,9 @@ X_x & = & \displaystyle \dfrac{d_x^{(1)} + d_x^{(2)}(t)}{t} & \forall x \in X \\
 
 \paragraph{Percentage class 2 job interruptions}
 
-Is $p^{(2)}_{interruption}$ the percentage class 2 job interruptions previously running on cloudlet. Note that this metric is computable only when our simulation is using access control algorithm 2.
+Is $p^{(2)}_{interruption}$ the percentage class 2 job interruptions previously running on cloudlet. Note that this metric is computable only when, during a simulation, we are using access control algorithm 2.
 
-To compute them we can simply do:
+To compute it, we can simply do:
 
 \begin{equation}
 \begin{array} {rccr} 
@@ -453,7 +449,7 @@ p^{(2)}_{interruption} & = & \displaystyle \dfrac{i_{cloudlet}^{(2)}(t)}{d_{glob
 To complete to turn out our conceptual model into a proper specification model, we have to make additional assumptions which we have reported below:
 
 \begin{itemize}
-\item Although initial state variables can have any non-negative integer value\footnote{\textit{Ibid.} 190}, we have choosen, as common, to set $n_x^{(c)}(0) = 0$ and $d_x^{(c)}(0) = 0$ setting, in this way, initial system status as \textit{idle}. 
+\item Although initial state variables can have any non-negative integer value\footnote{\textit{Ibid.} 190}, we have choosen, as common, to set $n_x^{(c)}(0) = 0$ and $d_x^{(c)}(0) = 0$ setting; in this way initial system status is \textit{idle}. 
 
 \item As a consequence of the previous point, first event must be either a class 1 or class 2 job arrival on controller node.
 
@@ -463,13 +459,32 @@ Therefore, the last event must be either a class 1 or class 2 job completion.
 \end{itemize}
 
 
-\subsection{System's events and assumptions}
+\subsection{System's events}
 
 Let's look to all possible \textit{events} which can occurs during our simulations. 
 
 Since by definition any event is an occurrence that may change the state of the system\footnote{Lawrence M. Leemis, Stephen K. Park, \textit{Discrete-Event Simulation: A First Course} (Pearson; 1 edition January 6, 2006), 187}, obviously our system's state variables can change only when an event occurs.
 
-All event capable to alter our system's state and their effect on state variables are reported in table \ref{table:SystemEvents} but pay attention to the fact that all events reported just focus on access control algorithm 1 based system. When you use access control algorithm 2, you have to remember that, when a class 1 job arrival on cloudlet node occurs, a class 2 job may be interrupted if algorithm \ref{alg:accessControlAlgorithm2} conditions would be achieved; in this case $n_{\text{cloudlet}}^{(1)}(\tau)$ are then incremented by one while $n_{\text{cloudlet}}^{(2)}(\tau)$ is decremented by one and a class 2 job arrival is scheduled.
+All event capable to alter our system's state and their effect on state variables are reported in table \ref{table:SystemEvents}.
+
+Note that all events reported in that table just focus on access control algorithm 1 based system. Although system events are practically the same when we use access control algorithm 2 based system, we have to do a very important consideration.
+
+Suppose that a class 1 job arrival event on cloudlet node occurs at a certain time equal to $\tau$. A class 2 type job, running on cloudlet node, will be interrupted if and only if following condition are \textit{all} true:
+
+\begin{equation}
+\begin{array} {rcl} 
+
+n_{cloudlet}^{(1)}(\tau) & \neq & N \\\\
+
+n_{cloudlet}^{(1)}(\tau) + n_{cloudlet}^{(2)}(\tau) & > & S \\\\
+
+n_{cloudlet}^{(2)} & \geqslant & 0
+
+\end{array}
+\end{equation}
+
+In that case, $n_{cloudlet}^{(1)}(\tau)$ is incremented by one while $n_{cloudlet}^{(2)}(\tau)$ is decremented by one and a class 2 job arrival on cloud node event is scheduled, considering a set-up time before job restart, according to our project specification.
+ 
  
 \begin{table}[h!]
     \caption{Access control algorithm 1 system's events}
@@ -522,7 +537,7 @@ Our model is been implemented using Java programming languages, which source cod
 \begin{figure}[H]
 \includegraphics[width=\textwidth]{ClassDiagram}
 \centering
-\caption{Class diagram showing main classes and methods only.}
+\caption{Class diagram of our model (main classes and methods only are showed)}
 
 \label{fig:ClassDiagram}
 
@@ -538,7 +553,7 @@ As you can see in the class diagram \ref{fig:ClassDiagram}, a \textit{generic} s
 \begin{itemize}
 \item Has only one \texttt{double} type field, called \texttt{StartTime}, which is used to hold the instant of time according to which an event occurs. Setter and getter methods are provided in order to manage this field.
 
-\item It declares two very important abstract methods which, as we will can see later, are called by next-event simulation algorithm implemented in \texttt{ComputationalModel} class; these methods are called \texttt{perform()}, whose purpose is to update system's state variables when an event occurs, and \texttt{schedule\-Following\-Event()}, which is used, instead, to inserts into an \textit{event list} events that follows the current one.
+\item It declares two very important abstract methods which, as we will can see later, are called by next-event simulation algorithm implemented in \texttt{ComputationalModel} class; these methods are called \texttt{perform()}, whose purpose is to update system's state variables when an event occurs, and \texttt{schedule\-Following\-Event()}, which is used, instead, to inserts into an \textit{event list} the event that follows the current one.
 
 Although is obvious that exact methods behaviour depends strictly by which concrete class implements them, is however very important to point out that \texttt{SimulationEvent} class does \textit{not} represent system-specific events. In fact, to ensure low coupling and high cohesion among classes, neither \texttt{SimulationEvent} or \texttt{ComputationalModel} class need to know any specific system information. 
 \end{itemize}
@@ -561,9 +576,9 @@ public abstract class SystemEvent extends SimulationEvent {
     ...
 \end{lstlisting}
 
-As you can see from reported snipped, \texttt{SystemEvent} class has a \texttt{SystemCom\-po\-nent} type field, called \texttt{systemComponent}, which is used to hold a reference to that system's node where a generic event occurs; in this way any \texttt{SystemEvent} instance is able to update state variables of the component of which it has the reference, without altering others parts of system.
+As you can see above, \texttt{SystemEvent} class has a \texttt{SystemComponent} type field, which is used to hold a reference to that system's node where a generic event occurs; in this way any \texttt{SystemEvent} instance is able to update state variables of the component of which it has the reference, without altering others parts of system.
 
-However, in order to do that, required abstract method implementation is needed. In our implementation there are four concrete \texttt{SystemEvent} type classes used to represents all system's events:
+However, in order to do that, required abstract methods implementation is needed. In our implementation there are six concrete \texttt{SystemEvent} type classes used to represents all system's events:
 
 \begin{itemize}
 \item \texttt{Class1JobArrival} class which represents a class 1 job arrival.
@@ -574,7 +589,7 @@ However, in order to do that, required abstract method implementation is needed.
 \item \texttt{PreviouslyInterruptedClass2JobDeparture} like previous one but focused on class 2 jobs departure.
 \end{itemize}
 
-Any instance of above classes, having knowledge about methods published by \texttt{SystemComponent} class, can update states of any component of our system. In this way we can achieve an high degree of cohesion among classes and low coupling taking advantage of polymorphism pattern; in fact, as we can see also from shown class diagram, \texttt{ComputationalModel} class has to know only about \texttt{SimulationEvent} class and, thorough invocation of its methods, being able to update our system ignoring all specific information about our system.
+Any instance of above classes, having knowledge about methods published by \texttt{SystemComponent} class, can update any component of our system according to the nature of the event occurred. In this way we can achieve an high degree of cohesion among classes and low coupling taking advantage of polymorphism pattern; in fact, as we can see also from shown class diagram, \texttt{ComputationalModel} class has to know only about \texttt{SimulationEvent} class and, thorough invocation of its methods, being able to update our system ignoring all specific information about our system.
 
 \subsection{Event list}
 
@@ -582,11 +597,13 @@ As known, an \textit{event list}, also called \textit{calendar}, represents a da
 
 For reasons of efficiency, our event list is been implemented as a \textit{min-heap binary tree}, that is a \textit{priority queue} in which all events are ordered by time, in such a way that the most imminent event is found on the tree's root. This data structure is able to provide $O(log_2(n))$ time for the en-queuing and dequeuing operations and constant time for root element retrieval.\footnote{Camil Demetrescu, Irene Finocchi, Giuseppe F. Italiano - \textit{Algorimti e strutture dati} - second edition, McGraw-Hill, pag. 200} 
 
-Fortunately a Java implementation is already available in JDK through built-in class called \texttt{PriorityQueue$<$E$>$} which provides all method that we need, like \texttt{poll}, for root element retrieval, \texttt{add} and \texttt{remove}, used respectively for en-queuing and dequeuing operations.
+Fortunately a Java implementation is already available in JDK through built-in class called \texttt{PriorityQueue$<$E$>$} which provides all method that we need like \texttt{poll}, for root element retrieval, \texttt{add} and \texttt{remove}, used respectively for en-queuing and dequeuing operations.
 
-However, in order to that data structure works properly, is required that a total ordering among all possible event exists. To provide it, we need that all \texttt{SimulationEvent} type instances implement an interface called \texttt{Comparable} providing an implementation, shown in listing \ref{code:compareTo}, of a method called \texttt{compareTo}.\footnote{See \texttt{https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/lang/Comparable.html\#compareTo(T)}} In this way, is very easy to order all \texttt{SimulationEvent} type instances based on their start event time, from the youngest to the oldest. 
+However, in order to that data structure works properly, is required that a total ordering among all possible event exists. To provide it, we need that all \texttt{SimulationEvent} type instances implement an interface called \texttt{Comparable} providing an implementation, shown in listing \ref{code:compareTo}, of a method called \texttt{compareTo}.\footnote{See \texttt{https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/lang/Comparable.html\#compareTo(T)}}
 
-\begin{lstlisting}[frame=lines, caption={Snippet of \texttt{SimulationEvent} class implementation}, label={code:compareTo}]
+In this way, is very easy to order all \texttt{SimulationEvent} type instances based on their start event time, from the youngest to the oldest. 
+
+\begin{lstlisting}[frame=lines, caption={Snippet of \texttt{compareTo} method implementation}, label={code:compareTo}]
 @Override
 public int compareTo(SimulationEvent o) {
 	return Double.compare(this.startTime, o.startTime);
@@ -625,18 +642,35 @@ public class SimulationClock {
 
 \subsection{Next-event simulation logic}
 
-The most important code is included into \texttt{ComputationalModel} class because it contains main simulation logic.
+To start any next-event simulation, we have simply to invoke a method called \texttt{perform} on a concrete \texttt{NextEventSimulation} type instance; observe that \texttt{NextEventSimulation} is just a Java interface.
 
-To start a next-event simulation is very easy because we just need to invoke an its method called \texttt{perform} which contains the algorithm\footnote{Lawrence M. Leemis, Stephen K. Park, \textit{Discrete-Event Simulation: A First Course} (Pearson; 1 edition January 6, 2006), Algorithm 5.1.1, page 189} used to perform a simulation based on next-event approach, whose Java implementation is reported in Listing \ref{code:perform}. Our algorithm consists of the following steps: 
+The most important code is included, instead, into \texttt{ComputationalModel} class because it contains next-event simulation logic. Technically, \texttt{ComputationalModel} provides \texttt{perform} method implementation, which contains the algorithm\footnote{Lawrence M. Leemis, Stephen K. Park, \textit{Discrete-Event Simulation: A First Course} (Pearson; 1 edition January 6, 2006), Algorithm 5.1.1, page 189} used to perform a simulation based on next-event approach, whose Java implementation is reported in Listing \ref{code:perform}. 
+
+To get a concrete \texttt{NextEventSimulation} type instance we can use method provided by \texttt{SystemFactory} class, which code is shown in Listing \ref{code:SystemFactory}; using that class is very easy to perform our simulation using different access control algorithms.
+
+\begin{lstlisting}[frame=lines, caption={\texttt{SystemFactory} class implementation.}, label={code:SystemFactory}]
+public class SystemFactory {
+
+    public static NextEventSimulation buildSystemUsingRoutingAlgorithm1() {
+        return new SystemUsingRoutingAlgorithm1();
+    }
+
+    public static NextEventSimulation buildSystemUsingRoutingAlgorithm2() {
+        return new SystemUsingRoutingAlgorithm2();
+    }
+}
+\end{lstlisting}
+
+Our next-event simulation algorithm consists of following steps: 
 
 \begin{description}
-\item[Simulation initialization] As phase name suggests, during this step system state variables, simulation clock, event list and everything is needed for simulation is initialized compatibly with what we have described in previous section, during specification model analysis.
+\item[Simulation initialization] As phase name suggests, during this step system state variables, simulation clock, event list and everything is needed for simulation is initialized compatibly with what we have described in previous section.
 
-Remember that \texttt{ComputationalModel} is an abstract class which knows anything about our specific system, therefore, obviously, system initialization phase differs according to which concrete class implements that class. Anyhow, as you can see from code snippet reported below, this task is performed invoking \texttt{initialize\-Simulation()} method; that invocation represents a short-cut used to call a large set of abstract methods for initialization purposes, like \texttt{initializeSystemStateVariables}, \texttt{initializeSimulationClock} and \texttt{scheduleInitialEvent}.
+Remember that \texttt{ComputationalModel} is a Java abstract class which knows nothing about our specific system; therefore, system initialization phase differs according to which concrete instance we are using. Anyhow, as you can see from code snippet reported below, this task is performed invoking \texttt{initialize\-Simulation()} method; that invocation represents a short-cut used to call a large set of abstract methods for initialization purposes, like \texttt{initializeSystemStateVariables}, \texttt{initializeSimulationClock} and \texttt{scheduleInitialEvent}.
 
-\item[Process current event] Although we believe the code is self explanatory, we sum up this phase as follows: until event list is not empty (line 6), the most imminent possible event is extracted and removed from event list (line 8); then simulation clock is advanced to this event's scheduled time of occurrence (line 12) and finally system state is updated (line 14). 
+\item[Process current event] Although we believe the code is self explanatory, we sum up this phase as follows: until event list is not empty (line 5), the most imminent possible event is extracted and removed from event list (line 7); then simulation clock is advanced to this event's scheduled time of occurrence (line 11) and finally system state is updated (line 13). 
 
-\item[Schedule following event] Until a fixed simulation time $\tau^*$ in not exceeded, a new event is generated by current event and consequently placed into event list. Subsequently simulation clock state is updated in order to compute some system metrics.
+\item[Schedule following event] A new event is generated by current event and consequently placed into event list. Subsequently simulation clock state is updated in order to compute some system metrics.
 
 \item[Statistic update] While simulation advance from one event time to the next, through an invocation to an abstract method called \texttt{updateStati\-stics}, is possible to update some variables for system's statistic metrics computation.
 
@@ -646,41 +680,41 @@ Remember that \texttt{ComputationalModel} is an abstract class which knows anyth
 \begin{lstlisting}[frame=lines, caption={Snippet of \texttt{perform} method}, label={code:perform}]
 public void perform() {
 
-        initializeSimulation();
+   initializeSimulation();
+   
+   while (!this.simulationEventList.isEmpty()) {
 
-        while (!this.simulationEventList.isEmpty()) {
+      SimulationEvent actualEvent = this.simulationEventList.poll();
 
-            SimulationEvent actualEvent = this.simulationEventList.poll();
+      if (actualEvent != null) {
 
-            if (actualEvent != null) {
+          SimulationClock.getInstance().setCurrentEventTime(actualEvent.getStartTime());
 
-                SimulationClock.getInstance().setCurrentEventTime(actualEvent.getStartTime());
+          actualEvent.perform();
+          actualEvent.scheduleFollowingEvent();
 
-                actualEvent.perform();
-                actualEvent.scheduleFollowingEvent();
+          SimulationEvent nextEvent = this.simulationEventList.peek();
 
-                SimulationEvent nextEvent = this.simulationEventList.peek();
+          if (nextEvent != null)
+              SimulationClock.getInstance().setNextEventTime(nextEvent.getStartTime());
+      }
+      updateStatistics();
+   }
 
-                if (nextEvent != null)
-                    SimulationClock.getInstance().setNextEventTime(nextEvent.getStartTime());
-            }
-            updateStatistics();
-        }
+   BatchMeansRegister.getInstance().computeStatisticsAndWriteData();
+   ScatterPlotRegister.getInstance().writingOutputData();
+   HistogramsRegister.getInstance().computeStatisticsAndWriteData();
 
-        BatchMeansRegister.getInstance().computeStatisticsAndWriteData();
-        ScatterPlotRegister.getInstance().writingOutputData();
-        HistogramsRegister.getInstance().computeStatisticsAndWriteData();
-
-        manageCurrentSimulationResult();
-    }
+   manageCurrentSimulationResult();
+}
 \end{lstlisting}
 
 
 \subsection{System network implementation}
 
-As we have seen in previous subsection, \texttt{ComputationalModel} is used to represent a very \textit{generic} form of system (or queues network) because it includes only the code, seen previously, used to perform a next-event simulation.  
+To be more precise, \texttt{ComputationalModel} abstract class is used to represent a very \textit{generic} form of system (or queues network) because it includes only the code, seen previously, used to perform a next-event simulation.  
 
-In fact, we have used another abstract class to represent our specific queues network; that class, which also provide the implementation of all previously mentioned required methods in order to perform our simulation, is called \texttt{System}.
+In fact, we have used another class, which is abstract too, to represent our specific queues network; that class, which also provides implementation of all abstract methods required by  \texttt{ComputationalModel} class in order to perform our simulation, is called \texttt{System}.
 
 Although a \texttt{System} type instance represents our specific queues network, it however do \textit{not} contain any system state variables and do \textit{not} perform any statistic metric computation about them; its main purpose is to hold a reference to any system's node, represented by \texttt{SystemComponent} objects, in order to manage them. 
 
@@ -701,9 +735,7 @@ Its other responsibilities are:
 
 As you can see from class diagram reported in Figure \ref{fig:ClassDiagram}, there are two \texttt{System}'s concrete sub-class called \texttt{Sys\-tem\-Using\-RoutingAlgorithm1} and \texttt{System\-UsingRoutingAlgorithm2}; as their names suggest, they are used respectively to represents a system based on access control algorithm 1 and 2. 
 
-Regarding class 2 job interruption management, note that \texttt{removeCloud\-let\-Class2JobDeparture} is invoked when conditions, established by Algorithm \ref{alg:accessControlAlgorithm2}, are achieved. When that method is running, a randomly choosen event, representing a cloudlet class 2 departure event, is simply removed from event list.
-
-Now we can finally take a look to \texttt{SystemComponent} abstract class which, as previously said, is used to represent any system's node; there are, in fact, its four \texttt{SystemComponent} subclasses used to represent any of them: \texttt{Cloud}, \texttt{Cloudlet}, \texttt{Controller} and \texttt{GlobalNetwork}. 
+Now we can finally take a look to \texttt{SystemComponent} abstract class which, as previously said, is used to represent any system's node; there are four \texttt{SystemComponent} subclasses: \texttt{Cloud}, \texttt{Cloudlet}, \texttt{Controller} and \texttt{GlobalNetwork}. 
 
 Main purpose of any \texttt{SystemComponent} type instance is to hold a reference to any relevant system's node specific state variables, like actual per-class job population or the number of departed jobs from that specific node which represents; a set of fields, used to compute time-average statistics are also included.
 
@@ -717,13 +749,17 @@ protected double class2AverageServiceRate;
 
 private int numberOfClass1Jobs;
 private int numberOfClass2Jobs;
+private int numberOfPreviouslyInterruptedClass2Jobs;
+
 private int numberOfClass1DepartedJobs;
 private int numberOfClass2DepartedJobs;
+private int numberOfPreviouslyInterruptedClass2DepartedJobs;
 
 private double areaNumberOfClass1Jobs = 0.0;
 private double areaNumberOfClass2Jobs = 0.0;
 private double areaServiceTimeClass1Jobs = 0.0;
 private double areaServiceTimeClass2Jobs = 0.0;
+private double areaServiceTimePreviouslyInterruptedClass2Jobs = 0.0;
 
 private double areaServiceTime = 0.0;
 private double areaNumberOfJobs = 0.0;
@@ -741,12 +777,12 @@ private double areaNumberOfJobs = 0.0;
 \item Method providing in order to model component's behaviour when an event occurs. Note that these methods are abstract and have to be implemented by each \texttt{SystemComponent} class in order to reflect the exact specific component behaviour. These method are directly invoked by any \texttt{SystemEvent} type instances when they are extracted from event list.
 \end{itemize}
 
-\texttt{Cloud}, \texttt{Cloudlet}, \texttt{Controller} and \texttt{GlobalNetwork} class contains the code which declare   what to do when an event occurs; we believe that code contain in them is self explanatory therefore refer to it for more informations.
+In other words, \texttt{Cloud}, \texttt{Cloudlet}, \texttt{Controller} and \texttt{GlobalNetwork} classes contain logic that which declares what to do when an event occurs; we believe that code contain in them is self explanatory, therefore refer to it for more informations.
 
 However is very important to focus on \texttt{Controller} abstract class which main purpose is, obviously, job routing policy performing.
-In order to do perform its task, whenever an arrival occurs, a method, called \texttt{performRoutingAlgorithm}
-is invoked; since there are two access control algorithms, we have decide to use two subclasses, called \texttt{Controller\-Using\-Routing\-Algorithm1} and \texttt{Controller\-Using\-Routing\-Algorithm2}, which contains respectively the implementations of access control algorithms 1 and 2, both reported in Listing \ref{code:performRoutingAlgorithm1} and \ref{code:performRoutingAlgorithm2}.
 
+In order to do its task, whenever an arrival occurs, a method, called \texttt{performRouting\-Algorithm} is invoked; since there are two access control algorithms, we have decide to use two subclasses, called \texttt{Controller\-Using\-Routing\-Algorithm1} and \texttt{Controller\-Using\-Routing\-Algorithm2}, which contains respectively the implementations of access control algorithms 1 and 2, both reported in Listing \ref{code:performRoutingAlgorithm1} and \ref{code:performRoutingAlgorithm2}.
+\\\\
 \begin{lstlisting}[frame=lines, caption={\texttt{performRoutingAlgorithm} method implementation concerning access control algorithm 1.},label={code:performRoutingAlgorithm1}]
 protected void performRoutingAlgorithm(SystemEvent event) {
 
@@ -808,22 +844,22 @@ Due to our system design, class 2 job interruption management is exactly the sam
 
 As previously said, to represent an interrupted class 2 job we have used two classes denoted \texttt{PreviouslyInterruptedClass2JobArrival} and \texttt{PreviouslyInterruptedClass2JobDeparture}, which are very similar to \texttt{Class2JobArrival} and  \texttt{Class2JobDeparture}. 
 
-However, unlike \texttt{Class2JobArrival} class, the \texttt{PreviouslyInterruptedClass2JobArrival} class has a very important \texttt{double} field, called \texttt{delay}, which is used to hold a time value representing the sum of \textit{how long it has been running on cloudlet before interruption} and of \textit{setup time}; this field is obviously necessary for statistic metric computation like time-average response time.
+However, unlike \texttt{Class2JobArrival} class, the \texttt{PreviouslyInterruptedClass2JobArrival} class has a very important \texttt{double} field, called \texttt{delay}, which is used to hold a time value representing the sum of \textit{how long it has been running on cloudlet before interruption, including setup time}; this field is obviously necessary for statistic metric computation like time-average response time.
 
-As you can see from Listing \ref{code:performRoutingAlgorithm2}, when a class 2 job has to be interrupted on cloudlet, a method, called \texttt{removeCloudletClass2JobDeparture} is invoked. That method, in addition to delete a \texttt{Class2JobDeparture} occurrence on cloudlet note from event list, returns a \texttt{double} value representing how long the interrupted job has been running so far on cloudlet; to compute them, we can simply to subtract the value of current simulation time with time's instance corresponding to execution start time of the job on cloudlet node. Note that every \texttt{Class2JobDeparture} type instances hold a \texttt{double} value called \texttt{jobExecutionStartTime} representing execution start time of that job.
+As you can see from Listing \ref{code:performRoutingAlgorithm2}, when a class 2 job has to be interrupted on cloudlet, a method, called \texttt{removeCloudletClass2JobDeparture} is invoked. To be more precise, that method, in addition to delete a \texttt{Class2JobDeparture} occurrence referred to cloudlet node from event list, returns a \texttt{double} value representing how long the interrupted job has been running so far on cloudlet; to compute them, we can simply to subtract the value of current simulation time with time's instance corresponding to execution start time of the job on cloudlet node. Note that every \texttt{Class2JobDeparture} type instances hold a \texttt{double} value called \texttt{jobExecutionStartTime} representing execution start time of that job.
 
-There are no other conceptual differences respect to \texttt{Class2JobArrival}; the effects of the invocation of \texttt{perform} method using a \texttt{PreviouslyInterruptedClass2JobArrival} type instance has the same effect of using \texttt{Class2JobArrival} type instance because same update methods are invoked although in the first case other fields are updated in order to compute statistical metrics. To convince yourself of this, please refer to the code which is very self explanatory. 
+There are no other conceptual differences respect to \texttt{Class2JobArrival}; the effects of the invocation of \texttt{perform} method using a \texttt{PreviouslyInterruptedClass2JobArrival} type instance has the same effect of using \texttt{Class2JobArrival} type instance because same update methods are invoked although in the first case other fields are updated in order to compute statistical metrics. To convince yourself of this, please refer to the code which, we believe, is very simple to understand.
 
-\subsection{Data analysis and graphics generation}
+\subsection{Data analysis and chart generation}
 
 In section \ref{sec:ModelValidation} we will provide details about approaches used for data output analysis from a theoretical point of view. 
 
 As we will analyse in detail later, our application performs a \textit{finite-horizon simulation} and therefore is very important to perform many simulation replication varying the \texttt{rngs} initial states from run to run; the  
 \texttt{RandomNumberGenerator} class, which provides very important method about random number generation, has the responsibility to do that.
 
-For better comprehension, all computed simulation results are been displayed using a very large set of graphics, including scatter plots and histograms, which are automatically generated using various Java scripts.
+For better comprehension, all computed simulation results are been displayed using a very large set of charts, including scatter plots and histograms, which are automatically generated using various Java scripts.
 
-All Java classes, containing logic used to produce all aforesaid graphics, are located into \texttt{outputanaylisis} Java package where the most important is \texttt{Statistics} class whose purpose is to generate various statistics, like mean or standard deviation, from \texttt{double} type raw input data. 
+All Java classes, containing logic used to produce all aforesaid graphics, are located into \texttt{outputanaylisis} Java package where the most important is \texttt{Statistics} class whose purpose is to generate various statistics, like mean or standard deviation, from \texttt{double} type input data. 
 
 In that class two very important methods are present: the first, called \texttt{computeMeanAnd\-Stan\-dard\-Deviation} and shown in Listing \ref{code:computeMeanAndStandardDeviation}, contains an implementation of \textit{Welford’s algorithm} in order to compute mean of input data while the second, called \texttt{getConfidenceInterval}, is used to compute confidence interval estimation.\footnote{Lawrence M. Leemis, Stephen K. Park, \textit{Discrete-Event Simulation: A First Course} (Pearson; 1 edition January 6, 2006), Algorithm 8.1.1 - pag 354}
 
@@ -846,12 +882,12 @@ private void computeMeanAndStandardDeviation() {
     }
 \end{lstlisting}
 
-Data output graphics generation is the duty 
-BatchMeans, ScatterPlot, Histograms, EnsembleStatistic . Each existing instance of above classes is used to collect one type data, like job population or throughput, during a simulation in order to generate output graphics.
+Chart generation is a duty of many other classes including \texttt{BatchMeans}, \texttt{ScatterPlot}, \texttt{Histograms}, \texttt{EnsembleStatistic} classes. 
+In order to generate charts, each existing instance of above classes is used to collect one type data, like cloudlet job population or throughput, during a simulation.
 
-From software engineering point of view, all these classes are designed using the \textit{registry pattern}\footnote{See \texttt{https://martinfowler.com/eaaCatalog/registry.html}} because, besides being easy to implement, it guaranties to retrieve a reference to a specific graphics object in a very simple way using its name only, reducing at the same time coupling among classes. 
+From software engineering point of view, all these instances are managed using \textit{registry pattern}\footnote{See \texttt{https://martinfowler.com/eaaCatalog/registry.html}} because, besides being easy to implement, it guaranties to retrieve a reference to a specific instance simple using a string representing the type's name of managed data; in this way is possible to reduce coupling among classes. 
 
-We prefer to omit a detail descriptions of Java classes involved into MATLAB graphics generation because they are just scripts and therefore not relevant from conceptual point of view. 
+We prefer to omit a detail descriptions of Java classes involved into charts generation because they are just scripts and therefore not relevant from conceptual point of view. 
 
 \newpage
 \section{Analytical solution}
