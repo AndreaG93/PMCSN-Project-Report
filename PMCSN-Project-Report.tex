@@ -59,7 +59,7 @@ breaklines=true
 \Corso[Laurea Magistrale]{Ingegneria Informatica} 
 \Annoaccademico{2018--2019} 
 \Titolo{Performance Modeling of\\Computer Systems and Networks\\Project}
-\NCandidato{Studenggggggte} 
+\NCandidato{Studente} 
 \Candidato[0273395]{Andrea Graziani} 
 \NRelatore{Docente}{} 
 \Relatore{Vittoria de Nitto Personè} 
@@ -705,10 +705,12 @@ public void perform() {
    ScatterPlotRegister.getInstance().writingOutputData();
    HistogramsRegister.getInstance().computeStatisticsAndWriteData();
 
-   manageCurrentSimulationResult();
+   EnsembleStatisticsRegister ensembleStatisticsRegister = EnsembleStatisticsRegister.getInstance();
+
+   for (Map.Entry<String, Double> pair : getSimulationResults().entrySet())
+         ensembleStatisticsRegister.addDataToEnsemble(pair.getKey(), pair.getValue());
 }
 \end{lstlisting}
-
 
 \subsection{System network implementation}
 
@@ -782,7 +784,7 @@ In other words, \texttt{Cloud}, \texttt{Cloudlet}, \texttt{Controller} and \text
 However is very important to focus on \texttt{Controller} abstract class which main purpose is, obviously, job routing policy performing.
 
 In order to do its task, whenever an arrival occurs, a method, called \texttt{performRouting\-Algorithm} is invoked; since there are two access control algorithms, we have decide to use two subclasses, called \texttt{Controller\-Using\-Routing\-Algorithm1} and \texttt{Controller\-Using\-Routing\-Algorithm2}, which contains respectively the implementations of access control algorithms 1 and 2, both reported in Listing \ref{code:performRoutingAlgorithm1} and \ref{code:performRoutingAlgorithm2}.
-\\\\
+
 \begin{lstlisting}[frame=lines, caption={\texttt{performRoutingAlgorithm} method implementation concerning access control algorithm 1.},label={code:performRoutingAlgorithm1}]
 protected void performRoutingAlgorithm(SystemEvent event) {
 
@@ -838,6 +840,66 @@ protected void performRoutingAlgorithm(SystemEvent event) {
     }
 \end{lstlisting}
 
+At this point, is very easy to understand how we have computed all needed statistic metrics. 
+
+Previously, in Listing \ref{code:perform}, we have seen a method, called \texttt{updateStatistics}, used to compute all needed statistic metrics of our system. However be careful: in our computational model there are \textit{two} methods called \texttt{updateStatistics}:
+
+\begin{description}
+\item[\texttt{ComputationalModel.updateStatistics()}] Technically, it is an \textit{abstract} method belonging to \texttt{ComputationalModel} class; previously, analysing snippet shown in Listing \ref{code:perform}, we have seen that its implementation is required by our next-event algorithm in order to update our system every time a system event occurs. The implementation of that method, shown in Listing \ref{code:updateStatistics}, is provided by \texttt{System} class; as you can easily to understand from shown snippet, statistics belonging to all system nodes, represented by \texttt{SystemComponent} instances seen previously, are updated.
+
+\begin{lstlisting}[frame=lines, caption={Snippet of \texttt{updateStatistics} method in \texttt{System} class}, label={code:updateStatistics}]
+@Override
+protected void updateStatistics() {
+
+	this.controller.updateStatistics();
+	this.cloud.updateStatistics();
+	this.cloudlet.updateStatistics();
+    this.globalNetwork.updateStatistics();
+}
+\end{lstlisting}
+
+\item[\texttt{SystemComponent.updateStatistics()}] This method, of which you can see a very small snippet in Listing \ref{code:SCupdateStatistics} contains all necessary logic in order to compute any statistic metric of a \textit{specific} system node according to mathematical equations described in section \ref{Specification}; it also contains necessary code capable to manage a large set of object for charts automatic generation, like scatter plots and some histograms.
+
+\begin{lstlisting}[frame=lines, caption={Snippet of \texttt{SystemComponent.updateStatistics} method}, label={code:SCupdateStatistics}]
+...
+if (this instanceof Cloud)
+    areaServiceTimePreviouslyInterruptedClass2Jobs += (simulationClock.getNextEventTime() - simulationClock.getCurrentEventTime()) * numberOfPreviouslyInterruptedClass2Jobs;
+
+areaNumberOfClass1Jobs += (simulationClock.getNextEventTime() - simulationClock.getCurrentEventTime()) * numberOfClass1Jobs;
+areaServiceTimeClass1Jobs += (simulationClock.getNextEventTime() - simulationClock.getCurrentEventTime()) * numberOfClass1Jobs;
+
+areaNumberOfClass2Jobs += (simulationClock.getNextEventTime() - simulationClock.getCurrentEventTime()) * numberOfClass2Jobs;
+areaServiceTimeClass2Jobs += (simulationClock.getNextEventTime() - simulationClock.getCurrentEventTime()) * numberOfClass2Jobs;
+
+areaServiceTime += (simulationClock.getNextEventTime() - simulationClock.getCurrentEventTime()) * (numberOfClass1Jobs + numberOfClass2Jobs);
+areaNumberOfJobs += (simulationClock.getNextEventTime() - simulationClock.getCurrentEventTime()) * (numberOfClass1Jobs + numberOfClass2Jobs);
+...
+\end{lstlisting}
+
+\end{description}
+
+To be more precise, there is another very important method used to complete statistic metrics computation; at the end of our simulation, running \texttt{getSimulationResults} method,  shown in Listing \ref{code:getSimulationResults}, our \texttt{System} type instance invokes \texttt{getStatistics} method on each \texttt{SystemComponent} instance in order to collect, using properly some hash tables, all statistics results.
+
+\begin{lstlisting}[frame=lines, caption={Snippet of \texttt{getSimulationResults} method}, label={code:getSimulationResults}]
+protected Map<String, Double> getSimulationResults() {
+
+        Map<String, Double> output0 = this.globalNetwork.getStatistics();
+        Map<String, Double> output1 = this.cloudlet.getStatistics();
+        Map<String, Double> output2 = this.cloud.getStatistics();
+        Map<String, Double> output3 = this.controller.getStatistics();
+
+        output0.putAll(output1);
+        output0.putAll(output2);
+
+        if (!output3.isEmpty())
+            output0.putAll(output3);
+
+        return output0;
+}
+\end{lstlisting}
+
+For any further information about these methods, please refer to code, because, we believe, is very simple to understand.
+
 \subsection{Class 2 job interruption management}
 
 Due to our system design, class 2 job interruption management is exactly the same to normal class 2 jobs handling, although there are very little differences concerning only statistic metric computation. 
@@ -854,8 +916,7 @@ There are no other conceptual differences respect to \texttt{Class2JobArrival}; 
 
 In section \ref{sec:ModelValidation} we will provide details about approaches used for data output analysis from a theoretical point of view. 
 
-As we will analyse in detail later, our application performs a \textit{finite-horizon simulation} and therefore is very important to perform many simulation replication varying the \texttt{rngs} initial states from run to run; the  
-\texttt{RandomNumberGenerator} class, which provides very important method about random number generation, has the responsibility to do that.
+As we will analyse in detail later, our application performs a \textit{finite-horizon simulation} and therefore is very important to perform many simulation replication varying the \texttt{rngs} initial states from run to run; the \texttt{RandomNumberGenerator} class, which provides very important methods about random number generation, has the responsibility to do that.
 
 For better comprehension, all computed simulation results are been displayed using a very large set of charts, including scatter plots and histograms, which are automatically generated using various Java scripts.
 
@@ -887,7 +948,7 @@ In order to generate charts, each existing instance of above classes is used to 
 
 From software engineering point of view, all these instances are managed using \textit{registry pattern}\footnote{See \texttt{https://martinfowler.com/eaaCatalog/registry.html}} because, besides being easy to implement, it guaranties to retrieve a reference to a specific instance simple using a string representing the type's name of managed data; in this way is possible to reduce coupling among classes. 
 
-We prefer to omit a detail descriptions of Java classes involved into charts generation because they are just scripts and therefore not relevant from conceptual point of view. 
+We prefer to omit a detailed descriptions of all Java classes involved into charts generation because they are just scripts and therefore not relevant from conceptual point of view. 
 
 \newpage
 \section{Analytical solution}
@@ -1030,7 +1091,7 @@ After have made CTMC modelling, we can compute \textit{limiting probabilities} $
 
 
 \begin{table}[h!]
-    \caption{Balance equations.}
+    \caption{Balance equations (Access control Algorithm 1)}
     \centering
     \small
     \begin{adjustbox}{center=\textwidth}
@@ -1293,7 +1354,7 @@ X_{\text{cloudlet}} = X - X_{\text{cloud}} \\
 \newpage
 
 \begin{figure}[h!]
-\caption{Cloudlet system component modeled using a CTMC} \label{fig:ALG2-CloudletMarkovChain}
+\caption{Access control algorithm 2 based cloudlet's CTMC.} \label{fig:ALG2-CloudletMarkovChain}
 \begin{adjustbox}{center=\textwidth}
 \begin{tikzpicture}[->,node distance=3.2cm,>=latex,font=\small, minimum width=1.7cm]
 
@@ -1431,7 +1492,7 @@ Most equations described and used in section \ref{subsub:alg1} are still valid a
 Regarding balance equation necessary for stationary probabilities computation, since there are no differences about mathematical notation used or significant conceptual differences compared to previously case, we limit ourselves to report them in table \ref{table:ALG2-CloudletBalanceEquationList}.
 
 \begin{table}[h!]
-    \caption{Balance equations.}
+    \caption{Balance equations (Access control Algorithm 2)}
     \centering
     \small
     \begin{adjustbox}{center=\textwidth}
@@ -1617,7 +1678,7 @@ In order to represent analytical solutions we have used two MATLAB functions cal
 	
      \begin{tabular}{c|c|c}
      \toprule
-     \textbf{Variable} & \textbf{Approximate value} & \textbf{Symbolic variable representation} \\
+     \textbf{Variable} & \textbf{Approximate value} & \textbf{Value's symbolic representation} \\
      \toprule
 	 &&\\
 	 $\Pi_{SendToCloud}$ & $0.413925392$ & $\dfrac{87859436926256646517251117638424741393475341796875000000}{212259113498085857520971393983611845585800622137044274729}$  \\
@@ -1685,7 +1746,7 @@ In order to represent analytical solutions we have used two MATLAB functions cal
 	
      \begin{tabular}{c|c|c}
      \toprule
-     \textbf{Variable} & \textbf{Approximate value} & \textbf{Symbolic variable representation} \\
+     \textbf{Variable} & \textbf{Approximate value} & \textbf{Value's symbolic representation} \\
      \toprule
 	 &&\\
 	 
@@ -1750,7 +1811,7 @@ In order to represent analytical solutions we have used two MATLAB functions cal
 	
      \begin{tabular}{c|c|c}
      \toprule
-     \textbf{Variable} & \textbf{Approximate value} & \textbf{Symbolic variable representation} \\
+     \textbf{Variable} & \textbf{Approximate value} & \textbf{Value's symbolic representation} \\
      \toprule
 	 &&\\
 	 
@@ -1784,7 +1845,7 @@ In order to represent analytical solutions we have used two MATLAB functions cal
 	
      \begin{tabular}{c|c|c}
      \toprule
-     \textbf{Variable} & \textbf{Approximate value} & \textbf{Symbolic variable representation} \\
+     \textbf{Variable} & \textbf{Approximate value} & \textbf{Value's symbolic representation} \\
      \toprule
 	 
 	 &&\\
@@ -1869,7 +1930,7 @@ In order to represent analytical solutions we have used two MATLAB functions cal
 	
      \begin{tabular}{c|c|c}
      \toprule
-     \textbf{Variable} & \textbf{Approximate value} & \textbf{Symbolic variable representation} \\
+     \textbf{Variable} & \textbf{Approximate value} & \textbf{Value's symbolic representation} \\
      \toprule
 	 
 	 &&\\
@@ -1948,7 +2009,7 @@ $E[N^{(1)}_{cloudlet}]$ & $8.884108755$ & $\dfrac{116252190566493119183945816470
 	
      \begin{tabular}{c|c|c}
      \toprule
-     \textbf{Variable} & \textbf{Approximate value} & \textbf{Symbolic variable representation} \\
+     \textbf{Variable} & \textbf{Approximate value} & \textbf{Value's symbolic representation} \\
      \toprule
 	 
 	 &&\\
@@ -1992,15 +2053,17 @@ E[X] = \dfrac{1}{n} \cdot \sum_{i=1}^{n} x_i
 
 Moreover, a 95\% confidence interval estimate for $E[X]$ is been calculated from the ensemble mean and standard deviation. \footnote{\textit{Ibid.} - Algorithm 8.1.1 - pag 354}
 
-Observe that the exact \textit{steady-state} value, determined by analytic methods, is properly indicated in every graphics produced by our application; since mostly all steady-state value indicators are interior to 95\% confidence interval estimate, we can say that our computational model is a reasonable approximation of required system because it can produce statistics that are very close to their steady-state values.\footnote{\textit{Ibid.} - pag. 374}
+Observe that, for every metric of interest, the exact \textit{steady-state} value, which is determined using analytic methods described previously, is properly indicated ($v_{\text{Analytical value}}$) in following pages in every chart produced by our application, including ensemble average value ($Avg$) and the 95\% confidence interval estimate ($I_{95\%}$).
+
+Since mostly all steady-state value indicators are interior to 95\% confidence interval estimate, we can say that our computational model is a reasonable approximation of required system because it can produce statistics that are very close to their steady-state values.\footnote{\textit{Ibid.} - pag. 374}
 
 Although replicated finite-horizon statistics can be used to generate accurate steady-state interval estimates,  there is however an initial bias problem with this technique (each replication was initialized with the same system state)\footnote{\textit{Ibid.} - pag 378}; therefore, we have used another interval estimation technique too: \textit{batch means method}.
 
 With this method, the initial state bias is eliminated because the statistics for each batch (other than the first) are naturally initialized to the state of the system at the time the statistical counters for the batch are reset.\footnote{\textit{Ibid.}}
 
-We have repeated batch means method 10 times setting, for every statistic of interest, a batch size fixed to 4096 data points. Our results suggest that most of these interval estimates brackets the true analytically computed steady-state value, resulting in an actual coverage of 95%. 
+We have repeated batch means method 10 times setting, for every statistic of interest, a batch size fixed to 4096 data points. Our results suggest that most of these interval estimates brackets the true analytically computed steady-state value, resulting in an actual coverage of 95\%. 
 
-However, in some cases, due to an incorrect data batching, our results lead to unrealistically small variance estimates, resulting that confidence interval estimate, alleged to have 95\% confidence, appears to have a coverage less than 95%.
+However, in some cases, due to an incorrect data batching (we have adopt the same data batching for every metric of interest), our results lead to unrealistically small variance estimates, resulting that confidence interval estimate, alleged to have 95\% confidence, appears to have a coverage less than 95\%.
 
 \clearpage
 \newpage
@@ -2779,4 +2842,11 @@ However, per-component and per-class throughout values aren't the same, because 
     \label{fig:SPECIAL}
 \end{figure}
 
+\newpage
+
+\listoftables
+
+\lstlistoflistings
+
 \end{document}
+
