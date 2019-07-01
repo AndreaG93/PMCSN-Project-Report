@@ -28,6 +28,7 @@
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage{graphicx}
+\usepackage{multirow}
 
 %-------------------------------------------------------
 % DEFFINING AND REDEFINING COMMANDS
@@ -77,9 +78,9 @@ basicstyle=\tiny\ttfamily,
 keywordstyle=\color{blue},
 commentstyle=\color{gray},			
 stringstyle=\color{black},			
-numbers=left,						
-numberstyle=\tiny,					
-stepnumber=1,						
+%numbers=left,						
+%numberstyle=\tiny,					
+%stepnumber=1,						
 breaklines=true						
 }
 
@@ -99,6 +100,253 @@ breaklines=true
 \end{frame}}
 
 
+
+
+
+
+\section{System State}
+\subsection{Mathematical variables}
+% ************************************************************************** %
+\begin{frame}[fragile]{Mathematical variables}{Specification Model}
+
+\begin{itemize}
+
+
+\item Mathematical notation and variables used in our specification model:
+
+\begin{table}[h!]
+    \centering
+    \small
+    \begin{tabular}{l}
+      $c \in \lbrace 1,2 \rbrace = C$ \\
+      $x \in \lbrace cloudlet,cloud,global \rbrace = X$ \\
+      $\tau \in (t_0, t)$ \\       
+    \end{tabular}
+\end{table}
+
+\begin{table}[h!]
+    \centering
+    \small
+    \begin{tabular}{l}
+      $n_x^{(c)}(\tau)$  \\
+      $d_x^{(c)}(\tau)$  \\
+      $s_{x,i}^{(c)}$  \\
+      $i_{cloudlet}^{(2)}(\tau)$ \\
+          
+    \end{tabular}
+\end{table}
+
+\item There are several constrains and relations among these variables.
+\begin{itemize}
+\item Some of which depend on chosen access control algorithm.
+\end{itemize}
+
+\end{itemize}
+
+\end{frame}
+
+% ************************************************************************** %
+\subsection{System State}
+\begin{frame}[fragile]{System State}{Specification Model}
+
+\begin{equation}
+\omega(\tau) = (\omega_{cloudlet}(\tau),\omega_{cloud}(\tau))
+\end{equation}
+
+Where:
+
+\begin{equation}
+\begin{array} {rcl} 
+\omega_{cloudlet}(\tau) & = & (n_{cloudlet}^{(1)}(\tau),n_{cloudlet}^{(2)}(\tau)) \\
+\omega_{cloud}(\tau) & = & (n_{cloud}^{(1)}(\tau),n_{cloud}^{(2)}(\tau)) \\
+\end{array}
+\end{equation}
+
+Thus:
+
+\begin{equation}
+\begin{array} {rcl} 
+\omega(\tau) = ((n_{cloudlet}^{(1)}(\tau),n_{cloudlet}^{(2)}(\tau)),(n_{cloud}^{(1)}(\tau),n_{cloud}^{(2)}(\tau))
+\end{array}
+\end{equation}
+\end{frame}
+
+% ************************************************************************** %
+\subsection{System assumptions}
+\begin{frame}[fragile]{System assumptions}{Specification Model}
+\begin{itemize}
+\item $n_x^{(c)}(0) = 0$ and $d_x^{(c)}(0) = 0$, $\forall c \in C, \forall x \in X $
+\begin{itemize}
+\item Initial system status is \textit{idle}. 
+\end{itemize}
+
+
+
+\item First event must be either a class 1 or class 2 job arrival.
+
+\item Our stopping criteria: $\tau^*$ beyond which no new jobs can arrive.
+\begin{itemize}
+\item Terminal state is idle.
+\item System keep on working until all jobs have been completely served. 
+\end{itemize}
+
+
+\end{itemize}
+\end{frame}
+
+
+
+% ************************************************************************** %
+\subsection{Events (Algorithm 1)}
+\begin{frame}[fragile]{Events (Algorithm 1)}{Specification Model}
+
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth, height=200px]{./images/EventsSpec.png}
+\label{fig:Concorrente}
+\end{figure}
+
+\end{frame}
+
+% ************************************************************************** %
+\subsection{Events (Algorithm 2)}
+\begin{frame}[fragile]{Events (Algorithm 2)}{Specification Model}
+
+\begin{equation}
+\begin{array} {rcl} 
+
+n_{cloudlet}^{(1)}(\tau) & \neq & N \\\\
+
+n_{cloudlet}^{(1)}(\tau) + n_{cloudlet}^{(2)}(\tau) & > & S \\\\
+
+n_{cloudlet}^{(2)} & \geqslant & 0
+
+\end{array}
+\end{equation}
+
+\begin{itemize}
+\item $n_{cloudlet}^{(1)}(\tau)$ is incremented by one.
+\item $n_{cloudlet}^{(2)}(\tau)$ is decremented by one.
+\item class 2 job arrival on cloud node event is scheduled (considering a set-up time)
+\end{itemize}
+
+
+\end{frame}
+
+\section{Computational Model}
+% ************************************************************************** %
+\subsection{Next-event simulation logic}
+\begin{frame}[fragile]{Class Diagrams 1}{Computational Model}
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{./images/ClassDiagramEvent.png}
+\label{fig:Concorrente}
+\end{figure}
+
+
+\end{frame}
+
+% ************************************************************************** %
+\subsection{Next-event simulation logic}
+\begin{frame}[fragile]{Class Diagrams 2}{Computational Model}
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{./images/ClassDiagram.png}
+\label{fig:Concorrente}
+\end{figure}
+
+
+\end{frame}
+
+
+% ************************************************************************** %
+\subsection{Next-event simulation logic}
+\begin{frame}[fragile]{Next-event simulation logic}{Computational Model}
+
+\begin{lstlisting}[frame=lines, caption={Snippet of \texttt{perform} method}, label={code:perform}]
+public void perform() {
+
+   initializeSimulation();
+   
+   while (!this.simulationEventList.isEmpty()) {
+
+      SimulationEvent actualEvent = this.simulationEventList.poll();
+
+      if (actualEvent != null) {
+
+          SimulationClock.getInstance().setCurrentEventTime(actualEvent.getStartTime());
+
+          actualEvent.perform();
+          actualEvent.scheduleFollowingEvent();
+
+          SimulationEvent nextEvent = this.simulationEventList.peek();
+
+          if (nextEvent != null)
+              SimulationClock.getInstance().setNextEventTime(nextEvent.getStartTime());
+      }
+      updateStatistics();
+   }
+...
+\end{lstlisting}
+\end{frame}
+
+% ************************************************************************** %
+\subsection{Routing algorithm 1}
+\begin{frame}[fragile]{Routing algorithm 1}{Computational Model}
+
+\begin{lstlisting}
+protected void performRoutingAlgorithm(SystemEvent event) {
+
+   int n1 = this.system.getNumberOfClass1JobOnCloudlet();
+   int n2 = this.system.getNumberOfClass2JobOnCloudlet();
+
+   if ((n1 + n2) == this.system.getThreshold())
+      this.system.scheduleEventOnCloud(event, 0);
+   else
+      this.system.scheduleEventOnCloudlet(event, 0);
+}
+\end{lstlisting}
+\end{frame}
+
+% ************************************************************************** %
+\subsection{Routing algorithm 2}
+\begin{frame}[fragile]{Routing algorithm 2}{Computational Model}
+
+\begin{lstlisting}
+protected void performRoutingAlgorithm(SystemEvent event) {
+
+    int n1 = this.system.getNumberOfClass1JobOnCloudlet();
+    int n2 = this.system.getNumberOfClass2JobOnCloudlet();
+
+        if (event instanceof Class1JobArrival) {
+
+            if (n1 == this.system.getThreshold())
+                this.system.scheduleEventOnCloud(event, 0);
+            else if (n1 + n2 < this.system.getThreshold())
+                this.system.scheduleEventOnCloudlet(event, 0);
+            else if (n2 > 0) {
+
+                double runningCloudletTimeOfInterruptedJob = this.system.removeCloudletClass2JobDeparture();
+
+                this.system.scheduleEventOnCloudlet(event, 0);
+
+                double setupTime = RandomNumberGenerator.getInstance().getExponential(5, 0.8);
+
+                this.system.scheduleEventOnCloud(SystemEventFactory.buildPreviouslyInterruptedClass2JobArrival(setupTime + runningCloudletTimeOfInterruptedJob), setupTime);
+
+                this.numberOfInterruptedClass2Jobs++;
+
+            } else
+                this.system.scheduleEventOnCloudlet(event, 0);
+
+
+        } else {
+
+            ...
+        }
+    }
+\end{lstlisting}
+\end{frame}
 
 
 \section{Statistics Results}
@@ -151,101 +399,6 @@ if the variables (called state variables) which define the behavior of the syste
 
 
 \end{frame}
-
-
-
-
-
-
-% ----------------------------------------------------------------------------------------- %
-\subsection{Il processo client 2}
-\begin{frame}[fragile]{Architettura dell'applicazione}{Il processo client}
-% ----------------------------------------------------------------------------------------- %
-
-Analizzando la funzione \texttt{client\_start} è facile intuire che l'invio di un messaggio di richiesta e dunque l'inizio di una trasmissione prevede:
-
-\begin{itemize}
-\item L'inizializzazione di una struttura dati denominata \texttt{RequestPacket}.
-\item L'invio della suddetta struttura al server attraverso l'ausilio di una struttura di tipo \texttt{DataNetwork}.
-\item Attesa della risposta dal server; in caso di mancata risposta occorre rinviare un nuovo messaggio di richiesta.
-\end{itemize}
-
-
-
-\end{frame}
-
-
-
-% ----------------------------------------------------------------------------------------- %
-\subsection{Il processo client 3}
-\begin{frame}[fragile]{Architettura dell'applicazione}{Il processo client}
-% ----------------------------------------------------------------------------------------- %
-
-\begin{block}{La struttura dati \texttt{DataNetwork}}
-Una struttura dati di tipo \texttt{DataNetwork} rappresenta tecnicamente un contenitore per tutte le informazioni necessarie per comunicare con un host tra cui l'\textbf{indirizzo IP} e il \textbf{numero di porta}. 
-\end{block}
-
-\begin{lstlisting}[frame=lines, caption={Implementazione della struttura \texttt{DataNetwork}}]
-typedef struct data_network {
-
-	/* Socket file descriptor */
-	int socket_fd;
-	/* Internet socket address */
-	struct sockaddr_in address;
-	/* Internet socket address length */
-	socklen_t address_len;
-
-} DataNetwork;
-
-\end{lstlisting}
-\end{frame}
-
-% ----------------------------------------------------------------------------------------- %
-\subsection{Il processo client 4}
-\begin{frame}[fragile]{Architettura dell'applicazione}{Il processo client}
-% ----------------------------------------------------------------------------------------- %
-
-\begin{block}{Problema}
-Il server UDP deve poter scambiare più di un pacchetto con il client per poter soddisfarne le richieste. Il problema è che \textbf{l'unico numero di porta noto} al client per poter comunicare con il server è, sfortunatamente, \textbf{la stessa porta utilizzata da quest'ultimo per ricevere nuove richieste}.
-\end{block}
-
-\end{frame}
-
-% ----------------------------------------------------------------------------------------- %
-\subsection{Il processo client 5}
-\begin{frame}[fragile]{Architettura dell'applicazione}{Il processo client}
-% ----------------------------------------------------------------------------------------- %
-
-\begin{block}{Soluzione}
-I thread incaricati di soddisfare le richieste hanno il compito di \textbf{creare un'apposita socket di supporto} eseguendo il \textbf{binding su una porta effimera} e utilizzando quel socket per inviare e ricevere i successivi messaggi con un client.
-\end{block}
-
-\vspace*{10px}
-Il client deve guardare \textbf{il numero di porta della prima risposta del server} e dunque inviare i pacchetti successivi a quella porta. \\
-
-\vspace*{10px}
-Da un punto di vista implementativo ciò è reso possibile dalla funzione \texttt{\_\_receive\_datagram} la quale provvede ad \textbf{aggiornare il contenuto della struttura \texttt{DataNetwork}} dopo la ricezione della prima risposta. Tutto ciò permette al client di \textbf{ignorare tutti quei pacchetti non provenienti dal processo server con cui interagisce}.
-\end{frame}
-
-
-
-% ----------------------------------------------------------------------------------------- %
-\subsection{Schema di funzionamento}
-\begin{frame}{Architettura dell'applicazione}{Schema di funzionamento}
-% ----------------------------------------------------------------------------------------- %
-
-
-%\begin{figure}
-%\centering
-%\includegraphics[width=\textwidth]{Concorrente}
-%\caption{Schema del funzionamento di un server concorrente.}
-%\label{fig:Concorrente}
-%\end{figure}
-
-\end{frame}
-
-
-
 
 
 
