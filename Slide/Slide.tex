@@ -1,8 +1,8 @@
 \documentclass[10pt]{beamer}
-\usetheme[
+%\usetheme[
 %%% option passed to the outer theme
 %    progressstyle=fixedCircCnt,   % fixedCircCnt, movingCircCnt (moving is deault)
-]{Feather}
+%]{}
   
 % If you want to change the colors of the various elements in the theme, edit and uncomment the following lines
 
@@ -29,15 +29,16 @@
 \usepackage{xcolor}
 \usepackage{graphicx}
 \usepackage{multirow}
+\usepackage{adjustbox}
+\usepackage{booktabs}
+\usepackage{subfig}
+\usepackage{geometry}
 
 %-------------------------------------------------------
 % DEFFINING AND REDEFINING COMMANDS
 %-------------------------------------------------------
 
-% colored hyperlinks
-\newcommand{\chref}[2]{
-  \href{#1}{{\usebeamercolor[bg]{Feather}#2}}
-}
+\usetheme{Frankfurt}
 
 %-------------------------------------------------------
 % INFORMATION IN THE TITLE PAGE
@@ -78,9 +79,9 @@ basicstyle=\tiny\ttfamily,
 keywordstyle=\color{blue},
 commentstyle=\color{gray},			
 stringstyle=\color{black},			
-%numbers=left,						
-%numberstyle=\tiny,					
-%stepnumber=1,						
+numbers=left,						
+numberstyle=\tiny,					
+stepnumber=1,						
 breaklines=true						
 }
 
@@ -94,7 +95,7 @@ breaklines=true
 % THE TITLEPAGE
 %-------------------------------------------------------
 
-{\1% % this is the name of the PDF file for the background
+{% % this is the name of the PDF file for the background
 \begin{frame}[plain,noframenumbering] % the plain option removes the header from the title page, noframenumbering removes the numbering of this frame only
   \titlepage % call the title page information from above
 \end{frame}}
@@ -105,14 +106,38 @@ breaklines=true
 
 
 \section{System State}
-\subsection{Mathematical variables}
+\subsection{Conceptual model}
+
+
+
+
+
+\section{Specification model}
+
+
+\subsection{Introduction}
+
 % ************************************************************************** %
-\begin{frame}[fragile]{Mathematical variables}{Specification Model}
+\begin{frame}{Specification model}{Introduction}
+
 
 \begin{itemize}
+\item What are the \textbf{state variables}?
 
+\begin{table}[h!]
+    \centering
+    \small
+    \begin{tabular}{p{1cm}p{0.5cm}p{8cm}}
+       
+      $n_x^{(c)}(\tau)$ & $ = $ & Number of class $c$ jobs currently running at $x$ system's node at time $\tau$ \\
+      $d_x^{(c)}(\tau)$ & $ = $ & Number of class $c$ departed jobs from node $x$ at time $\tau$ \\
+      $s_{x,i}^{(c)}$ & $ = $ & Service time of class $c$ job $i$ served on $x$ node   \\
+      $i_{cloudlet}^{(2)}(\tau)$ & $ = $ & Number of class 2 interrupted jobs at time $\tau$ which were running on cloudlet (Access control algorithm 2 only!)\\
+          
+    \end{tabular}
+\end{table}
 
-\item Mathematical notation and variables used in our specification model:
+Where:
 
 \begin{table}[h!]
     \centering
@@ -124,21 +149,30 @@ breaklines=true
     \end{tabular}
 \end{table}
 
-\begin{table}[h!]
-    \centering
-    \small
-    \begin{tabular}{l}
-      $n_x^{(c)}(\tau)$  \\
-      $d_x^{(c)}(\tau)$  \\
-      $s_{x,i}^{(c)}$  \\
-      $i_{cloudlet}^{(2)}(\tau)$ \\
-          
-    \end{tabular}
-\end{table}
+\end{itemize}
+\end{frame}
 
-\item There are several constrains and relations among these variables.
+% ************************************************************************** %
+\begin{frame}{Specification model}{Introduction}
+
 \begin{itemize}
-\item Some of which depend on chosen access control algorithm.
+\item Are there any \textbf{constrains} regarding the values assumed by these variables?
+
+\begin{equation}
+\begin{array} {lr} 
+\displaystyle \sum_{c \in C} n_{cloudlet}^{(c)}(\tau) \leq N & \forall \tau \in (t_0, t) \\\\
+\end{array}
+\end{equation}
+
+\begin{itemize}
+\item If you are using \textit{Access Control Algorithm 2}:
+
+\begin{equation}
+\begin{array} {rccr} 
+n_{cloudlet}^{(2)}(\tau) > 0 & \Rightarrow & \displaystyle \sum_{c \in C} n_{cloudlet}^{(c)}(\tau) \leq S & \forall \tau \in (t_0, t) \\
+S + 1 \leq n_{cloudlet}^{(1)}(\tau) \leq N & \Leftrightarrow & n_{cloudlet}^{(2)}(\tau) = 0 & \forall \tau \in (t_0, t)
+\end{array}
+\end{equation}
 \end{itemize}
 
 \end{itemize}
@@ -147,7 +181,11 @@ breaklines=true
 
 % ************************************************************************** %
 \subsection{System State}
-\begin{frame}[fragile]{System State}{Specification Model}
+\begin{frame}[fragile]{Specification Model}{System State}
+
+\begin{itemize}
+\item What's meant by \textbf{system state}?
+\item So, how we can define system state formally?
 
 \begin{equation}
 \omega(\tau) = (\omega_{cloudlet}(\tau),\omega_{cloud}(\tau))
@@ -166,104 +204,196 @@ Thus:
 
 \begin{equation}
 \begin{array} {rcl} 
-\omega(\tau) = ((n_{cloudlet}^{(1)}(\tau),n_{cloudlet}^{(2)}(\tau)),(n_{cloud}^{(1)}(\tau),n_{cloud}^{(2)}(\tau))
+\omega(\tau) = ((n_{cloudlet}^{(1)}(\tau),n_{cloudlet}^{(2)}(\tau)),(n_{cloud}^{(1)}(\tau),n_{cloud}^{(2)}(\tau))\\\\
 \end{array}
 \end{equation}
-\end{frame}
 
-% ************************************************************************** %
-\subsection{System assumptions}
-\begin{frame}[fragile]{System assumptions}{Specification Model}
-\begin{itemize}
-\item $n_x^{(c)}(0) = 0$ and $d_x^{(c)}(0) = 0$, $\forall c \in C, \forall x \in X $
-\begin{itemize}
-\item Initial system status is \textit{idle}. 
+\item How do they evolve in time?
 \end{itemize}
 
-
-
-\item First event must be either a class 1 or class 2 job arrival.
-
-\item Our stopping criteria: $\tau^*$ beyond which no new jobs can arrive.
-\begin{itemize}
-\item Terminal state is idle.
-\item System keep on working until all jobs have been completely served. 
-\end{itemize}
-
-
-\end{itemize}
 \end{frame}
 
 
-
 % ************************************************************************** %
-\subsection{Events (Algorithm 1)}
-\begin{frame}[fragile]{Events (Algorithm 1)}{Specification Model}
+\subsection{Events}
+\begin{frame}{Specification Model}{Events}
 
-\begin{figure}
-\centering
-\includegraphics[width=\textwidth, height=200px]{./images/EventsSpec.png}
-\label{fig:Concorrente}
-\end{figure}
+\begin{itemize}
+\item What is an event?
+\item What is the first event that can occur? And the last one?
+
+\begin{equation}
+\begin{array} {lr} 
+
+n_x^{(c)}(t_0) = 0 & \forall c \in C, \forall x \in X \\\\
+d_x^{(c)}(t_0) = 0 & \forall c \in C, \forall x \in X \\\\
+n_x^{(c)}(t) = 0 & \forall c \in C, \forall x \in X \\\\
+t_0 = 0, t = \tau^*
+\end{array}
+\end{equation}
+
+
+
+\item So, what are the events capable to change system status?
+\end{itemize}
 
 \end{frame}
 
 % ************************************************************************** %
-\subsection{Events (Algorithm 2)}
-\begin{frame}[fragile]{Events (Algorithm 2)}{Specification Model}
+\begin{frame}{Specification Model}{Events}
+
+\begin{table}[h!]
+    \begin{adjustbox}{center=\textwidth, height=105pt}
+     \begin{tabular}{c|c|p{2.5cm}}
+
+      \toprule
+      \textbf{Event name that occurred at time $\tau$} & \textbf{Event's place} & \textbf{Event's effects} \\
+      \midrule
+      
+      \multirow{3}{*}{Class 1 job arrival} & Cloudlet & $n_{\text{cloudlet}}^{(1)}(\tau)\texttt{++}$ \\ \cline{2-3} 
+      & Cloud & $n_{\text{cloud}}^{(1)}(\tau)\texttt{++}$ \\ \cline{2-3} 
+      & Controller & $n_{\text{global}}^{(1)}(\tau)\texttt{++}$ \\ 
+       
+      \hline
+       
+      \multirow{3}{*}{Class 2 job arrival} & Cloudlet & $n_{\text{cloudlet}}^{(2)}(\tau)\texttt{++}$ \\ \cline{2-3} 
+      & Cloud & $n_{\text{cloud}}^{(2)}(\tau)\texttt{++}$ \\ \cline{2-3} 
+      & Controller & $n_{\text{global}}^{(2)}(\tau)\texttt{++}$ \\ 
+    
+	  \hline
+       
+      \multirow{8}{*}{Class 1 job departure} & \multirow{4}{*}{Cloudlet} & $n_{\text{cloudlet}}^{(1)}(\tau)\texttt{--}$ \newline $n_{\text{global}}^{(1)}(\tau)\texttt{--}$ \newline $d_{\text{cloudlet}}^{(1)}(\tau)\texttt{++}$ \newline $d_{\text{global}}^{(1)}(\tau)\texttt{++}$ \\ \cline{2-3} 
+      & \multirow{4}{*}{Cloud} & $n_{\text{cloud}}^{(1)}(\tau)\texttt{--}$ \newline $n_{\text{global}}^{(1)}(\tau)\texttt{--}$ \newline $d_{\text{cloud}}^{(1)}(\tau)\texttt{++}$ \newline $d_{\text{global}}^{(1)}(\tau)\texttt{++}$ \\ \cline{2-3} 
+ 
+ 		\hline
+       
+      \multirow{8}{*}{Class 2 job departure} & \multirow{4}{*}{Cloudlet} & $n_{\text{cloudlet}}^{(2)}(\tau)\texttt{--}$ \newline $n_{\text{global}}^{(2)}(\tau)\texttt{--}$ \newline $d_{\text{cloudlet}}^{(2)}(\tau)\texttt{++}$ \newline $d_{\text{global}}^{(2)}(\tau)\texttt{++}$ \\ \cline{2-3} 
+      & \multirow{4}{*}{Cloud} & $n_{\text{cloud}}^{(2)}(\tau)\texttt{--}$ \newline $n_{\text{global}}^{(2)}(\tau)\texttt{--}$ \newline $d_{\text{cloud}}^{(2)}(\tau)\texttt{++}$ \newline $d_{\text{global}}^{(2)}(\tau)\texttt{++}$ \\
+ 
+      \bottomrule
+
+
+    \end{tabular}
+    \end{adjustbox}
+\end{table}
+
+\end{frame}
+
+% ************************************************************************** %
+\begin{frame}{Specification Model}{Events}
+
+\begin{itemize}
+\item When you are using \textit{Access Control Algorithm 2}:
+
+\begin{itemize}
+\item If \textbf{class 1 job arrival event on controller} occurs:
+
+\begin{equation}
+n_{\text{global}}^{(1)}(\tau)\texttt{++}
+\end{equation}
+
+\item \textbf{If} following conditions are \textbf{all} true:
 
 \begin{equation}
 \begin{array} {rcl} 
 
 n_{cloudlet}^{(1)}(\tau) & \neq & N \\\\
 
-n_{cloudlet}^{(1)}(\tau) + n_{cloudlet}^{(2)}(\tau) & > & S \\\\
+n_{cloudlet}^{(1)}(\tau) + n_{cloudlet}^{(2)}(\tau) & = & S \\\\
 
-n_{cloudlet}^{(2)} & \geqslant & 0
+n_{cloudlet}^{(2)} & > & 0
 
 \end{array}
 \end{equation}
 
+\textbf{Then}:
+
 \begin{itemize}
-\item $n_{cloudlet}^{(1)}(\tau)$ is incremented by one.
-\item $n_{cloudlet}^{(2)}(\tau)$ is decremented by one.
-\item class 2 job arrival on cloud node event is scheduled (considering a set-up time)
+\item $n_{cloudlet}^{(2)}(\tau)--$
+\item Class 1 job arrival on cloudlet node event is scheduled.
+\item Class 2 job arrival on cloud node event is scheduled.
+\item A Class 2 job departure on cloudlet node event is removed from the \textit{event list}.
+\item $i_{cloudlet}^{(2)}(\tau)++$
+\end{itemize}
+
 \end{itemize}
 
 
+\end{itemize}
 \end{frame}
+
+% ************************************************************************** %
+
+\subsection{computation}
+\begin{frame}{Specification Model}{Statistics computation}
+
+\begin{itemize}
+\item How to compute requested statistics?
+
+
+\begin{equation}
+\begin{array} {rclr} 
+E[N_x]^{(c)} & = & \displaystyle  \dfrac{1}{t-t_0}\int_{t_0}^t n_x^{(c)}(\tau)d\tau & \qquad \forall c \in C, \forall x \in X
+\end{array}
+\end{equation}
+
+\begin{equation}
+\begin{array} {rclr} 
+E[N_x] & = & \displaystyle  \dfrac{1}{t-t_0} \cdot \int_{t_0}^t \left( n_x^{(1)}(\tau) + n_x^{(2)}(\tau) \right) d\tau \\\\
+	   & = & \displaystyle  \dfrac{1}{t-t_0} \cdot \int_{t_0}^t n_x^{(1)}(\tau)d\tau + \dfrac{1}{t-t_0} \cdot \int_{t_0}^t n_x^{(2)}(\tau)d\tau \\\\
+	   & = & E[N_x]^{(1)} + E[N_x]^{(2)} \\\\
+	   & = & \displaystyle  \sum_{c \in C} E[N_x]^{(c)} & \forall x \in X
+\end{array}
+\end{equation}
+
+\end{itemize}
+\end{frame}
+
+% ************************************************************************** %
+\begin{frame}{Specification Model}{Statistics computation}
+
+\begin{equation}
+\begin{array} {rccccr} 
+E[T_x]^{(c)} & = & E[S_x]^{(c)} & = & \displaystyle \dfrac{1}{d_x^{(c)}(t)} \cdot \sum_{i = 0}^{d_x^{(c)}(t)} s_{x,i}^{(c)} & \forall c \in C, \forall x \in X \\
+\end{array}
+\end{equation}
+
+If we aren't interested about per-class metrics, we can compute $E[S_x]$ and $E[T_x]$, respectively \textit{time-averaged service time} and the \textit{time-averaged response time experienced by any class jobs in a $x$ system's node}, as follows:
+
+\begin{equation}
+\begin{array} {rccccr} 
+E[T_x] & = & E[S_x] & = & \displaystyle \dfrac{1}{d_x^{(1)}(t) + d_x^{(2)}(t)} \cdot \left( \sum_{i = 0}^{d_x^{(1)}(t)} s_{x,i}^{(1)} + \sum_{i = 0}^{d_x^{(2)}(t)} s_{x,i}^{(2)} \right) & \forall x \in X \\
+\end{array}
+\end{equation}
+
+
+\end{frame}
+
+
+
 
 \section{Computational Model}
-% ************************************************************************** %
-\subsection{Next-event simulation logic}
-\begin{frame}[fragile]{Class Diagrams 1}{Computational Model}
-\begin{figure}
-\centering
-\includegraphics[width=\textwidth]{./images/ClassDiagramEvent.png}
-\label{fig:Concorrente}
-\end{figure}
 
+
+\subsection{Next-event simulation logic}
+
+% ************************************************************************** %
+\begin{frame}{Computational Model}{Next-event simulation logic}
+
+\begin{itemize}
+\item Which are main features of a discrete-event simulation using a \textbf{next-event} approach?
+
+\item How we have implemented \textit{simulation clock} and the \textit{event list}?
+
+\item How we have implemented next-event simulation algorithm in our computational model?
+\end{itemize}
 
 \end{frame}
 
 % ************************************************************************** %
-\subsection{Next-event simulation logic}
-\begin{frame}[fragile]{Class Diagrams 2}{Computational Model}
-\begin{figure}
-\centering
-\includegraphics[width=\textwidth]{./images/ClassDiagram.png}
-\label{fig:Concorrente}
-\end{figure}
+\begin{frame}[fragile]{Computational Model}{Next-event simulation logic}
 
-
-\end{frame}
-
-
-% ************************************************************************** %
-\subsection{Next-event simulation logic}
-\begin{frame}[fragile]{Next-event simulation logic}{Computational Model}
-
-\begin{lstlisting}[frame=lines, caption={Snippet of \texttt{perform} method}, label={code:perform}]
+\begin{lstlisting}[frame=lines, caption={\texttt{ComputationalModel.perform} method}]
 public void perform() {
 
    initializeSimulation();
@@ -288,29 +418,181 @@ public void perform() {
    }
 ...
 \end{lstlisting}
-\end{frame}
 
-% ************************************************************************** %
-\subsection{Routing algorithm 1}
-\begin{frame}[fragile]{Routing algorithm 1}{Computational Model}
-
-\begin{lstlisting}
-protected void performRoutingAlgorithm(SystemEvent event) {
-
-   int n1 = this.system.getNumberOfClass1JobOnCloudlet();
-   int n2 = this.system.getNumberOfClass2JobOnCloudlet();
-
-   if ((n1 + n2) == this.system.getThreshold())
-      this.system.scheduleEventOnCloud(event, 0);
-   else
-      this.system.scheduleEventOnCloudlet(event, 0);
+\begin{lstlisting}[frame=lines, caption={\texttt{ComputationalModel.initializeSimulation} method}]
+private void initializeSimulation() {
+     initializeSystemStateVariables();
+     initializeSimulationClock();
+     scheduleInitialEvent();
 }
 \end{lstlisting}
 \end{frame}
 
+
 % ************************************************************************** %
-\subsection{Routing algorithm 2}
-\begin{frame}[fragile]{Routing algorithm 2}{Computational Model}
+\begin{frame}[fragile]{Computational Model}{Next-event simulation logic}
+
+
+\begin{lstlisting}[frame=lines, caption={\texttt{System} class methods}]
+@Override
+protected void initializeSystemStateVariables() {
+    this.cloud.initializeSystemStateVariables();
+    this.cloudlet.initializeSystemStateVariables();
+    this.globalNetwork.initializeSystemStateVariables();
+}
+
+@Override
+protected void initializeSimulationClock() {
+    SimulationClock.getInstance().setCurrentEventTime(0.0);
+    SimulationClock.getInstance().setNextEventTime(0.0);
+}
+
+@Override
+protected void scheduleInitialEvent() {
+    this.globalNetwork.scheduleInitialEvent();
+}
+\end{lstlisting}
+
+\begin{lstlisting}[frame=lines, caption={\texttt{GlobalNetwork.scheduleInitialEvent} method}]
+@Override
+public void scheduleInitialEvent() {
+    SystemEvent firstEventClass1 = SystemEventFactory.buildClass1JobArrival();
+    SystemEvent firstEventClass2 = SystemEventFactory.buildClass2JobArrival();
+
+    this.system.scheduleEventOnGlobalNetwork(firstEventClass1, this.getNextClass1JobInterArrivalTime());
+    this.system.scheduleEventOnGlobalNetwork(firstEventClass2, this.getNextClass2JobInterArrivalTime());
+}
+\end{lstlisting}
+\end{frame}
+
+
+
+\subsection{Events}
+\begin{frame}{Computational Model}{Events}
+
+\begin{itemize}
+\item How we have implemented events in our computational model?
+\end{itemize}
+\end{frame}
+
+
+% ************************************************************************** %
+\subsection{Next-event simulation logic}
+\begin{frame}{Computational Model}{Events}
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{./images/ClassDiagramEvent.png}
+\label{fig:Concorrente}
+\end{figure}
+\end{frame}
+
+
+% ************************************************************************** %
+\begin{frame}[fragile]{Computational Model}{Events}
+
+\begin{lstlisting}[frame=lines, caption={\texttt{SystemEvent} class}]
+public abstract class SystemEvent extends SimulationEvent {
+
+    protected SystemComponent systemComponent;
+
+    public void setSystemComponent(SystemComponent systemComponent) {
+        this.systemComponent = systemComponent;
+    }
+
+    public SystemComponent getSystemComponent() {
+        return systemComponent;
+    }
+    ...
+}
+\end{lstlisting}
+
+\begin{lstlisting}[frame=lines, caption={\texttt{Class1JobArrival} class}]
+public class Class1JobArrival extends SystemEvent {
+
+    @Override
+    public void perform() {
+        this.systemComponent.updateStatusAfterClass1JobArrival();
+    }
+
+    @Override
+    public void scheduleFollowingEvent() {
+        this.systemComponent.scheduleFollowingEventAfterClass1JobArrival();
+    }
+}
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]{Computational Model}{Events}
+
+\begin{itemize}
+\item \texttt{PreviouslyInterruptedClass2JobArrival}? What is it for?
+\end{itemize}
+
+
+\begin{lstlisting}[frame=lines, caption={\texttt{PreviouslyInterruptedClass2JobArrival} class}]
+public class PreviouslyInterruptedClass2JobArrival extends SystemEvent {
+
+    private double delay;
+
+    public PreviouslyInterruptedClass2JobArrival(double delay) {
+        this.delay = delay;
+    }
+
+    @Override
+    public void perform() {
+        this.systemComponent.updateStatusAfterPreviouslyInterruptedClass2JobArrival(this.delay);
+    }
+
+    @Override
+    public void scheduleFollowingEvent() {
+        this.systemComponent.scheduleFollowingEventAfterPreviouslyInterruptedClass2JobArrival();
+    }
+}
+\end{lstlisting}
+\end{frame}
+
+
+
+
+
+
+
+
+
+
+
+% ************************************************************************** %
+\subsection{System implementation}
+\begin{frame}{Computational Model}{System implementation}
+
+\begin{itemize}
+\item How we have implemented our system? 
+\item Which classes hold system state variables? Which compute output statistics?
+\item How can we start our simulator?
+\end{itemize}
+\end{frame}
+
+% ************************************************************************** %
+\begin{frame}{Computational Model}{System implementation}
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{./images/ClassDiagram.png}
+\label{fig:Concorrente}
+\end{figure}
+\end{frame}
+
+
+\subsection{Class 2 job interruption}
+\begin{frame}{Computational Model}{Class 2 job interruption}
+
+\begin{itemize}
+\item How we manage class 2 job interruption?
+\end{itemize}
+\end{frame}
+
+% ************************************************************************** %
+
+\begin{frame}[fragile]{Routing algorithm 2}{Class 2 job interruption}
 
 \begin{lstlisting}
 protected void performRoutingAlgorithm(SystemEvent event) {
@@ -352,43 +634,56 @@ protected void performRoutingAlgorithm(SystemEvent event) {
 \section{Statistics Results}
 
 % ----------------------------------------------------------------------------------------- %
-\begin{frame}[fragile]{Statistics Results}{Il processo client}
+\subsection{Finite-Horizon}
+\begin{frame}{Statistics Results}{A Finite-Horizon simulation}
 
-\vspace*{20px}
-Do \textbf{steady-state} statistics exist?
+\begin{itemize}
+\item What kind of simulation have we performed?
+\item What is generated at the end of each simulation? How we can provide an estimation for required metrics?
 
+Let $i$ i-th replication, where $i = 0,...,n$
+
+\begin{equation}
+\bar{x_i}(t) = \int_0^t x_i(t)dt \qquad \forall i=1,...,n
+\end{equation}
+
+\begin{equation}
+E[\bar{x}(t)] = \dfrac{1}{n} \sum_{i=1}^n \bar{x_i}(t)
+\end{equation}
+
+Obliviously, interval estimate for $E[\bar{x}(t)]$ can be calculated from the ensemble mean and standard deviation.
+
+\end{itemize}
 
 \end{frame}
 
 \begin{frame}[fragile]{Statistics Results}{Il processo client}
+
+
 \begin{figure}
 \centering
-\includegraphics[width=\textwidth]{./images/ClassDiagramEvent.png}
-\caption{Class 1 Jobs Service Time}
-\label{fig:Concorrente}
+\includegraphics[width=\textwidth]{./images/EnsembleStatisticsCloud_Class1JobsNumber.png}
 \end{figure}
 
-
 \end{frame}
 
 
-% ----------------------------------------------------------------------------------------- %
-\begin{frame}[fragile]{Statistics Results}{Il processo client}
 
-\begin{block}{Steady-state system statistics}
-\textbf{Steady-state system statistics} are those statistics, if they exist, that are produced by simulating the operation of a \textbf{stationary} discrete-event system for an effectively \textbf{infinite} length of time.
 
-In many systems, a steady state is not achieved until some time after the system is started or initiated. This initial situation is often identified as a transient state, start-up or warm-up period.
+\subsection{Steady state}
+\begin{frame}{Statistics Results}{A Finite-Horizon simulation}
 
-If a system is in a steady state, then the recently observed behavior of the system will continue into the future.
+\begin{itemize}
 
-if the variables (called state variables) which define the behavior of the system or the process are unchanging in time.
+\item What are steady-state statistics? When they exist?
+\item So, do the steady-state statistics exist in our system?
+\item Is possible to obtain an interval estimation for steady state statistics using our simulator?
+\end{itemize}
 
-\end{block}
 \end{frame}
 
 % ----------------------------------------------------------------------------------------- %
-\begin{frame}[fragile]{Statistics Results}{}
+\begin{frame}{Statistics Results}{Steady State statistics}
 
 \begin{figure}
 \centering
@@ -396,18 +691,75 @@ if the variables (called state variables) which define the behavior of the syste
 \caption{Class 1 Jobs Service Time}
 \label{fig:Concorrente}
 \end{figure}
+\end{frame}
+
+\begin{frame}{Statistics Results}{Steady State statistics}
+
+\begin{itemize}
+\item Finite-horizon interval estimates are accurate steady-state estimates, becoming increasingly more accurate as the number of jobs increases.
+
+\item The steady-state average wait indicator is interior to the finite-horizon interval estimate, suggesting that current system simulation parameters ($\tau^*$, $n$) allow us to achieve statistics that are close to their steady-state values.
+
+\item But there is another way...
+
+\end{itemize}
+\end{frame}
+
+
+\section{Routing Algorithms Comparison}
+\begin{frame}[fragile]{Access control algorithms comparison}{}
+
+\begin{itemize}
+\item Which routing policy is better?
+\end{itemize}
+
+\begin{figure}
+    \centering
+    \subfloat[Cloudlet]{\includegraphics[width=3.6cm]{./Compare/ScatterPlotCloudlet_JobsNumber.png}}   
+    \subfloat[Cloud]{\includegraphics[width=3.6cm]{./Compare/ScatterPlotCloud_JobsNumber.png}}
+    \subfloat[Global]{\includegraphics[width=3.6cm]{./Compare/ScatterPlotGlobalNetwork_JobsNumber.png}}
+    \caption{Time-Average Job Population}%
+\end{figure}
+
 
 
 \end{frame}
 
+\begin{frame}[fragile]{Access control algorithms comparison}{}
+
+\begin{figure}[h!]
+    \centering
+    \subfloat[Class 1 Jobs]{\includegraphics[width=3.6cm]{./Compare/ScatterPlotGlobalNetwork_Class1JobsServiceTime.png}}
+    \subfloat[Class 2 Jobs]{\includegraphics[width=3.6cm]{./Compare/ScatterPlotGlobalNetwork_Class2JobsServiceTime.png}}
+    \subfloat[Both Classes]{\includegraphics[width=3.6cm]{./Compare/ScatterPlotGlobalNetwork_JobsServiceTime.png}}
+    \caption{Global Time-Average service/response time}%
+\end{figure}
+
+\end{frame}
 
 
+\begin{frame}[fragile]{Access control algorithms comparison}{}
+\begin{figure}[h!]
+    \centering
+    \subfloat[]{\includegraphics[width=7cm]{./Compare/ScatterPlotGlobalNetwork_Throughput.png}}
+    \caption{Global Throughput}%
+\end{figure}
+\end{frame}
+
+\begin{frame}[fragile]{Access control algorithms comparison}{}
+\begin{figure}[h!]
+    \centering
+    \subfloat[Class 1 Jobs]{\includegraphics[width=3.6cm]{./Compare/ScatterPlotCloudlet_Class1Throughput.png}}
+    \subfloat[Class 2 Jobs]{\includegraphics[width=3.6cm]{./Compare/ScatterPlotCloudlet_Class2Throughput.png}}
+    \subfloat[Both Classes]{\includegraphics[width=3.6cm]{./Compare/ScatterPlotCloudlet_Throughput.png}}
+    \caption{Cloudlet Throughput}%
+\end{figure}
+\end{frame}
 
 
-{\1
 \begin{frame}[plain,noframenumbering]
-  \finalpage{Grazie per l'attenzione!}
-\end{frame}}
+  Grazie per l'attenzione!
+\end{frame}
 
 
 \end{document}
