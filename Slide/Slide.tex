@@ -33,6 +33,14 @@
 \usepackage{booktabs}
 \usepackage{subfig}
 \usepackage{geometry}
+\usepackage{tikz}
+\usepackage{graphicx}
+
+\usetikzlibrary{positioning,angles,quotes,calc,shapes.geometric}
+\usetikzlibrary{chains,shapes.multipart}
+\usetikzlibrary{shapes,calc,fit}
+\usetikzlibrary{automata,positioning}
+
 
 %-------------------------------------------------------
 % DEFFINING AND REDEFINING COMMANDS
@@ -105,16 +113,111 @@ breaklines=true
 
 
 
-\section{System State}
-\subsection{Conceptual model}
+
+\section{System description}
+
+\begin{frame}[fragile]{System description}{}
+
+\begin{figure}[h!]
+\resizebox{\columnwidth}{7.5cm}{%
+\begin{tikzpicture}
+
+
+% Cloud
+
+\node[circle, draw, minimum width = 0.8cm]        					   (CloudNode0) at (0,2) {};
+\node[circle, draw, minimum width = 0.8cm, below of=CloudNode0]        (CloudNode1) {};
+\node[circle, draw, minimum width = 0.8cm, below of=CloudNode1]        (CloudNode2) {};
+\node[circle, draw, minimum width = 0.8cm, below of=CloudNode2]        (CloudNode3) {};
+\node[circle, draw=white, minimum width = 0.8cm, below of=CloudNode3]  (CloudNode4) {\rotatebox{90}{\textbf{....}}};
+
+\node[above of=CloudNode4, yshift=-2.5cm, xshift=0.2cm] (labellllllll) {Cloud};
+
+\node[right of=CloudNode0, xshift=-2.5cm] (ExtCloudNode0) {};
+\node[right of=CloudNode1, xshift=-2.5cm] (ExtCloudNode1) {};
+\node[right of=CloudNode2, xshift=-2.5cm] (ExtCloudNode2) {};
+\node[right of=CloudNode3, xshift=-2.5cm] (ExtCloudNode3) {};
+
+
+\coordinate (cloudStartNode) at (1.5,0);
+
+% Controller
+
+\node[circle, draw, minimum width = 2.2cm]  (ControllerExternal) at (4,0) {};
+\node[circle, draw, minimum width = 2cm]    (Controller2)        at (4,0) {Controller};
+
+\coordinate (cloudletStartNode) at (6.5,0);
+
+\coordinate (Start) at (4,3.5);
+
+% Cloudlet
+
+\node[circle, draw, minimum width = 0.8cm, left of=ControllerExternal, xshift=5cm, yshift=2cm]       (CloudletNode0) {$1$};
+\node[circle, draw, minimum width = 0.8cm, below of=CloudletNode0]           (CloudletNode1) {$2$};
+\node[circle, draw, minimum width = 0.8cm, below of=CloudletNode1]           (CloudletNode2) {$3$};
+\node[circle, draw=white, minimum width = 0.8cm, below of=CloudletNode2]     (CloudletNode3) {\rotatebox{90}{\textbf{....}}};
+\node[circle, draw, minimum width = 0.8cm, below of=CloudletNode3] (CloudletNode4) {$N$};
+
+\node[rectangle, draw, dashed, minimum width =6.5cm, minimum height=5.2cm] (Cloudlet) at (5.5,0) {};
+\node[circle,below of=Cloudlet, yshift=-2cm, xshift=-1.5cm] (label1) {"One-hop" distance};
+
+\node[left of=CloudletNode0, xshift=2.5cm] (ExtCloudletNode0) {};
+\node[left of=CloudletNode1, xshift=2.5cm] (ExtCloudletNode1) {};
+\node[left of=CloudletNode2, xshift=2.5cm] (ExtCloudletNode2) {};
+\node[left of=CloudletNode4, xshift=2.5cm] (ExtCloudletNode3) {};
+
+\node[rectangle, draw, dashed, minimum width =2cm, minimum height=5.5cm, right of=CloudletNode2, xshift=-1cm] (CloudletFrame) {};
+\node[circle,above of=CloudletFrame, yshift=2.2cm] (label1) {Cloudlet Servers};
+
+% Cloudlet Rows...
+
+\draw[ultra thick,-] (ControllerExternal) -- (cloudletStartNode);
+\draw[ultra thick,->] (cloudletStartNode) -- (CloudletNode0);
+\draw[ultra thick,->] (cloudletStartNode) -- (CloudletNode1);
+\draw[ultra thick,->] (cloudletStartNode) -- (CloudletNode2);
+\draw[ultra thick,->] (cloudletStartNode) -- (CloudletNode4);
+
+% Cloud Rows...
+
+\draw[ultra thick,-] (ControllerExternal) -- (cloudStartNode);
+\draw[ultra thick,->] (cloudStartNode) -- (CloudNode0);
+\draw[ultra thick,->] (cloudStartNode) -- (CloudNode1);
+\draw[ultra thick,->] (cloudStartNode) -- (CloudNode2);
+\draw[ultra thick,->] (cloudStartNode) -- (CloudNode3);
+
+% Out from cloudlet nodes
+
+\draw[thick,->] (CloudletNode0) -- (ExtCloudletNode0);
+\draw[thick,->] (CloudletNode1) -- (ExtCloudletNode1);
+\draw[thick,->] (CloudletNode2) -- (ExtCloudletNode2);
+\draw[thick,->] (CloudletNode4) -- (ExtCloudletNode3);
+
+% Out from cloud nodes
+
+\draw[thick,->] (CloudNode0) -- (ExtCloudNode0);
+\draw[thick,->] (CloudNode1) -- (ExtCloudNode1);
+\draw[thick,->] (CloudNode2) -- (ExtCloudNode2);
+\draw[thick,->] (CloudNode3) -- (ExtCloudNode3);
+ 
+% START
+
+\draw[ultra thick,->] (Start) node[above] {Arrival Tasks} -- (ControllerExternal) ;
+
+\node [cloud, right of=CloudNode3, xshift=-18, yshift=35, draw,cloud puffs=15,cloud puff arc=120, aspect=3, minimum width =2.5cm, minimum height=7cm, inner ysep=1em] (cloudcc) {};
+
+\path (CloudletNode3) edge[->,dashed,ultra thick, bend left, out=0, in=170] node [left] [sloped, yshift=-5,xshift=60] {Interrupted jobs} (CloudNode4);
+
+\end{tikzpicture}
+}
+\end{figure}
+
+\end{frame}
 
 
 
 
 
 \section{Specification model}
-
-
 \subsection{Introduction}
 
 % ************************************************************************** %
@@ -358,8 +461,6 @@ E[T_x]^{(c)} & = & E[S_x]^{(c)} & = & \displaystyle \dfrac{1}{d_x^{(c)}(t)} \cdo
 \end{array}
 \end{equation}
 
-If we aren't interested about per-class metrics, we can compute $E[S_x]$ and $E[T_x]$, respectively \textit{time-averaged service time} and the \textit{time-averaged response time experienced by any class jobs in a $x$ system's node}, as follows:
-
 \begin{equation}
 \begin{array} {rccccr} 
 E[T_x] & = & E[S_x] & = & \displaystyle \dfrac{1}{d_x^{(1)}(t) + d_x^{(2)}(t)} \cdot \left( \sum_{i = 0}^{d_x^{(1)}(t)} s_{x,i}^{(1)} + \sum_{i = 0}^{d_x^{(2)}(t)} s_{x,i}^{(2)} \right) & \forall x \in X \\
@@ -368,8 +469,6 @@ E[T_x] & = & E[S_x] & = & \displaystyle \dfrac{1}{d_x^{(1)}(t) + d_x^{(2)}(t)} \
 
 
 \end{frame}
-
-
 
 
 \section{Computational Model}
